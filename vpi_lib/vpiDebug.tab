@@ -1,0 +1,8 @@
+$causalTree   check=causalTreeCheck   call=causalTreeCall                        acc=r:*
+$dumpHier     check=dumpHierCheck     call=dumpHierCall                          acc=r:*
+$dumpUpstream check=dumpUpstreamCheck call=dumpUpstreamCall                      acc=r:*
+$extractMod   check=extractModCheck   call=extractModCall   misc=extractModMisc  acc=r,cbk:*
+$oscDetect    check=oscDetectCheck    call=oscDetectCall                         acc=r,cbk,frc:*
+$traceSignal  check=traceSignalCheck  call=traceSignalCall  misc=traceSignalMisc acc=r,cbk:*
+$vcdCompare   check=vcdCompareCheck   call=vcdCompareCall   misc=vcdCompareMisc  acc=r,cbk:*
+$vpiDebug     check=vpiDebugCheck     call=vpiDebugCall
