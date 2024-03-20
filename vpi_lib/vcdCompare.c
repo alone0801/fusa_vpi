@@ -147,8 +147,8 @@ static int compareHandler( p_cb_data cb_data_p )
     static s_vpi_time time_s = { vpiSimTime };
 
     vpi_get_time( 0, &time_s );
-    printf("Compare at%ld:%ld:\n", time_s.high, time_s.low );
-    printEventList(top);
+    /*printf("Compare at%ld:%ld:\n", time_s.high, time_s.low );*/
+    /*printEventList(top);*/
     DBG_VDIFF(( "Compare at %ld:%ld:\n", time_s.high, time_s.low ));
 
     while ( ptr )

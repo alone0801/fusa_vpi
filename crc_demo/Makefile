@@ -9,6 +9,9 @@ test:
 clean:
 	rm -rf *.o
 	rm -rf *.out
+	rm -rf *.log
+	rm -rf *.vcd
+	rm -rf csrc simv  simv.daidir fi_wrapper.v ucli.key
 vpi:
 #编译vpi对应的c函数,生成hello.o，hello.vpi
 	iverilog-vpi vpi.c
@@ -28,13 +31,23 @@ vsim:
 vcs:
 	vcs -f rtl.f -P vpi.tab +vpi -sverilog vpi.c -debug_access
 	./simv
-good_sim:
-	rm -rf csrc simv  simv.daidir
-	vcs +vpi +define+TESTNAME=COUNT_MEM1 -P ../vpi_lib/vcdCompare.tab \
-	../vpi_lib/*.c  -f demo_rtl.f +define+good_sim -sverilog
-	simv -l good_sim.log
+#good_sim:
+#	rm -rf csrc simv  simv.daidir
+#	vcs +vpi +define+TESTNAME=COUNT_MEM1 -P ../vpi_lib/vcdCompare.tab \
+#	../vpi_lib/*.c  -f demo_rtl.f +define+good_sim -sverilog
+#	simv -l good_sim.log
 fault_sim:
 	rm -rf csrc simv  simv.daidir
 	vcs  +vpi +define+TESTNAME=COUNT_MEM1 -P ../vpi_lib/vpiDebug.tab \
-	../vpi_lib/*.c  -f demo_rtl.f -debug_all -sverilog
-	simv -l fault_sim.log 	
+	../vpi_lib/*.c  -f demo_rtl.f fi_wrapper.v -debug_all -sverilog \
+	+define+FAULT_LOCATION=u_tb.dut_inst.mem1_i.mem_data_in[0] \
+	+define+FAULT_VALUE=0 \
+	+define+FAULT_TIME=80 
+	simv -l fault_sim.log 
+good_sim:
+	python ../vpi_lib/wrapper_gen.py 
+	rm -rf csrc simv  simv.daidir
+	vcs +vpi +define+TESTNAME=COUNT_MEM1 -P ../vpi_lib/vcdCompare.tab \
+	../vpi_lib/*.c  -f demo_rtl.f +define+good_sim -sverilog fi_wrapper.v
+	simv -l good_sim.log
+

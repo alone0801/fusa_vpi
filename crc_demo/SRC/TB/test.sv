@@ -262,13 +262,14 @@ module test;
 		end
 
    end
-
+/*
 initial begin
 	$dumpfile("wave.vcd");  			// 指定VCD波形文件的名字为wave.vcd，仿真信息将记录到此文件，wave.vcd文件将存储在当前目录下
 	//$dumpfile("./simulation/wave.vcd");  	// wave.vcd文件将存储在当前目录下的simulation文件夹下
 	$dumpvars(0, test );  				// 指定层次数为0，则tb模块及其下面各层次的所有信号将被记录，我们需要所有信号都被记录
 						// 一定要设置一个仿真停止时间
 end
+*/
 /*
 initial begin
 	#100 $port_info(test.dut_inst);
@@ -277,17 +278,20 @@ initial begin
     // #10 $show_all_signals(test.dut_inst);
 end
 */
+/*
   initial begin
   `ifdef good_sim
   $dumpfile("golden.vcd");
-  $dumpvars(0);
+  $dumpvars(1,test);
   `else
    $vcdCompare("golden.vcd");
     $dumpfile("fault.vcd");
-    $dumpvars(0);
+    $dumpvars(1);
+    #80;
+    force test.dut_inst.mem1_i.mem_data_in[0] = 0;    
   `endif
   end
-
+*/
 endmodule // test
 
 interface intf;

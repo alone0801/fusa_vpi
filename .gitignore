@@ -30,3 +30,5 @@ ucli.key
 csrc
 simv
 *.log
+.simvision/
+fi_wrapper.v
