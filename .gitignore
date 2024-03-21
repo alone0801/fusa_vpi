@@ -5,7 +5,6 @@ nouse/
 *.vcd
 *.vvp
 *.fst
-*.xml
 *.ini
 transcript
 *.wlf
@@ -32,3 +31,4 @@ simv
 *.log
 .simvision/
 fi_wrapper.v
+*.swp
