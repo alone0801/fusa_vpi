@@ -46,7 +46,8 @@
 #include "vcsuser.h"
 #include "vpi_user.h"
 #include <strings.h>
-
+#include <libxml/parser.h>
+#include <libxml/tree.h>
 #include "vpiDebug.h"
 
 static hash_table vcdHash;

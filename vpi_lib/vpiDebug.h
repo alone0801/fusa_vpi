@@ -8,6 +8,7 @@
 #define USE_NODES
 
 #include "hash.h"
+#include "StringList.h"
 
 /*
  *  Debug output (flags defined in vpiDebug.c)
