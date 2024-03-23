@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <FI_CONFIG>
     <CLASSFICATION_MODE>CHECKER_FCUNTIONAL/CHECKER_ONLY</CLASSFICATION_MODE>
     <FAULT_TARGER></FAULT_TARGER>
@@ -5,8 +6,14 @@
     <TESTBENCH_NAME>test</TESTBENCH_NAME>
     <INJECT_TIME>50</INJECT_TIME>
     <FAULT_LOCATION>u_tb.dut_inst.mem1_i.mem_data_in[0]</FAULT_LOCATION>
-    <CHECKER_STROBE>test.dut_inst.mem1_err_detected,test.dut_inst.mem2_err_detected</CHECKER_STROBE>
-    <FUNCTIONAL_STROBE>test.dut_inst.mem1_data_out,test.dut_inst.mem2_data_out</FUNCTIONAL_STROBE>
+    <OBSERVATION_POINTS>
+    <CHECKER_STROBE>test.dut_inst.mem1_err_detected</CHECKER_STROBE>
+    <CHECKER_STROBE>test.dut_inst.mem2_err_detected</CHECKER_STROBE>
+    <FUNCTIONAL_STROBE>test.dut_inst.mem1_data_out</FUNCTIONAL_STROBE>
+    <FUNCTIONAL_STROBE>test.dut_inst.mem2_data_out</FUNCTIONAL_STROBE>
+    <NOSTOP_STROBE>test.dut_inst.mem2_data_out</NOSTOP_STROBE>
+    </OBSERVATION_POINTS>
     <SERVERITY>DROPPED_ON_DETECT/DROPPED_ON_DD/NEVER_DROPPED</SERVERITY>
     <ISO_MODE></ISO_MODE>
 </FI_CONFIG>
+

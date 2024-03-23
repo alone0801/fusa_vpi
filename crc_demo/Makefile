@@ -4,8 +4,6 @@ run:
 	gtkwave wave.vcd
 var:
 	verilator --sc foo.v --exe adder_tb.cpp 
-test:
-	verilator --sc foo_test.v --exe adder_tb.cpp 
 clean:
 	rm -rf *.o
 	rm -rf *.out
@@ -42,12 +40,16 @@ fault_sim:
 	../vpi_lib/*.c  -f demo_rtl.f fi_wrapper.v -debug_all -sverilog \
 	+define+FAULT_LOCATION=u_tb.dut_inst.mem1_i.mem_data_in[0] \
 	+define+FAULT_VALUE=0 \
-	+define+FAULT_TIME=80 
+	+define+FAULT_TIME=80 -lxml2
 	simv -l fault_sim.log 
 good_sim:
 	python ../vpi_lib/wrapper_gen.py 
 	rm -rf csrc simv  simv.daidir
 	vcs +vpi +define+TESTNAME=COUNT_MEM1 -P ../vpi_lib/vcdCompare.tab \
-	../vpi_lib/*.c  -f demo_rtl.f +define+good_sim -sverilog fi_wrapper.v
-	simv -l good_sim.log
+	../vpi_lib/*.c  -f demo_rtl.f +define+good_sim -sverilog fi_wrapper.v -lxml2
+	simv -l good_sim.log 
+test: 
+	vcs +vpi +define+TESTNAME=COUNT_MEM1 -P ../vpi_lib/pli.tab \
+      ../vpi_lib/*.c  -f demo_rtl.f +define+good_sim -sverilog fi_wrapper.v \
+	  -load  ../vpi_lib/libvpiDebug.a
 

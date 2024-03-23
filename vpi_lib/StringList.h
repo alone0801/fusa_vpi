@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct StringList {
+typedef struct StringList {
     char** strings;
     int count;
     int capacity;
-};
+}StringList;
 
 void initializeStringList(struct StringList* list);
 void addString(struct StringList* list, const char* str);

@@ -1,48 +1,3 @@
-/*********************************************************************
- * SYNOPSYS CONFIDENTIAL                                             *
- *                                                                   *
- * This is an unpublished, proprietary work of Synopsys, Inc., and   *
- * is fully protected under copyright and trade secret laws. You may *
- * not view, use, disclose, copy, or distribute this file or any     *
- * information contained herein except pursuant to a valid written   *
- * license from Synopsys.                                            *
- *********************************************************************/
-
-/*
- *  Limitations:
- *
- *  1) Only the final values of each signal are compared. Glitch
- *     mismatches are ignored. One could conceive of an algorithm
- *     to compare trace histories within a single time step but
- *     that was considered beyond the scope of this simple test.
- *
- *  2) Differences in optimization can cause mismatches to be missed.
- *     For example, if two signals were combined in the reference run
- *     (and thus were assigned the same identifier tag in the VCD
- *     file), the corresponding signals in the present simulation are
- *     compared with the VCD only once. If they happen to differ in
- *     value at any point during the simulation, whichever happens
- *     last in sequence will be compared against the recorded VCD
- *     value and the other signals's mismatch will be missed.
- *
- *     Ideally, we would check to make sure the real events come from
- *     the same object but that may not be feasible on-the-fly.
- *
- *  3) For now, the initial values of the signals (those inside the
- *     $dumpvars block in the VCD) are not compared. These are nearly
- *     always "X" anyway.
- *
- *  4) The $vcdCompare task assumes it is run at time zero. If this is
- *     not the case, the "expired" VCD chaff from the file should be
- *     discarded (keeping a table of last-known values) and the current
- *     value of each signal should be verified.
- *
- *  5) Only single-bit signals are compared. Vectors might require
- *     more work, since the real-time object may not be available as
- *     a vector from VPI (if it is, the values can be compared as
- *     strings, just like the single-bit values).
- */
-
 #include "vcsuser.h"
 #include "vpi_user.h"
 #include <strings.h>
@@ -51,7 +6,7 @@
 #include "vpiDebug.h"
 
 static hash_table vcdHash;
-
+static StringList checker_list,functional_list,nostop_list;
 /*
  *  Create a new vdiff_node (addendum to callback data structures)
  */
@@ -399,7 +354,15 @@ void vcdCompareCall( )
     char* filename = tf_getcstringp( 1 );
 
     vpi_printf( "vcdCompare: reading <%s>\n", filename );
-
+    initializeStringList(&checker_list);
+    initializeStringList(&functional_list);
+    initializeStringList(&nostop_list);
+    /*parseXML("FI.xml", &checker_list);*/
+    parseXML("FI.xml"); 
+    
+    printStringList(&checker_list);
+    printStringList(&functional_list);
+    printStringList(&nostop_list);
     hashInitialize( &vcdHash, 200 );
 
     addEosCallback( vcdCompareEosHandler );
@@ -413,4 +376,50 @@ void vcdCompareCall( )
 void vcdCompareMisc( int data, int reason )
 {
     if ( reason == reason_finish ) dummyEosHandler( );
+}
+
+/*void parseXML(const char* filename, struct StringList* list) {*/
+void parseXML(const char* filename) {
+    xmlDocPtr doc;
+    xmlNodePtr root, node;
+
+    doc = xmlReadFile(filename, NULL, 0);
+    if (doc == NULL) {
+        fprintf(stderr, "Failed to parse XML file.\n");
+        return;
+    }
+    root = xmlDocGetRootElement(doc);
+    if (root == NULL) {
+        fprintf(stderr, "Empty XML file.\n");
+        xmlFreeDoc(doc);
+        return;
+    }
+    xmlNodePtr child;
+    // Traverse the XML tree to find the desired elements
+    for (node = root->children; node != NULL; node = node->next) {
+        if (xmlStrcmp(node->name, (const xmlChar*)"OBSERVATION_POINTS") == 0) {
+            for ( child = node->children; child != NULL; child = child->next) {
+                if (xmlStrcmp(child->name, (const xmlChar*)"CHECKER_STROBE") == 0) {
+                    xmlChar* content = xmlNodeGetContent(child);
+                    // Add the content to the string list
+                    checker_list.strings[checker_list.count++] = strdup((const char*)content);
+                    xmlFree(content);
+                }
+                else if (xmlStrcmp(child->name, (const xmlChar*)"FUNCTIONAL_STROBE") == 0) {
+                    xmlChar* content = xmlNodeGetContent(child);
+                    // Add the content to the string list                          
+                    functional_list.strings[functional_list.count++] = strdup((const char*)content);
+                    xmlFree(content);
+                }
+               else if (xmlStrcmp(child->name, (const xmlChar*)"NOSTOP_STROBE") == 0) {
+                     xmlChar* content = xmlNodeGetContent(child);
+                     // Add the content to the string list
+                    nostop_list.strings[nostop_list.count++] = strdup((const char*)content);
+                     xmlFree(content);
+                 }
+            }
+        }
+    }
+
+    xmlFreeDoc(doc);
 }
