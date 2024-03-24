@@ -31,4 +31,6 @@ simv
 *.log
 .simvision/
 fi_wrapper.v
+*.dsn
+*.trn
 *.swp

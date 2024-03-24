@@ -40,10 +40,10 @@ fault_sim:
 	../vpi_lib/*.c  -f demo_rtl.f fi_wrapper.v -debug_all -sverilog \
 	+define+FAULT_LOCATION=u_tb.dut_inst.mem1_i.mem_data_in[0] \
 	+define+FAULT_VALUE=0 \
-	+define+FAULT_TIME=80 -lxml2
-	simv -l fault_sim.log 
+	+define+FAULT_TIME=80 -lxml2 
+	simv -l fault_sim.log -ucli -i ucli.tcl
 good_sim:
-	python ../vpi_lib/wrapper_gen.py 
+#python ../vpi_lib/wrapper_gen.py 
 	rm -rf csrc simv  simv.daidir
 	vcs +vpi +define+TESTNAME=COUNT_MEM1 -P ../vpi_lib/vcdCompare.tab \
 	../vpi_lib/*.c  -f demo_rtl.f +define+good_sim -sverilog fi_wrapper.v -lxml2

@@ -29,3 +29,11 @@ void freeStringList(struct StringList* list) {
     free(list->strings);
 }
 
+int checkStringList(const struct StringList* list, const char* str) {
+    for (i = 0; i < list->count; i++) {
+        if (strcmp(list->strings[i], str) == 0) {
+            return 1;
+        }
+    }
+    return 0;  // String not found
+}

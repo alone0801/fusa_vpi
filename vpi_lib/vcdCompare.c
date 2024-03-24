@@ -7,6 +7,10 @@
 
 static hash_table vcdHash;
 static StringList checker_list,functional_list,nostop_list;
+static int flag_continue=0;
+static char status_checker[] = "Undetect";
+static char status_functional[] = "Undetect";
+static char strobe_mode[] = "Dual";
 /*
  *  Create a new vdiff_node (addendum to callback data structures)
  */
@@ -99,7 +103,8 @@ static vpiHandle compareCallback = 0;
 static int compareHandler( p_cb_data cb_data_p )
 {
     struct event* ptr = top;
-
+    int flag_stop=0; 
+    /*flag control if drop this simulation at the end of time step*/
     static s_vpi_time time_s = { vpiSimTime };
 
     vpi_get_time( 0, &time_s );
@@ -123,6 +128,9 @@ static int compareHandler( p_cb_data cb_data_p )
                          ptr->vact, name, ptr->mark, time_s.high, time_s.low );
 
             triggerOnDiff( node->refn );
+            if(!checkStringList(&nostop_list,name))flag_stop=1;
+            if(checkStringList(&checker_list,name)) strcpy(status_checker, "Detect");
+            if(checkStringList(&functional_list,name)) strcpy(status_functional, "Detect");
         }
         else if ( ptr->vact == 0 )
         {
@@ -134,6 +142,9 @@ static int compareHandler( p_cb_data cb_data_p )
                          ptr->vexp, name, ptr->mark, time_s.high, time_s.low );
 
             triggerOnDiff( node->refn );
+            if(!checkStringList(&nostop_list,name))flag_stop=1;
+            if(checkStringList(&checker_list,name)) strcpy(status_checker, "Detect");
+            if(checkStringList(&functional_list,name)) strcpy(status_functional, "Detect");
         }
         else if ( strcmp( ptr->vexp, ptr->vact ) )
         {
@@ -143,7 +154,9 @@ static int compareHandler( p_cb_data cb_data_p )
 
             vpi_printf( "*** Mismatch on <%s(%s)>: exp=<%s>, act=<%s> at %ld:%ld\n",
                          name, ptr->mark, ptr->vexp, ptr->vact, time_s.high, time_s.low );
-
+            if(!checkStringList(&nostop_list,name))flag_stop=1;
+            if(checkStringList(&checker_list,name)) strcpy(status_checker, "Detect");  
+            if(checkStringList(&functional_list,name)) strcpy(status_functional, "Detect");
             triggerOnDiff( node->refn );
         }
         ptr = ptr->next;
@@ -151,6 +164,14 @@ static int compareHandler( p_cb_data cb_data_p )
     compareCallback = 0; /* clear the callback handle */
 
     top = ( struct event* )0; /* manhole -- fix memory leak */
+    
+    if(flag_stop&&!flag_continue){
+        flag_continue = 1;
+        printf("Strobe Mode is %s\n",strobe_mode);
+        printf("the classificaiton of the inject fault is :\nFunctional:%s,\nChecker:%s\n",status_functional,status_checker);
+        vpi_control(vpiStop,1);
+ }
+
 }
 
 static void setCompareCallback( struct event* ptr )
@@ -359,14 +380,14 @@ void vcdCompareCall( )
     initializeStringList(&nostop_list);
     /*parseXML("FI.xml", &checker_list);*/
     parseXML("FI.xml"); 
-    
+    printf("1,%s",status_functional);    
     printStringList(&checker_list);
     printStringList(&functional_list);
     printStringList(&nostop_list);
     hashInitialize( &vcdHash, 200 );
 
     addEosCallback( vcdCompareEosHandler );
-
+    printf("1,%s",status_functional);
     processVcd( readVcdHeader( filename ) );
 }
 
@@ -420,6 +441,6 @@ void parseXML(const char* filename) {
             }
         }
     }
-
+    if (functional_list.count==0) strcpy(strobe_mode, "Single");
     xmlFreeDoc(doc);
 }

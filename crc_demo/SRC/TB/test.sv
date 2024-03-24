@@ -292,6 +292,7 @@ end
   `endif
   end
 */
+fi_wrapper u_fi();
 endmodule // test
 
 interface intf;
