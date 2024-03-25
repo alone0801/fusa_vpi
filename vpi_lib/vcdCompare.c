@@ -11,6 +11,8 @@ static int flag_continue=0;
 static char status_checker[10] = "Undetect";
 static char status_functional[10] = "Undetect";
 static char strobe_mode[10] = "Dual";
+static int fault_classification( p_cb_data cb_data_p );
+static void FaultClassEosHandler( p_cb_data data );
 /*
  *  Create a new vdiff_node (addendum to callback data structures)
  */
@@ -164,13 +166,13 @@ static int compareHandler( p_cb_data cb_data_p )
     compareCallback = 0; /* clear the callback handle */
 
     top = ( struct event* )0; /* manhole -- fix memory leak */
-    
     if(flag_stop&&!flag_continue){
         flag_continue = 1;
-        printf("Strobe Mode is %s\n",strobe_mode);
+  /*      printf("Strobe Mode is %s\n",strobe_mode);
         if (strcmp(strobe_mode, "Single") == 0) printf("the classificaiton of the inject fault is :%s\n",status_checker);
         else printf("the classificaiton of the inject fault is :\nFunctional:%s,\nChecker:%s\n",status_functional,status_checker);
-        vpi_control(vpiStop,1);
+       */
+       vpi_control(vpiStop,1);
  }
 
 }
@@ -385,7 +387,7 @@ void vcdCompareCall( )
     printStringList(&functional_list);
     printStringList(&nostop_list);
     hashInitialize( &vcdHash, 200 );
-
+    addEosCallback( FaultClassEosHandler );
     addEosCallback( vcdCompareEosHandler );
     processVcd( readVcdHeader( filename ) );
 }
@@ -442,4 +444,15 @@ void parseXML(const char* filename) {
     }
     if (functional_list.count==0) strcpy(strobe_mode, "Single");
     xmlFreeDoc(doc);
+}
+static int fault_classification( p_cb_data cb_data_p )
+{
+    printf("Strobe Mode is %s\n",strobe_mode);
+    if (strcmp(strobe_mode, "Single") == 0) printf("the classificaiton of the inject fault is :%s\n",status_checker);
+    else printf("the classificaiton of the inject fault is :\nFunctional:%s,\nChecker:%s\n",status_functional,status_checker);
+}
+
+static void FaultClassEosHandler( p_cb_data data )
+{
+    fault_classification( data );
 }
