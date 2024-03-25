@@ -34,3 +34,4 @@ fi_wrapper.v
 *.dsn
 *.trn
 *.swp
+result.xml

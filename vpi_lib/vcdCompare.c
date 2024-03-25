@@ -13,6 +13,7 @@ static char status_functional[10] = "Undetect";
 static char strobe_mode[10] = "Dual";
 static int fault_classification( p_cb_data cb_data_p );
 static void FaultClassEosHandler( p_cb_data data );
+void generateXML(const char* idValue, const char* locationValue, const char* statusValue);
 /*
  *  Create a new vdiff_node (addendum to callback data structures)
  */
@@ -447,12 +448,40 @@ void parseXML(const char* filename) {
 }
 static int fault_classification( p_cb_data cb_data_p )
 {
+    char result[2];
+    result[0] = status_functional[0];
+    result[1] = status_checker[0];
+    result[2] = '\0'; 
     printf("Strobe Mode is %s\n",strobe_mode);
-    if (strcmp(strobe_mode, "Single") == 0) printf("the classificaiton of the inject fault is :%s\n",status_checker);
-    else printf("the classificaiton of the inject fault is :\nFunctional:%s,\nChecker:%s\n",status_functional,status_checker);
+    if (strcmp(strobe_mode, "Single") == 0){
+        printf("the classificaiton of the inject fault is :%s\n",status_checker);
+        generateXML("NULL","NULL",status_checker);
+    }
+    else { 
+        printf("the classificaiton of the inject fault is :\nFunctional:%s,\nChecker:%s\n",status_functional,status_checker);
+        generateXML("NULL","NULL",result); 
+    }
 }
 
 static void FaultClassEosHandler( p_cb_data data )
 {
     fault_classification( data );
+}
+void generateXML(const char* idValue, const char* locationValue, const char* statusValue) {
+    FILE *fp;
+    fp = fopen("result.xml", "w");
+    if (fp == NULL) {
+        printf("Error opening file.\n");
+        return;
+    }
+
+    fprintf(fp, "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n");
+    fprintf(fp, "<RESULT>\n");
+    fprintf(fp, "    <ID>%s</ID>\n", idValue);
+    fprintf(fp, "    <LOCATION>%s</LOCATION>\n", locationValue);
+    fprintf(fp, "    <STATUS>%s</STATUS>\n", statusValue);
+    fprintf(fp, "</RESULT>\n");
+
+    fclose(fp);
+    printf("XML file generated successfully.\n");
 }
