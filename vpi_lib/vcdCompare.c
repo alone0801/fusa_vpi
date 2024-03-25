@@ -8,9 +8,9 @@
 static hash_table vcdHash;
 static StringList checker_list,functional_list,nostop_list;
 static int flag_continue=0;
-static char status_checker[] = "Undetect";
-static char status_functional[] = "Undetect";
-static char strobe_mode[] = "Dual";
+static char status_checker[10] = "Undetect";
+static char status_functional[10] = "Undetect";
+static char strobe_mode[10] = "Dual";
 /*
  *  Create a new vdiff_node (addendum to callback data structures)
  */
@@ -168,7 +168,8 @@ static int compareHandler( p_cb_data cb_data_p )
     if(flag_stop&&!flag_continue){
         flag_continue = 1;
         printf("Strobe Mode is %s\n",strobe_mode);
-        printf("the classificaiton of the inject fault is :\nFunctional:%s,\nChecker:%s\n",status_functional,status_checker);
+        if (strcmp(strobe_mode, "Single") == 0) printf("the classificaiton of the inject fault is :%s\n",status_checker);
+        else printf("the classificaiton of the inject fault is :\nFunctional:%s,\nChecker:%s\n",status_functional,status_checker);
         vpi_control(vpiStop,1);
  }
 
@@ -380,14 +381,12 @@ void vcdCompareCall( )
     initializeStringList(&nostop_list);
     /*parseXML("FI.xml", &checker_list);*/
     parseXML("FI.xml"); 
-    printf("1,%s",status_functional);    
     printStringList(&checker_list);
     printStringList(&functional_list);
     printStringList(&nostop_list);
     hashInitialize( &vcdHash, 200 );
 
     addEosCallback( vcdCompareEosHandler );
-    printf("1,%s",status_functional);
     processVcd( readVcdHeader( filename ) );
 }
 

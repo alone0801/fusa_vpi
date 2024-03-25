@@ -43,7 +43,7 @@ fault_sim:
 	+define+FAULT_TIME=80 -lxml2 
 	simv -l fault_sim.log -ucli -i ucli.tcl
 good_sim:
-#python ../vpi_lib/wrapper_gen.py 
+	python ../vpi_lib/wrapper_gen.py 
 	rm -rf csrc simv  simv.daidir
 	vcs +vpi +define+TESTNAME=COUNT_MEM1 -P ../vpi_lib/vcdCompare.tab \
 	../vpi_lib/*.c  -f demo_rtl.f +define+good_sim -sverilog fi_wrapper.v -lxml2

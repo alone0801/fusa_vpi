@@ -1,23 +1,29 @@
 import xml.etree.ElementTree as ET
 
 external_vars = ['TESTBENCH_NAME', 'INJECT_TIME', 'FAULT_TYPE', 'FAULT_LOCATION', 'CHECKER_STROBE', 'FUNCTIONAL_STROBE']
-
+def extract_params(element, params):
+    if element.tag in external_vars:
+        if element.tag in params:
+            if isinstance(params[element.tag], list):
+                params[element.tag].append(element.text)
+            else:
+                params[element.tag] = [params[element.tag], element.text]
+        else:
+            params[element.tag] = element.text
+    for child in element:
+        extract_params(child, params)
 # ReadXML
 tree = ET.parse('FI.xml')
 root = tree.getroot()
 
 # Extract from xml
 external_params = {}
-for elem in root.iter():
-    if elem.tag in external_vars:
-        external_params[elem.tag] = elem.text
+extract_params(root, external_params)
 
 # generate wrapper
 verilog_code = """
 `define SA0 0
 module fi_wrapper();
-    // fault_top instance
-    {TESTBENCH_NAME} u_tb();
     // generate strobe signal in wave.vcd while golden simualtion
     initial begin
     `ifdef good_sim
@@ -36,13 +42,18 @@ endmodule
 """
 
 # use the xml_config to replace
-dumpvars_functional = '\n'.join(['\t\t$dumpvars(0, {});'.format(var) for var in external_params["FUNCTIONAL_STROBE"].split(',')])
-dumpvars_checker = '\n'.join(['\t\t$dumpvars(0, {});'.format(var) for var in external_params["CHECKER_STROBE"].split(',')])
+dumpvars_functional = ''
+dumpvars_checker = ''
+if 'FUNCTIONAL_STROBE' in external_params:
+    dumpvars_functional = '\n'.join(['\t\t$dumpvars(0, {});'.format(var) for var in external_params["FUNCTIONAL_STROBE"]])
+if 'CHECKER_STROBE' in external_params:
+    dumpvars_checker = '\n'.join(['\t\t$dumpvars(0, {});'.format(var) for var in external_params["CHECKER_STROBE"]])
 verilog_code = verilog_code.format(dumpvars_checker=dumpvars_checker, dumpvars_functional=dumpvars_functional,**external_params)
 
 
 # write to file
 with open('fi_wrapper.v', 'w') as file:
     file.write(verilog_code)
-
+print(external_params    ["CHECKER_STROBE"]);
 print("Verilog code generate in fi_wrapper.v")
+
