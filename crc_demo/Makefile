@@ -5,11 +5,7 @@ run:
 var:
 	verilator --sc foo.v --exe adder_tb.cpp 
 clean:
-	rm -rf *.o
-	rm -rf *.out
-	rm -rf *.log
-	rm -rf *.vcd
-	rm -rf csrc simv  simv.daidir fi_wrapper.v ucli.key
+	rm -rf csrc simv  simv.daidir fi_wrapper.v ucli.key result.xml *.vcd *.log *.out *.o
 vpi:
 #编译vpi对应的c函数,生成hello.o，hello.vpi
 	iverilog-vpi vpi.c

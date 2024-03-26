@@ -9,7 +9,7 @@
 
 #include "hash.h"
 #include "StringList.h"
-
+#include "port_alias.h"
 /*
  *  Debug output (flags defined in vpiDebug.c)
  */

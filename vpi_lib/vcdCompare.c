@@ -7,7 +7,9 @@
 
 static hash_table vcdHash;
 static StringList checker_list,functional_list,nostop_list;
+static PortInfoNode* port_list = NULL;
 static int flag_continue=0;
+static char fault_target[100];
 static char status_checker[10] = "Undetect";
 static char status_functional[10] = "Undetect";
 static char strobe_mode[10] = "Dual";
@@ -383,7 +385,8 @@ void vcdCompareCall( )
     initializeStringList(&functional_list);
     initializeStringList(&nostop_list);
     /*parseXML("FI.xml", &checker_list);*/
-    parseXML("FI.xml"); 
+    parseXML("FI.xml");
+    port_alias(fault_target,&port_list);
     printStringList(&checker_list);
     printStringList(&functional_list);
     printStringList(&nostop_list);
@@ -419,6 +422,15 @@ void parseXML(const char* filename) {
     }
     xmlNodePtr child;
     // Traverse the XML tree to find the desired elements
+    for (node = root->children; node != NULL; node = node->next) {
+        if (xmlStrcmp(node->name, (const xmlChar*)"FAULT_TARGET") == 0){
+            xmlChar* content = xmlNodeGetContent(node);
+            strcpy(fault_target,content);
+            printf("fault_target:%s\n",fault_target);
+            xmlFree(content);
+        }
+    }
+    
     for (node = root->children; node != NULL; node = node->next) {
         if (xmlStrcmp(node->name, (const xmlChar*)"OBSERVATION_POINTS") == 0) {
             for ( child = node->children; child != NULL; child = child->next) {
