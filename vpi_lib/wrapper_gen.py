@@ -45,9 +45,16 @@ endmodule
 dumpvars_functional = ''
 dumpvars_checker = ''
 if 'FUNCTIONAL_STROBE' in external_params:
-    dumpvars_functional = '\n'.join(['\t\t$dumpvars(0, {});'.format(var) for var in external_params["FUNCTIONAL_STROBE"]])
+    if isinstance(external_params['FUNCTIONAL_STROBE'], list):
+        dumpvars_functional = '\n'.join(['\t\t$dumpvars(0, {});'.format(var) for var in external_params["FUNCTIONAL_STROBE"]])
+    else:
+        dumpvars_functional = '\t\t$dumpvars(0, {});'.format(external_params["FUNCTIONAL_STROBE"])
+
 if 'CHECKER_STROBE' in external_params:
-    dumpvars_checker = '\n'.join(['\t\t$dumpvars(0, {});'.format(var) for var in external_params["CHECKER_STROBE"]])
+    if isinstance(external_params['CHECKER_STROBE'], list):
+        dumpvars_checker = '\n'.join(['\t\t$dumpvars(0, {});'.format(var) for var in external_params["CHECKER_STROBE"]])
+    else:
+        dumpvars_checker = '\t\t$dumpvars(0, {});'.format(external_params["CHECKER_STROBE"])
 verilog_code = verilog_code.format(dumpvars_checker=dumpvars_checker, dumpvars_functional=dumpvars_functional,**external_params)
 
 
