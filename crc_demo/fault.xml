@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<INJECT>
+    <ID>1</ID>
+    <LOCATION>test.dut.data_in[0]</LOCATION>
+    <TYPE>SA0</TYPE>
+    <TIME>50</TIME>
+</INJECT>

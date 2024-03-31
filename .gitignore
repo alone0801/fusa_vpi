@@ -35,3 +35,4 @@ fi_wrapper.v
 *.trn
 *.swp
 result.xml
+fault_dir/

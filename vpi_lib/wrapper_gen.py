@@ -1,5 +1,8 @@
 import xml.etree.ElementTree as ET
-
+import os
+import sys
+current_path =  os.getcwd()
+print("PWD", current_path)
 external_vars = ['TESTBENCH_NAME', 'INJECT_TIME', 'FAULT_TYPE', 'FAULT_LOCATION', 'CHECKER_STROBE', 'FUNCTIONAL_STROBE']
 def extract_params(element, params):
     if element.tag in external_vars:
@@ -27,11 +30,11 @@ module fi_wrapper();
     // generate strobe signal in wave.vcd while golden simualtion
     initial begin
     `ifdef good_sim
-        $dumpfile("golden.vcd");
+        $dumpfile("{current_path}/golden.vcd");
 {dumpvars_checker}
 {dumpvars_functional}
     `else
-        $vcdCompare("golden.vcd");
+        $vcdCompare("{current_path}");
         $dumpfile("fault.vcd");
         $dumpvars(2);
         #{INJECT_TIME};
@@ -55,7 +58,7 @@ if 'CHECKER_STROBE' in external_params:
         dumpvars_checker = '\n'.join(['\t\t$dumpvars(0, {});'.format(var) for var in external_params["CHECKER_STROBE"]])
     else:
         dumpvars_checker = '\t\t$dumpvars(0, {});'.format(external_params["CHECKER_STROBE"])
-verilog_code = verilog_code.format(dumpvars_checker=dumpvars_checker, dumpvars_functional=dumpvars_functional,**external_params)
+verilog_code = verilog_code.format(current_path=current_path,dumpvars_checker=dumpvars_checker, dumpvars_functional=dumpvars_functional,**external_params)
 
 
 # write to file

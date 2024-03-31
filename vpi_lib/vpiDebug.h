@@ -1,6 +1,6 @@
 #include "vcsuser.h"
 #include "vpi_user.h"
-
+#include <stdlib.h>
 #include <stdio.h>
 #include <strings.h>
 #include <malloc.h>
@@ -10,6 +10,7 @@
 #include "hash.h"
 #include "StringList.h"
 #include "port_alias.h"
+#include "random.h"
 /*
  *  Debug output (flags defined in vpiDebug.c)
  */

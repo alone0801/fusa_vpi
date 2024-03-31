@@ -13,8 +13,14 @@ static char fault_target[100];
 static char status_checker[10] = "Undetect";
 static char status_functional[10] = "Undetect";
 static char strobe_mode[10] = "Dual";
+static char FAULT_ID[100];
+static char FAULT_LOCATION[100];
+static char FAULT_TYPE[10];
+static char FAULT_TIME[10];
 static int fault_classification( p_cb_data cb_data_p );
 static void FaultClassEosHandler( p_cb_data data );
+void parse_injectXML(const char* filename);
+void SAInject(const char* fault_location, const char* fault_time, const char* fault_typeo);
 void generateXML(const char* idValue, const char* locationValue, const char* statusValue);
 /*
  *  Create a new vdiff_node (addendum to callback data structures)
@@ -378,18 +384,29 @@ void vcdCompareCheck( )
  */
 void vcdCompareCall( )
 {
-    char* filename = tf_getcstringp( 1 );
-
+    char* path = tf_getcstringp( 1 );
+    char  filename[100];
+    char  FI_PATH[100];
+    strcpy(FI_PATH, path);
+    strcat(FI_PATH,"/FI.xml");
+    strcpy(filename, path);
+    strcat(filename,"/golden.vcd");
     vpi_printf( "vcdCompare: reading <%s>\n", filename );
     initializeStringList(&checker_list);
     initializeStringList(&functional_list);
     initializeStringList(&nostop_list);
     /*parseXML("FI.xml", &checker_list);*/
-    parseXML("FI.xml");
+    parseXML(FI_PATH);
+    parse_injectXML("./fault.xml"); 
+    printf("FAULT_ID:%s",FAULT_ID);
+    int id = atoi(FAULT_ID);
     port_alias(fault_target,&port_list);
     printStringList(&checker_list);
     printStringList(&functional_list);
     printStringList(&nostop_list);
+    FaultData *faults = random_process();
+    //SAInject("test.dut_inst.mem1_i.mem_data_in[0]","50", "SA0");
+    SAInject(faults[id].fault_location, faults[id].fault_time, "SA0");
     hashInitialize( &vcdHash, 200 );
     addEosCallback( FaultClassEosHandler );
     addEosCallback( vcdCompareEosHandler );
@@ -458,6 +475,36 @@ void parseXML(const char* filename) {
     if (functional_list.count==0) strcpy(strobe_mode, "Single");
     xmlFreeDoc(doc);
 }
+void parse_injectXML(const char* filename) {
+    xmlDocPtr doc;
+    xmlNodePtr root, node;
+
+    doc = xmlReadFile(filename, NULL, 0);
+    if (doc == NULL) {
+        fprintf(stderr, "Failed to parse XML file.\n");
+        return;
+    }
+    root = xmlDocGetRootElement(doc);
+    if (root == NULL) {
+        fprintf(stderr, "Empty XML file.\n");
+        xmlFreeDoc(doc);
+        return;
+    }
+    xmlNodePtr child;
+    // Traverse the XML tree to find the desired elements
+        for (node = root->children; node != NULL; node = node->next) {
+            if (xmlStrcmp(node->name, (const xmlChar *)"ID") == 0) {
+                strcpy(FAULT_ID, (char *)xmlNodeGetContent(node));
+            } else if (xmlStrcmp(node->name, (const xmlChar *)"LOCATION") == 0) {
+                strcpy(FAULT_LOCATION, (char *)xmlNodeGetContent(node));
+            } else if (xmlStrcmp(node->name, (const xmlChar *)"TYPE") == 0) {
+                strcpy(FAULT_TYPE, (char *)xmlNodeGetContent(node));
+            } else if (xmlStrcmp(node->name, (const xmlChar *)"TIME") == 0) {
+                strcpy(FAULT_TIME, (char *)xmlNodeGetContent(node));
+            }
+        }
+    xmlFreeDoc(doc);
+}
 static int fault_classification( p_cb_data cb_data_p )
 {
     char result[2];
@@ -496,4 +543,17 @@ void generateXML(const char* idValue, const char* locationValue, const char* sta
 
     fclose(fp);
     printf("XML file generated successfully.\n");
+}
+void SAInject(const char* fault_location, const char* fault_time, const char* fault_type){
+    vpiHandle location_handle;
+    s_vpi_value value_s;
+    int value;
+    if(strcmp(fault_type,"SA0")==0) value = 0;
+    else value = 1;
+    printf(fault_location);
+    location_handle = vpi_handle_by_name(fault_location,0);
+    value_s.format = vpiIntVal;
+    value_s.value.integer = value;
+    printf("Debug:%s",vpi_get_str(vpiFullName,location_handle));
+    vpi_put_value(location_handle,&value_s,NULL,vpiForceFlag);
 }
