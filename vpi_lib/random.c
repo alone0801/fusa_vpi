@@ -1,11 +1,11 @@
 #include "random.h"
 
-FaultData *random_process() {
+FaultData *random_process(const char* filename) {
     FILE *fp;
     char line[256];
     int num_lines = 0;
 
-    fp = fopen("fault.set", "r");
+    fp = fopen(filename, "r");
     if (fp == NULL) {
         perror("Error opening file");
         return NULL;
@@ -23,7 +23,7 @@ FaultData *random_process() {
         return NULL;
     }
 
-    fp = fopen("fault.set", "r");
+    fp = fopen(filename, "r");
     if (fp == NULL) {
         perror("Error opening file");
         return NULL;

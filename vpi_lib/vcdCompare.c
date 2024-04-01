@@ -387,6 +387,9 @@ void vcdCompareCall( )
     char* path = tf_getcstringp( 1 );
     char  filename[100];
     char  FI_PATH[100];
+    char  FS_PATH[100];
+    strcpy(FS_PATH, path);
+    strcat(FS_PATH,"/fault.set");
     strcpy(FI_PATH, path);
     strcat(FI_PATH,"/FI.xml");
     strcpy(filename, path);
@@ -404,7 +407,8 @@ void vcdCompareCall( )
     printStringList(&checker_list);
     printStringList(&functional_list);
     printStringList(&nostop_list);
-    FaultData *faults = random_process();
+    FaultData *faults = random_process(FS_PATH);
+    if(FAULT_LOCATION==NULL||strlen(FAULT_LOCATION) == 0)strcpy(FAULT_LOCATION, faults[id].fault_location);
     //SAInject("test.dut_inst.mem1_i.mem_data_in[0]","50", "SA0");
     SAInject(faults[id].fault_location, faults[id].fault_time, "SA0");
     hashInitialize( &vcdHash, 200 );
@@ -518,7 +522,7 @@ static int fault_classification( p_cb_data cb_data_p )
     }
     else { 
         printf("the classificaiton of the inject fault is :\nFunctional:%s,\nChecker:%s\n",status_functional,status_checker);
-        generateXML("NULL","NULL",result); 
+        generateXML(FAULT_ID,FAULT_LOCATION,result); 
     }
 }
 

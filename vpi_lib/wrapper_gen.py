@@ -36,9 +36,7 @@ module fi_wrapper();
     `else
         $vcdCompare("{current_path}");
         $dumpfile("fault.vcd");
-        $dumpvars(2);
-        #{INJECT_TIME};
-        force {FAULT_LOCATION} =`{FAULT_TYPE};
+        $dumpvars(0,test);
     `endif
     end
 endmodule

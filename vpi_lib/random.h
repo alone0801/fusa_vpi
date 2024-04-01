@@ -6,4 +6,4 @@ typedef struct {
     char fault_time[20];
     char fault_location[100];
 } FaultData;
-FaultData *random_process();
+FaultData *random_process(const char* filename);

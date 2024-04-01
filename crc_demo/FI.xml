@@ -8,10 +8,10 @@
     <FAULT_LOCATION>test.dut_inst.mem1_i.mem_data_in[0]</FAULT_LOCATION>
     <OBSERVATION_POINTS>
     <CHECKER_STROBE>test.dut_inst.mem1_err_detected</CHECKER_STROBE>
-    <!--<CHECKER_STROBE>test.dut_inst.mem2_err_detected</CHECKER_STROBE>-->
+    <CHECKER_STROBE>test.dut_inst.mem2_err_detected</CHECKER_STROBE>
     <FUNCTIONAL_STROBE>test.dut_inst.mem1_data_out</FUNCTIONAL_STROBE>
-    <!--<FUNCTIONAL_STROBE>test.dut_inst.mem2_data_out</FUNCTIONAL_STROBE>-->
-    <NOSTOP_STROBE>test.dut_inst.mem2_data_out</NOSTOP_STROBE>
+    <FUNCTIONAL_STROBE>test.dut_inst.mem2_data_out</FUNCTIONAL_STROBE>
+    <!--<NOSTOP_STROBE>test.dut_inst.mem2_data_out</NOSTOP_STROBE>-->
     </OBSERVATION_POINTS>
     <SERVERITY>DROPPED_ON_DETECT/DROPPED_ON_DD/NEVER_DROPPED</SERVERITY>
     <ISO_MODE></ISO_MODE>

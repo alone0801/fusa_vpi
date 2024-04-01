@@ -36,3 +36,4 @@ fi_wrapper.v
 *.swp
 result.xml
 fault_dir/
+stack.info.*
