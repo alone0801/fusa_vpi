@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <INJECT>
     <ID>1</ID>
-    <LOCATION>test.dut_inst.mem2_i.crc_chk_i.crc_gen_i.d</LOCATION>
-    <TYPE>SA1</TYPE>
-    <TIME>50</TIME>
+    <LOCATION>test.dut_inst.mem1_data_out[0]</LOCATION>
+    <TYPE>SA0</TYPE>
+    <TIME>60</TIME>
 </INJECT>

@@ -4,6 +4,7 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include "vpiDebug.h"
+#include"fault_injector.h"
 
 static hash_table vcdHash;
 static StringList checker_list,functional_list,nostop_list;
@@ -22,6 +23,8 @@ static void FaultClassEosHandler( p_cb_data data );
 void parse_injectXML(const char* filename);
 void SAInject(const char* fault_location, const char* fault_time, const char* fault_typeo);
 void generateXML(const char* idValue, const char* locationValue, const char* statusValue,const char* typeValue);
+void fault_injector_register();
+
 /*
  *  Create a new vdiff_node (addendum to callback data structures)
  */
@@ -413,11 +416,12 @@ void vcdCompareCall( )
     FaultData *faults = random_process(FS_PATH);
     if(FAULT_LOCATION==NULL||strlen(FAULT_LOCATION) == 0)strcpy(FAULT_LOCATION, faults[id].fault_location);
     //SAInject("test.dut_inst.mem1_i.mem_data_in[0]","50", "SA0");
-    SAInject(FAULT_LOCATION, faults[id].fault_time, FAULT_TYPE);
+    //SAInject(FAULT_LOCATION, faults[id].fault_time, FAULT_TYPE);
     hashInitialize( &vcdHash, 200 );
     addEosCallback( FaultClassEosHandler );
     addEosCallback( vcdCompareEosHandler );
     processVcd( readVcdHeader( filename ) );
+    fault_injector_register();
 }
 
 /*
@@ -478,6 +482,10 @@ void parseXML(const char* filename) {
                  }
             }
         }
+        if (xmlStrcmp(node->name, (const xmlChar *)"TESTBENCH_NAME") == 0)
+        {
+            strcpy(TESTBENCH_NAME, (char *)xmlNodeGetContent(node));
+        }
     }
     if (functional_list.count==0) strcpy(strobe_mode, "Single");
     xmlFreeDoc(doc);
@@ -504,10 +512,24 @@ void parse_injectXML(const char* filename) {
                 strcpy(FAULT_ID, (char *)xmlNodeGetContent(node));
             } else if (xmlStrcmp(node->name, (const xmlChar *)"LOCATION") == 0) {
                 strcpy(FAULT_LOCATION, (char *)xmlNodeGetContent(node));
+                fault.fault_node_name = FAULT_LOCATION;
             } else if (xmlStrcmp(node->name, (const xmlChar *)"TYPE") == 0) {
                 strcpy(FAULT_TYPE, (char *)xmlNodeGetContent(node));
+                if(strcmp("SEU", FAULT_TYPE) == 0)
+                    fault.fault_type = SEU_FAULT;
+                else if(strcmp("SA0", FAULT_TYPE) == 0)
+                {
+                    fault.fault_type = SA_FAULT;
+                    fault.fault_value = 0;
+                }
+                else if(strcmp("SA1", FAULT_TYPE) == 0)
+                {
+                    fault.fault_type = SA_FAULT;
+                    fault.fault_value = 1;
+                }
             } else if (xmlStrcmp(node->name, (const xmlChar *)"TIME") == 0) {
                 strcpy(FAULT_TIME, (char *)xmlNodeGetContent(node));
+                fault.injection_time = atoi(FAULT_TIME);
             }
         }
     xmlFreeDoc(doc);
