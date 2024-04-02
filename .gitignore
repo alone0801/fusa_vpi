@@ -37,3 +37,5 @@ fi_wrapper.v
 result.xml
 fault_dir/
 stack.info.*
+result.xml
+summary.xml

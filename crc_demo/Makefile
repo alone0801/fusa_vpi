@@ -5,7 +5,7 @@ run:
 var:
 	verilator --sc foo.v --exe adder_tb.cpp 
 clean:
-	rm -rf csrc simv  simv.daidir fi_wrapper.v ucli.key result.xml *.vcd *.log *.out *.o fault_dir
+	rm -rf csrc simv  simv.daidir fi_wrapper.v ucli.key result.xml *.vcd *.log *.out *.o *.dsn *.trn
 vpi:
 #编译vpi对应的c函数,生成hello.o，hello.vpi
 	iverilog-vpi vpi.c
@@ -32,22 +32,26 @@ vcs:
 #	simv -l good_sim.log
 fault_sim:
 	rm -rf csrc simv  simv.daidir
-	vcs  +vpi +define+TESTNAME=COUNT_MEM1 -P ../vpi_lib/vpiDebug.tab \
+	vcs  +vpi +define+BYTE_COUNT_MEM1 -P ../vpi_lib/vpiDebug.tab \
 	../vpi_lib/*.c  -f demo_rtl.f fi_wrapper.v -debug_all -sverilog \
 	+define+FAULT_LOCATION=u_tb.dut_inst.mem1_i.mem_data_in[0] \
 	+define+FAULT_VALUE=0 \
 	+define+FAULT_TIME=80 -lxml2 
-	./simv -l fault_sim.log -ucli -i ../vpi_lib/ucli.tcl
+	./simv -l fault_sim.log
+#-ucli -i ../vpi_lib/ucli.tcl
 good_sim:
 	python ../vpi_lib/wrapper_gen.py 
 	rm -rf csrc simv  simv.daidir
-	vcs +vpi +define+TESTNAME=COUNT_MEM1 -P ../vpi_lib/vcdCompare.tab \
+	vcs +vpi +define+BYTE_COUNT_MEM1 -P ../vpi_lib/vcdCompare.tab \
 	../vpi_lib/*.c  -f demo_rtl.f +define+good_sim -sverilog fi_wrapper.v -lxml2
 	./simv -l good_sim.log 
 test: 
-	vcs +vpi +define+TESTNAME=COUNT_MEM1 -P ../vpi_lib/pli.tab \
+	vcs +vpi +define+COUNT_MEM1 -P ../vpi_lib/pli.tab \
       ../vpi_lib/*.c  -f demo_rtl.f +define+good_sim -sverilog fi_wrapper.v \
 	  -load  ../vpi_lib/libvpiDebug.a
 fault_test:
 	cd fault_sim_0;pwd;../simv -l fault_sim.log -ucli -i ../../vpi_lib/ucli.tcl
-
+merge:
+#python3 ../vpi_lib/result_merge.py
+	rm -rf summary.xml
+	sh report.sh ./fault_dir

@@ -21,7 +21,7 @@ static int fault_classification( p_cb_data cb_data_p );
 static void FaultClassEosHandler( p_cb_data data );
 void parse_injectXML(const char* filename);
 void SAInject(const char* fault_location, const char* fault_time, const char* fault_typeo);
-void generateXML(const char* idValue, const char* locationValue, const char* statusValue);
+void generateXML(const char* idValue, const char* locationValue, const char* statusValue,const char* typeValue);
 /*
  *  Create a new vdiff_node (addendum to callback data structures)
  */
@@ -404,13 +404,16 @@ void vcdCompareCall( )
     printf("FAULT_ID:%s",FAULT_ID);
     int id = atoi(FAULT_ID);
     port_alias(fault_target,&port_list);
+    printf("checker strobe list:\n");
     printStringList(&checker_list);
+    printf("functional strobe list:\n");
     printStringList(&functional_list);
+    printf("nostop strobe list:\n");
     printStringList(&nostop_list);
     FaultData *faults = random_process(FS_PATH);
     if(FAULT_LOCATION==NULL||strlen(FAULT_LOCATION) == 0)strcpy(FAULT_LOCATION, faults[id].fault_location);
     //SAInject("test.dut_inst.mem1_i.mem_data_in[0]","50", "SA0");
-    SAInject(faults[id].fault_location, faults[id].fault_time, "SA0");
+    SAInject(FAULT_LOCATION, faults[id].fault_time, FAULT_TYPE);
     hashInitialize( &vcdHash, 200 );
     addEosCallback( FaultClassEosHandler );
     addEosCallback( vcdCompareEosHandler );
@@ -518,11 +521,11 @@ static int fault_classification( p_cb_data cb_data_p )
     printf("Strobe Mode is %s\n",strobe_mode);
     if (strcmp(strobe_mode, "Single") == 0){
         printf("the classificaiton of the inject fault is :%s\n",status_checker);
-        generateXML("NULL","NULL",status_checker);
+        generateXML("NULL","NULL",status_checker,FAULT_TYPE);
     }
     else { 
         printf("the classificaiton of the inject fault is :\nFunctional:%s,\nChecker:%s\n",status_functional,status_checker);
-        generateXML(FAULT_ID,FAULT_LOCATION,result); 
+        generateXML(FAULT_ID,FAULT_LOCATION,result,FAULT_TYPE); 
     }
 }
 
@@ -530,7 +533,7 @@ static void FaultClassEosHandler( p_cb_data data )
 {
     fault_classification( data );
 }
-void generateXML(const char* idValue, const char* locationValue, const char* statusValue) {
+void generateXML(const char* idValue, const char* locationValue, const char* statusValue,const char* typeValue) {
     FILE *fp;
     fp = fopen("result.xml", "w");
     if (fp == NULL) {
@@ -542,6 +545,7 @@ void generateXML(const char* idValue, const char* locationValue, const char* sta
     fprintf(fp, "<RESULT>\n");
     fprintf(fp, "    <ID>%s</ID>\n", idValue);
     fprintf(fp, "    <LOCATION>%s</LOCATION>\n", locationValue);
+    fprintf(fp, "    <TYPE>%s</TYPE>\n", typeValue);
     fprintf(fp, "    <STATUS>%s</STATUS>\n", statusValue);
     fprintf(fp, "</RESULT>\n");
 
@@ -554,10 +558,10 @@ void SAInject(const char* fault_location, const char* fault_time, const char* fa
     int value;
     if(strcmp(fault_type,"SA0")==0) value = 0;
     else value = 1;
-    printf(fault_location);
+   // printf(fault_location);
     location_handle = vpi_handle_by_name(fault_location,0);
     value_s.format = vpiIntVal;
     value_s.value.integer = value;
-    printf("Debug:%s",vpi_get_str(vpiFullName,location_handle));
+    printf("Inject Fault at:%s ,Fault type is %s\n",vpi_get_str(vpiFullName,location_handle),fault_type);
     vpi_put_value(location_handle,&value_s,NULL,vpiForceFlag);
 }

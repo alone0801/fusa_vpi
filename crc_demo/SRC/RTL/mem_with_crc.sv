@@ -22,20 +22,20 @@ module mem_with_crc
         parameter POLYNOMIAL_BITS = 1
     )
     (
-		input logic                        clk,                 //1
-		input logic                        rst_n,               //1
-		input logic                        mem_wr,              //1
-		input logic [DATA_WIDTH-1:0]       mem_data_in,         //8
-		input logic [POLYNOMIAL_BITS-1:0]  crc_data_in,         //1
-		output logic [DATA_WIDTH-1:0]      mem_data_out,        //8
-		output logic [POLYNOMIAL_BITS-1:0] crc_data_out         //1     ports_instrument = 1+1+1+8+1+8+1 = 21
+		input logic                        clk,
+		input logic                        rst_n,
+		input logic                        mem_wr,
+		input logic [DATA_WIDTH-1:0]       mem_data_in,
+		input logic [POLYNOMIAL_BITS-1:0]  crc_data_in,
+		output logic [DATA_WIDTH-1:0]      mem_data_out,
+		output logic [POLYNOMIAL_BITS-1:0] crc_data_out
    );
 
     //----------------------------------------------------------------------
     // Memory model: here just a register
     //----------------------------------------------------------------------
-    logic [DATA_WIDTH-1:0] mem;                                 //8
-    logic [POLYNOMIAL_BITS-1:0] mem_crc;                        //1
+    logic [DATA_WIDTH-1:0] mem;
+    logic [POLYNOMIAL_BITS-1:0] mem_crc;
 
     always @(posedge clk or negedge rst_n) begin
         if (~rst_n) begin
@@ -52,7 +52,6 @@ module mem_with_crc
 
     assign mem_data_out = mem;
     assign crc_data_out = mem_crc;
-    initial begin
-    end
+
 endmodule
 

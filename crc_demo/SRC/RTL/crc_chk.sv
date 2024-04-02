@@ -75,38 +75,26 @@ module crc_chk
 		end
         else err_detected  <= err_detected_tmp;
 	end
-    initial begin
-        err_detected <= 0;
-    end
+
     assign data_out = data_in;
 
     //----------------------------------------------------------------------
     // Assertion nas checker
     //----------------------------------------------------------------------
     // Assert, that if an error is corrceted, it is also detected
-    // assert_each_corrected_error_is_detected : assert property
-    // (@(posedge clk)
-    // disable iff (rst_n == 1'b0)
-    // (err_corrected) |-> (err_detected)
-    // );
+    assert_each_corrected_error_is_detected : assert property
+    (@(posedge clk)
+    disable iff (rst_n == 1'b0)
+    (err_corrected) |-> (err_detected)
+    );
 
     // Assert, that if an error is corrceted, it is also detected
-    // assert_each_detected_error_is_not_corrected : assert property
-    // (@(posedge clk)
-    // disable iff (rst_n == 1'b0)
-    // (err_detected) |-> (err_corrected)
-    // );
+    assert_each_detected_error_is_not_corrected : assert property
+    (@(posedge clk)
+    disable iff (rst_n == 1'b0)
+    (err_detected) |-> (err_corrected)
+    );
 
-
-    // always @(posedge clk or negedge rst_n) begin
-    //     if(err_corrected&err_detected) ;
-    //     else $error;
-    // end
-
-    // always @(posedge clk or negedge rst_n) begin
-    //     if(err_detected&err_corrected) ;
-    //     else $error;
-    // end
 endmodule // crc_chk
 
 

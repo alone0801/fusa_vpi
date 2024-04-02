@@ -16,7 +16,7 @@
 // or improvement feel free to contact your Cadence representative.
 // ------------------------------------------------------------------------------
 //__CDS_SVN_TAG__
-`timescale 1ns/1ns
+
 module test;
 
 	// system signals
@@ -45,8 +45,8 @@ module test;
 
 	// TB - FILE
 	integer 	 fh, r;
-	reg [25*8:0] TESTNAME;
-	reg [25*8:0] test_name;
+    reg [25*8:0] TESTNAME;
+    reg [25*8:0] test_name;
 	reg [25*8:0] test_kind;
 	reg [25*8:0] test_date;
 
@@ -56,8 +56,23 @@ module test;
 	// Read TB File (e.g., memory file)
 	//----------------------------------------------------------------------
 	initial begin
-		TESTNAME = "RANDOM";
-		// $value$plusargs("TESTNAME=%s", TESTNAME);
+		
+		//$value$plusargs("TESSRC/TB/test.svTNAME=%s", TESTNAME);
+`ifdef RANDOM
+        TESTNAME ="RANDOM";
+`endif
+`ifdef COUNT_MEM1
+        TESTNAME = "COUNT_MEM1";
+`endif
+`ifdef COUNT_MEM2
+        TESTNAME = "COUNT_MEM2";
+`endif
+`ifdef BYTE_COUNT_MEM1
+        TESTNAME = "BYTE_COUNT_MEM1";
+`endif
+`ifdef BYTE_COUNT_MEM2
+        TESTNAME = "BYTE_COUNT_MEM2";
+`endif
 
 		wait(rst_n === 1'b1);
 		@(negedge clk);
@@ -188,7 +203,7 @@ module test;
 
 		if (TESTNAME == "COUNT_MEM1") begin
 			$display("-I- Start MEM1 count up : %0t", $time);
-			mem1_data_in <= {$urandom(), $urandom(), $urandom(), $urandom()};
+			mem1_data_in <= {4'b0,4'b0,4'b0,4'b0};
 
 			forever begin
 				// at next clock cycle
@@ -201,7 +216,7 @@ module test;
 
 		else if (TESTNAME == "BYTE_COUNT_MEM1") begin
 			$display("-I- Start MEM1 byte count up : %0t", $time);
-			mem1_data_in <= {$urandom(), $urandom(), $urandom(), $urandom()};
+			mem1_data_in <= {4'b0,4'b0,4'b0, 4'b0};
 
 			forever begin
 				// at next clock cycle
@@ -215,7 +230,7 @@ module test;
 
 		else if (TESTNAME == "COUNT_MEM2") begin
 			$display("-I- Start MEM2 count up : %0t", $time);
-			mem2_data_in <= {$urandom(), $urandom()};
+			mem2_data_in <= {4'b0, 4'b0};
 
 			forever begin
 				// at next clock cycle
@@ -228,7 +243,7 @@ module test;
 
 		else if (TESTNAME == "BYTE_COUNT_MEM2") begin
 			$display("-I- Start MEM2 byte count up : %0t", $time);
-			mem2_data_in <= {$urandom(), $urandom()};
+			mem2_data_in <= {4'b0, 4'b0};
 
 			forever begin
 				// at next clock cycle
@@ -262,37 +277,7 @@ module test;
 		end
 
    end
-/*
-initial begin
-	$dumpfile("wave.vcd");  			// 指定VCD波形文件的名字为wave.vcd，仿真信息将记录到此文件，wave.vcd文件将存储在当前目录下
-	//$dumpfile("./simulation/wave.vcd");  	// wave.vcd文件将存储在当前目录下的simulation文件夹下
-	$dumpvars(0, test );  				// 指定层次数为0，则tb模块及其下面各层次的所有信号将被记录，我们需要所有信号都被记录
-						// 一定要设置一个仿真停止时间
-end
-*/
-/*
-initial begin
-	#100 $port_info(test.dut_inst);
-    // #200 $FI(u_foo.d0.d_i);
-    #200;
-    // #10 $show_all_signals(test.dut_inst);
-end
-*/
-/*
-  initial begin
-  `ifdef good_sim
-  $dumpfile("golden.vcd");
-  $dumpvars(1,test);
-  `else
-   $vcdCompare("golden.vcd");
-    $dumpfile("fault.vcd");
-    $dumpvars(1);
-    #80;
-    force test.dut_inst.mem1_i.mem_data_in[0] = 0;    
-  `endif
-  end
-*/
-fi_wrapper u_fi();
+
 endmodule // test
 
 interface intf;

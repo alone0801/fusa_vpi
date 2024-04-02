@@ -38,10 +38,8 @@ module crc_mem
    logic [POLYNOMIAL_BITS-1:0] crc_wr;
    logic [DATA_WIDTH-1:0] mem_data_tmp;
    logic [DATA_WIDTH-1:0] mem_data_ff_tmp;
-   logic [DATA_WIDTH-1:0]  mem_data_in_tmp0;
-   logic [DATA_WIDTH-1:0]  mem_data_in_tmp1;
-   assign mem_data_in_tmp0 = mem_data_in;
-   assign mem_data_in_tmp1 = mem_data_in_tmp0;
+
+
    //----------------------------------------------------------------------
    // Memory model: here just a register
    //----------------------------------------------------------------------
@@ -56,7 +54,7 @@ module crc_mem
      (.clk          (clk),
       .rst_n        (rst_n),
       .mem_wr       (mem_wr),
-      .mem_data_in  (mem_data_in_tmp1),
+      .mem_data_in  (mem_data_in),
       .crc_data_in  (crc_wr),
       .mem_data_out (mem),
       .crc_data_out (mem_crc)
@@ -105,8 +103,8 @@ module crc_mem
       end
    end
 
-  //  assign mem_data_out = (OUTPUT_FF == 1) ? mem_data_ff_tmp : mem_data_tmp;
-   assign mem_data_out = mem_data_tmp;
+   assign mem_data_out = (OUTPUT_FF == 1) ? mem_data_ff_tmp : mem_data_tmp;
+
 
 endmodule // crc_mem
 

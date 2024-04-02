@@ -23,7 +23,7 @@ module dut
 
    // MEM1, 128-bit, ASILD,
    input logic 	       mem1_wr,
-   input wire [31:0]  mem1_data_in,
+   input logic [31:0]  mem1_data_in,
    output logic [31:0] mem1_data_out ,
    output logic        mem1_err_detected,
    output logic        mem1_err_corrected,
