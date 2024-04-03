@@ -85,10 +85,10 @@ module crc_gen
 	 for (j=POLYNOMIAL_BITS-1; j>=0; j=j-1) begin
 
 	    if (j==0) begin
-	       crc_tmp[j] = d;
+	       crc_tmp[j] = d;     //二进制除法每次添0，而生成多项式一定为1，所以如果上次计算最高位相加为0就得添加0，相加为1就添0+1 = 1
 	    end
 	    else if (polynomial[j] == 1'b1) begin
-	       crc_tmp[j] = crc_tmp[j-1] ^ d;
+	       crc_tmp[j] = crc_tmp[j-1] ^ d;  
 	    end
 	    else begin
 	     crc_tmp[j] = crc_tmp[j-1];
