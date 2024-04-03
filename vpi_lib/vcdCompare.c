@@ -414,7 +414,10 @@ void vcdCompareCall( )
     printf("nostop strobe list:\n");
     printStringList(&nostop_list);
     FaultData *faults = random_process(FS_PATH);
-    if(FAULT_LOCATION==NULL||strlen(FAULT_LOCATION) == 0)strcpy(FAULT_LOCATION, faults[id].fault_location);
+    if(FAULT_LOCATION==NULL||strlen(FAULT_LOCATION) == 0 ){
+        strcpy(FAULT_LOCATION, faults[id].fault_location);
+        fault.fault_node_name = FAULT_LOCATION;
+        }
     //SAInject("test.dut_inst.mem1_i.mem_data_in[0]","50", "SA0");
     //SAInject(FAULT_LOCATION, faults[id].fault_time, FAULT_TYPE);
     hashInitialize( &vcdHash, 200 );

@@ -74,7 +74,8 @@ module crc_gen
    //----------------------------------------------------------------------
    // Parallel CRC calculation
    //----------------------------------------------------------------------
-   always_comb begin
+//   always_comb begin
+    always @* begin
       // set default to all 1
       crc_tmp = '0;
 
