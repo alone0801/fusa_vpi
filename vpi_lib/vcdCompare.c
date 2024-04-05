@@ -11,6 +11,7 @@ static StringList checker_list,functional_list,nostop_list;
 static PortInfoNode* port_list = NULL;
 static int flag_continue=0;
 static char fault_target[100];
+static char iso_mode[5];
 static char status_checker[10] = "Undetect";
 static char status_functional[10] = "Undetect";
 static char strobe_mode[10] = "Dual";
@@ -24,7 +25,7 @@ void parse_injectXML(const char* filename);
 void SAInject(const char* fault_location, const char* fault_time, const char* fault_typeo);
 void generateXML(const char* idValue, const char* locationValue, const char* statusValue,const char* typeValue);
 void fault_injector_register();
-
+void value_get(const char* fault_location);
 /*
  *  Create a new vdiff_node (addendum to callback data structures)
  */
@@ -245,7 +246,7 @@ static void setTimeCallback( long time, void* ptr )
 int vcdCompareEventHandler( p_vdiff_node this, p_cb_data cb_data_p )
 {
     DBG_VDIFF(( "Event: <%s> = %s\n", this->mark, cb_data_p->value->value.str ));
-
+    printf("EVENT: <%s> = %s\n", this->mark, cb_data_p->value->value.str );
     setCompareCallback( actualEvent( this->mark, cb_data_p->value->value.str ) );
 }
 
@@ -418,12 +419,18 @@ void vcdCompareCall( )
         strcpy(FAULT_LOCATION, faults[id].fault_location);
         fault.fault_node_name = FAULT_LOCATION;
         }
+    if(strcmp(iso_mode, "ENA") == 0){
+        fault.fault_node_name = check_alias(fault.fault_node_name,&port_list);
+        printf("beacause of iso, inject node is %s\n",fault.fault_node_name);
+    }
     //SAInject("test.dut_inst.mem1_i.mem_data_in[0]","50", "SA0");
     //SAInject(FAULT_LOCATION, faults[id].fault_time, FAULT_TYPE);
     hashInitialize( &vcdHash, 200 );
     addEosCallback( FaultClassEosHandler );
     addEosCallback( vcdCompareEosHandler );
     processVcd( readVcdHeader( filename ) );
+    value_get("test.dut_inst.mem2_i.crc_chk_i.crc_gen_i.d");
+
     fault_injector_register();
 }
 
@@ -458,6 +465,12 @@ void parseXML(const char* filename) {
             xmlChar* content = xmlNodeGetContent(node);
             strcpy(fault_target,content);
             printf("fault_target:%s\n",fault_target);
+            xmlFree(content);
+        }
+        if (xmlStrcmp(node->name, (const xmlChar*)"ISO_MODE") == 0){
+            xmlChar* content = xmlNodeGetContent(node);
+            strcpy(iso_mode,content);
+            printf("isolation mode is :%s\n",iso_mode);
             xmlFree(content);
         }
     }
@@ -589,4 +602,12 @@ void SAInject(const char* fault_location, const char* fault_time, const char* fa
     value_s.value.integer = value;
     printf("Inject Fault at:%s ,Fault type is %s\n",vpi_get_str(vpiFullName,location_handle),fault_type);
     vpi_put_value(location_handle,&value_s,NULL,vpiForceFlag);
+}
+void value_get(const char* fault_location){
+    vpiHandle location_handle;
+    s_vpi_value value_s;
+    value_s.format = vpiBinStrVal;
+    location_handle = vpi_handle_by_name(fault_location,0);
+    vpi_get_value(location_handle, &value_s);
+    vpi_printf("DEBUG:%s value is %s\n",fault_location,value_s.value.str);
 }

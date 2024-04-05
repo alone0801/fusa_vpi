@@ -13,7 +13,7 @@ typedef struct PortInfoNode {
     struct PortInfoNode* next;
 } PortInfoNode;
 
-
+char* check_alias(const char* node_name, PortInfoNode** head);
 void port_alias(char* mod_name , PortInfoNode** head);
 void process_aliases(PortInfoNode** head);
 void alias_opt(PortInfoNode** head);
@@ -23,3 +23,4 @@ void port_tranverse(vpiHandle mod_h, int top,PortInfoNode** head);
 void printList(PortInfoNode **head);
 void appendNode(PortInfoNode** head, const char* internalName, const char* externalName);
 void process_prime(PortInfoNode** head);
+

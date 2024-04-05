@@ -7,7 +7,6 @@ void freeList(PortInfoNode* head);
 void printList(PortInfoNode **head);
 
 
-
 // 创建一个新节点
 PortInfoNode* createNode(const char* internalName, const char* externalName) {
     PortInfoNode* newNode = (PortInfoNode*)malloc(sizeof(PortInfoNode));
@@ -241,7 +240,7 @@ void port_alias(char* mod_name , PortInfoNode** head){
     port_isolate(mod_h,head);
     process_prime(head); 
     process_aliases(head);  
-    printList(head);
+    //printList(head);
 }
 
 void process_prime(PortInfoNode** head) {
@@ -262,4 +261,20 @@ void process_prime(PortInfoNode** head) {
           }
         current = current->next;
     }
+}
+char* check_alias(const char* node_name, PortInfoNode**  head) {
+    PortInfoNode* current = *head;
+    while (current != NULL) {
+        if (strcmp(current->internalName, node_name) == 0) {
+            if (current->alias == 1) {
+                return current->externalName;
+            } else {
+                return current->internalName;
+            }
+        }
+        current = current->next;
+    }
+    printf("DEBUG_ISO:NOT_MATRCH\n");
+    // If node_name does not exist in the list, return the node_name itself
+    return node_name;
 }

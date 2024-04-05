@@ -39,7 +39,9 @@ void fault_injector_register( )
 
     //Registration of fault_injector simulation callback routine
     cb_data_s.reason = cbNBASynch;
+    //cb_data_s.reason = cbReadWriteSynch;
     cb_data_s.cb_rtn = fault_injector_callback;
+    //cb_data_s.cb_rtn = fault_injector;
     cb_data_s.obj = module_handle;
     cb_data_s.time = &time_s;
     cb_data_s.value = NULL;
@@ -115,7 +117,15 @@ void fault_injector(p_cb_data cb_data)
         
         fault_value.format = vpiIntVal;
         fault_value.value.integer = fault_p->fault_value;
+        printf("after before value:\n");
+        value_get(fault_p->fault_node_name);
+        value_get("test.dut_inst.mem2_i.crc_chk_i.crc_gen_i.crc_tmp");
+        value_get("test.dut_inst.mem2_i.crc_chk_i.crc_gen_i.crc_val");
         vpi_put_value(signal_handle, &fault_value, &time_s, flag);
+        printf("after put value:\n");
+        value_get(fault_p->fault_node_name);
+        value_get("test.dut_inst.mem2_i.crc_chk_i.crc_gen_i.crc_tmp");
+        value_get("test.dut_inst.mem2_i.crc_chk_i.crc_gen_i.crc_val");
     }
 }
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <INJECT>
     <ID>1</ID>
-    <LOCATION>test.dut_inst.mem1_i.crc_chk_i.crc_gen_i.d</LOCATION>
+    <LOCATION>test.dut_inst.mem1_i.mem_with_crc_i.clk</LOCATION>
     <TYPE>SA1</TYPE>
-    <TIME>20</TIME>
+    <TIME>0</TIME>
 </INJECT>
