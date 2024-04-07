@@ -246,7 +246,7 @@ static void setTimeCallback( long time, void* ptr )
 int vcdCompareEventHandler( p_vdiff_node this, p_cb_data cb_data_p )
 {
     DBG_VDIFF(( "Event: <%s> = %s\n", this->mark, cb_data_p->value->value.str ));
-    printf("EVENT: <%s> = %s\n", this->mark, cb_data_p->value->value.str );
+    //printf("EVENT: <%s> = %s\n", this->mark, cb_data_p->value->value.str );
     setCompareCallback( actualEvent( this->mark, cb_data_p->value->value.str ) );
 }
 
@@ -406,7 +406,7 @@ void vcdCompareCall( )
     parseXML(FI_PATH);
     parse_injectXML("./fault.xml"); 
     printf("FAULT_ID:%s",FAULT_ID);
-    int id = atoi(FAULT_ID);
+    int id = atoi(FAULT_ID)-1;
     port_alias(fault_target,&port_list);
     printf("checker strobe list:\n");
     printStringList(&checker_list);
@@ -418,6 +418,7 @@ void vcdCompareCall( )
     if(FAULT_LOCATION==NULL||strlen(FAULT_LOCATION) == 0 ){
         strcpy(FAULT_LOCATION, faults[id].fault_location);
         fault.fault_node_name = FAULT_LOCATION;
+        fault.injection_time = atoi(faults[id].fault_time);
         }
     if(strcmp(iso_mode, "ENA") == 0){
         fault.fault_node_name = check_alias(fault.fault_node_name,&port_list);

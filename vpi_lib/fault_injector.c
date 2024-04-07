@@ -121,11 +121,13 @@ void fault_injector(p_cb_data cb_data)
         value_get(fault_p->fault_node_name);
         value_get("test.dut_inst.mem2_i.crc_chk_i.crc_gen_i.crc_tmp");
         value_get("test.dut_inst.mem2_i.crc_chk_i.crc_gen_i.crc_val");
+        value_get("test.dut_inst.mem2_i.crc_chk_i.crc_gen_i.rst_n");
         vpi_put_value(signal_handle, &fault_value, &time_s, flag);
         printf("after put value:\n");
         value_get(fault_p->fault_node_name);
         value_get("test.dut_inst.mem2_i.crc_chk_i.crc_gen_i.crc_tmp");
         value_get("test.dut_inst.mem2_i.crc_chk_i.crc_gen_i.crc_val");
+        value_get("test.dut_inst.mem2_i.crc_chk_i.crc_gen_i.rst_n");
     }
 }
 

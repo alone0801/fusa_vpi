@@ -7,7 +7,9 @@ def parse_result_xml(xml_path):
     root = tree.getroot()
     result = {}
     for elem in root:
-        result[elem.tag] = elem.text.strip()
+        if elem.text is not None:
+            result[elem.tag] = elem.text.strip()
+        else:  print(result['ID'])
     return result
 
 def aggregate_results(root_dir, output_file):

@@ -2,6 +2,6 @@
 <INJECT>
     <ID>1</ID>
     <LOCATION>test.dut_inst.mem1_i.mem_with_crc_i.clk</LOCATION>
-    <TYPE>SA1</TYPE>
-    <TIME>0</TIME>
+    <TYPE>SEU</TYPE>
+    <TIME>45</TIME>
 </INJECT>
