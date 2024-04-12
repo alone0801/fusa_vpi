@@ -4,7 +4,7 @@
 #include <strings.h>
 #include <malloc.h>
 #include <stdio.h> 
-
+#include "StringList.h"
 typedef struct PortInfoNode {
     char internalName[150];
     char externalName[150];
@@ -14,7 +14,7 @@ typedef struct PortInfoNode {
 } PortInfoNode;
 
 char* check_alias(const char* node_name, PortInfoNode** head);
-void port_alias(char* mod_name , PortInfoNode** head);
+void port_alias(StringList* mod_name , PortInfoNode** head);
 void process_aliases(PortInfoNode** head);
 void alias_opt(PortInfoNode** head);
 void port_isolate(vpiHandle mod_h,PortInfoNode** head);

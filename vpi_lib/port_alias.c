@@ -234,10 +234,14 @@ PLI_INT32 PLIbook_PortInfo_calltf(PLI_BYTE8 *user_data)
       break;
     }
  }
-void port_alias(char* mod_name , PortInfoNode** head){
+//void port_alias(char* mod_name , PortInfoNode** head){
+void port_alias(StringList* mod_names, PortInfoNode** head){
     vpiHandle mod_h;
-    mod_h = vpi_handle_by_name(mod_name, 0);
-    port_isolate(mod_h,head);
+    int i ;
+    for ( i = 0; i < mod_names->count; i++) {
+        mod_h = vpi_handle_by_name(mod_names->strings[i], 0);
+        port_isolate(mod_h,head);
+    }
     process_prime(head); 
     process_aliases(head);  
     //printList(head);

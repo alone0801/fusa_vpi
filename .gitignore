@@ -39,3 +39,4 @@ fault_dir/
 stack.info.*
 result.xml
 summary.xml
+test_demo/

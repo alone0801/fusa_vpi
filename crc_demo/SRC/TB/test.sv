@@ -277,7 +277,20 @@ module test;
 		end
 
    end
-
+    reg[7:0] a,b,c,d;
+    reg[4:0] te_var;
+    wire result,result1,result2;
+    assign result = ((a+b)<(c*d))?0:1;
+    assign result2 = te_var>4'd8;
+    assign result1 = 4'd8+4'd8>4'd8;
+    initial begin
+       #20;
+        a=12;
+        te_var=5'b10000;
+        b=13;
+        c=5;
+        d=7;
+        end
 endmodule // test
 
 interface intf;

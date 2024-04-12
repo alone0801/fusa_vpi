@@ -7,10 +7,10 @@
 #include"fault_injector.h"
 
 static hash_table vcdHash;
-static StringList checker_list,functional_list,nostop_list;
+static StringList checker_list,functional_list,nostop_list,fault_target;
 static PortInfoNode* port_list = NULL;
 static int flag_continue=0;
-static char fault_target[100];
+//static char fault_target[100];
 static char iso_mode[5];
 static char status_checker[10] = "Undetect";
 static char status_functional[10] = "Undetect";
@@ -402,12 +402,13 @@ void vcdCompareCall( )
     initializeStringList(&checker_list);
     initializeStringList(&functional_list);
     initializeStringList(&nostop_list);
+    initializeStringList(&fault_target);
     /*parseXML("FI.xml", &checker_list);*/
     parseXML(FI_PATH);
     parse_injectXML("./fault.xml"); 
     printf("FAULT_ID:%s",FAULT_ID);
     int id = atoi(FAULT_ID)-1;
-    port_alias(fault_target,&port_list);
+    port_alias(&fault_target,&port_list);
     printf("checker strobe list:\n");
     printStringList(&checker_list);
     printf("functional strobe list:\n");
@@ -464,8 +465,9 @@ void parseXML(const char* filename) {
     for (node = root->children; node != NULL; node = node->next) {
         if (xmlStrcmp(node->name, (const xmlChar*)"FAULT_TARGET") == 0){
             xmlChar* content = xmlNodeGetContent(node);
-            strcpy(fault_target,content);
-            printf("fault_target:%s\n",fault_target);
+           // strcpy(fault_target,content);
+            fault_target.strings[fault_target.count++] = strdup((const char*)content);
+            printf("fault_target:%s\n",fault_target.strings[fault_target.count-1]);
             xmlFree(content);
         }
         if (xmlStrcmp(node->name, (const xmlChar*)"ISO_MODE") == 0){
