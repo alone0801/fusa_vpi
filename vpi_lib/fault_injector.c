@@ -34,12 +34,17 @@ void fault_injector_register( )
     vpi_printf("Injection time is %f\n",fault_p->injection_time);
 
     //Specifying the fault injeciton time
-    time_s.type = vpiScaledRealTime;
-    time_s.real = fault.injection_time;
+    //time_s.type = vpiScaledRealTime;
+    time_s.type = vpiSimTime;
+    //time_s.real = fault.injection_time;
+    time_s.low       = fault.injection_time;
+    time_s.high      = 0;
 
     //Registration of fault_injector simulation callback routine
     //cb_data_s.reason = cbNBASynch;
-    cb_data_s.reason = cbReadWriteSynch;
+    //cb_data_s.reason = cbReadWriteSynch;
+    cb_data_s.reason =cbAtEndOfSimTime;
+    //cb_data_s.reason = cbReadOnlySynch;
     //cb_data_s.cb_rtn = fault_injector_callback;
     cb_data_s.cb_rtn = fault_injector;
     cb_data_s.obj = module_handle;
