@@ -111,7 +111,9 @@ vcs_good:
 	+define+CHECKPOINT +define+LOCKSTEP +define+PARITY +define+MEMECC \
 	-l compile.log +lint=TFIPC-L -notice -debug_access+all -kdb -lca -full64 &&\
 	./simv -l good_sim.log \
-	+elf_load=$(SW_dir)/Baremetal/sample_apps/can_selftest.elf +clear_ram  
+	+elf_load=$(SW_dir)/Baremetal/sample_apps/hello.elf +clear_ram
+
+#+elf_load=$(SW_dir)/Baremetal/sample_apps/can_selftest.elf +clear_ram  
 #+define+CHECKPOINT +define+LOCKSTEP +define+PARITY +define+MEMECC \
 
 vcs_fault:
@@ -123,7 +125,7 @@ vcs_fault:
 	-f rtl.f fi_wrapper.v +define+fault_sim   -lxml2 -lelf -sverilog \
 	+define+CHECKPOINT +define+LOCKSTEP +define+PARITY +define+MEMECC \
 	-l compile.log +lint=TFIPC-L -notice -debug_access+all -kdb -lca -full64 &&\
-	./simv -l good_sim.log +elf_load=$(SW_dir)/RTEMS/sample_apps/hello.exe +clear_ram 
+	./simv -l good_sim.log +elf_load=$(SW_dir)/Baremetal/sample_apps/hello.elf +clear_ram 
 
 list:
 	find $(HW_dir)  -name "*.sv" -or -name "*.v" >> $(fault_dir)/rtl.f	

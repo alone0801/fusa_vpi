@@ -43,3 +43,4 @@ test_demo/
 RTEMS/
 *.fsdb
 flt_target_dbg.list
+verdiLog/

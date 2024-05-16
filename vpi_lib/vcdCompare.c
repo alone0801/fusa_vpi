@@ -114,7 +114,7 @@ static struct event* actualEvent( char* mark, char* valu )
  */
 static vpiHandle compareCallback = 0;
 
-static int compareHandler( p_cb_data cb_data_p )
+static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the end of time step */
 {
     struct event* ptr = top;
     int flag_stop=0; 
@@ -122,10 +122,10 @@ static int compareHandler( p_cb_data cb_data_p )
     static s_vpi_time time_s = { vpiSimTime };
 
     vpi_get_time( 0, &time_s );
-    /*printf("Compare at%ld:%ld:\n", time_s.high, time_s.low );*/
-    /*printEventList(top);*/
+ /*   printf("Compare at%ld:%ld:\n", time_s.high, time_s.low );
+    printEventList(top);
     DBG_VDIFF(( "Compare at %ld:%ld:\n", time_s.high, time_s.low ));
-
+*/
     while ( ptr )
     {
         DBG_VDIFF(( "=> mark=%s, exp=%s, act=%s\n", ptr->mark ? ptr->mark : "<null>",
@@ -245,7 +245,7 @@ static void setTimeCallback( long time, void* ptr )
 int vcdCompareEventHandler( p_vdiff_node this, p_cb_data cb_data_p )
 {
     DBG_VDIFF(( "Event: <%s> = %s\n", this->mark, cb_data_p->value->value.str ));
-    //printf("EVENT: <%s> = %s\n", this->mark, cb_data_p->value->value.str );
+    //printf("ACTEVENT: <%s> = %s\n", this->mark, cb_data_p->value->value.str );
     setCompareCallback( actualEvent( this->mark, cb_data_p->value->value.str ) );
 }
 
@@ -304,20 +304,23 @@ static void processVcd( void* ptr )
              *  a table of signal tags, this is skipped for now.
              */
            /* while ( strcmp( str, "$end" ) ) str = readVcdLine( ptr );*/
+           printf("\n 0ns bgein here to read vcd\n");
             readVcdLine( ptr );
             while ( strcmp( str, "$end" ) ){
                 char *valu = (char *)malloc(strlen(str) + 1);
                 char *spacePos = strchr(str, ' ');
                 if (spacePos != NULL) {
-                    *spacePos = '\0';
+                    *spacePos = '\0';   /*this branch to deal with vetocr */
                     strcpy(valu, str+1); /*value = bxx*/
+                    //printf("EXPECTEVENT: <%s> = %s\n", str, valu );
                     setCompareCallback(expectedEvent(spacePos + 1, valu));
+                    setCompareCallback(actualEvent(spacePos + 1, valu)); /*fix the bug of obeserver point X at 0*/
                 } else {
                     *valu = *str;
                     valu[1] = '\0';
-                    DBG_VDIFF(("Expect: %s = %s\n", str, valu));
-
+                    //printf("EXPECTEVENT: <%s> = %s\n", str, valu );
                     setCompareCallback(expectedEvent(str+1, valu));
+                    setCompareCallback(actualEvent(str+1, valu));
             }
             readVcdLine( ptr );
             }
@@ -430,7 +433,7 @@ void vcdCompareCall( )
     addEosCallback( FaultClassEosHandler );
     addEosCallback( vcdCompareEosHandler );
     processVcd( readVcdHeader( filename ) );
-    value_get("test.dut_inst.mem2_i.crc_chk_i.crc_gen_i.d");
+    //value_get("test.dut_inst.mem2_i.crc_chk_i.crc_gen_i.d");
 
     fault_injector_register();
 }
