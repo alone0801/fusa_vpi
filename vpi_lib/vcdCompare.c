@@ -5,7 +5,6 @@
 #include <libxml/tree.h>
 #include "vpiDebug.h"
 #include"fault_injector.h"
-
 static hash_table vcdHash;
 static StringList checker_list,functional_list,nostop_list,fault_target;
 static PortInfoNode* port_list = NULL;
@@ -614,3 +613,21 @@ void value_get(const char* fault_location){
     vpi_get_value(location_handle, &value_s);
     vpi_printf("DEBUG:%s value is %s\n",fault_location,value_s.value.str);
 }
+void vcd_vpi_register(){
+    s_vpi_systf_data tf_data;
+    tf_data.type=vpiSysTask;
+    tf_data.tfname="$vcdCompare";
+    tf_data.calltf=vcdCompareCall;
+    tf_data.compiletf=vcdCompareCheck;
+    tf_data.sizetf=0;
+    tf_data.user_data=0;
+    vpi_register_systf(&tf_data);
+}
+#ifdef SHARE_LIB
+
+#else
+void(*vlog_startup_routines[])()={
+    vcd_vpi_register,
+    NULL
+};
+#endif

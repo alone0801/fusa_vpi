@@ -1,3 +1,4 @@
+export fusa_lib=~/fusa_vpi/vpi_lib
 run:
 	iverilog -f rtl.f -g2005-sv -D COUNT_MEM1
 	vvp -n a.out
@@ -32,8 +33,8 @@ vcs:
 #	simv -l good_sim.log
 fault_sim:
 	rm -rf csrc simv  simv.daidir
-	vcs  +vpi +define+BYTE_COUNT_MEM1 -P ../vpi_lib/vpiDebug.tab \
-	../vpi_lib/*.c  -f demo_rtl.f fi_wrapper.v -debug_all -sverilog \
+	vcs -full64 +vpi +define+BYTE_COUNT_MEM1 -P $(fusa_lib)/pli.tab   \
+	-load $(fusa_lib)/libvpiDebug.so  -f demo_rtl.f fi_wrapper.v -debug_all -sverilog \
 	+define+FAULT_LOCATION=u_tb.dut_inst.mem1_i.mem_data_in[0] \
 	+define+FAULT_VALUE=0 \
 	+define+FAULT_TIME=80 -lxml2 
@@ -42,16 +43,22 @@ fault_sim:
 good_sim:
 	python ../vpi_lib/wrapper_gen.py 
 	rm -rf csrc simv  simv.daidir
-	vcs +vpi +define+BYTE_COUNT_MEM1 -P ../vpi_lib/vcdCompare.tab \
-	../vpi_lib/*.c  -f demo_rtl.f +define+good_sim -sverilog fi_wrapper.v -lxml2
+	vcs +vpi +define+BYTE_COUNT_MEM1 -P $(fusa_lib)/pli.tab -full64 \
+	-load $(fusa_lib)/libvpiDebug.so   -f demo_rtl.f +define+good_sim -sverilog fi_wrapper.v -lxml2
 	./simv -l good_sim.log 
 test: 
-	vcs +vpi +define+COUNT_MEM1 -P ../vpi_lib/pli.tab \
-      ../vpi_lib/*.c  -f demo_rtl.f +define+good_sim -sverilog fi_wrapper.v \
-	  -load  ../vpi_lib/libvpiDebug.a
+	rm -rf csrc simv  simv.daidir
+	vcs  +vpi +define+BYTE_COUNT_MEM1 -P ../vpi_lib/pli.tab -full64\
+	-load ../vpi_lib/libvpiDebug.so -f demo_rtl.f fi_wrapper.v -debug_all -sverilog \
+	+define+FAULT_LOCATION=u_tb.dut_inst.mem1_i.mem_data_in[0] \
+	+define+FAULT_VALUE=0 \
+	+define+FAULT_TIME=80 -lxml2 
+	./simv -l fault_sim.log
 fault_test:
 	cd fault_sim_0;pwd;../simv -l fault_sim.log -ucli -i ../../vpi_lib/ucli.tcl
 merge:
 #python3 ../vpi_lib/result_merge.py
 	rm -rf summary.xml
 	sh report.sh ./fault_dir
+irun:
+	-loadvpi /usr/local/lib64/python3.6/site-packages/cocotb/libs/libcocotbvpi_ius.so:vlog_startup_routines_bootstrap +access+rwc

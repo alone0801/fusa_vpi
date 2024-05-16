@@ -68,14 +68,13 @@ void port_tranverse(vpiHandle mod_h, int top,PortInfoNode** head)
     vpiHandle   port_itr, port_h, lowconn_h, highconn_h, portbit_handle, pbiter_handle,sub_iterater,sub_handle;
     int is_vector;
     int direction;
-
+    char* Highconn;
     // mod_h = vpi_handle_by_name("test.dut_inst.mem2_i", 0);
     // 获取端口迭代器
     port_itr = vpi_iterate(vpiPort, mod_h);
     if (!port_itr) {
         return 0;
     }
-
     // 遍历端口
     while (port_h = vpi_scan(port_itr)) {
         is_vector = vpi_get(vpiVector, port_h);
@@ -92,8 +91,14 @@ void port_tranverse(vpiHandle mod_h, int top,PortInfoNode** head)
                     // 将端口信息添加到链表
                     // printf(vpi_get_str(vpiFullName, lowconn_h));
                     // printf("\n");
-                    if (top) appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
-                    else appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), strdup(vpi_get_str(vpiFullName, highconn_h)));
+                    if (top) {
+                        appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
+                    }
+                    else {
+                        //HighConn=vpi_get_str(vpiFullName, highconn_h);
+                        if(!vpi_get_str(vpiFullName, highconn_h)) appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
+                        else appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), strdup(vpi_get_str(vpiFullName, highconn_h)));
+                    }
                     portbit_handle = vpi_scan(pbiter_handle);
                 }
                 // vpi_free_object(pbiter_handle);
@@ -102,7 +107,7 @@ void port_tranverse(vpiHandle mod_h, int top,PortInfoNode** head)
             // 处理标量端口
             lowconn_h = vpi_handle(vpiLowConn, port_h);
             highconn_h = vpi_handle(vpiHighConn, port_h);
-            if (top) appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
+            if (top || !vpi_get_str(vpiFullName, highconn_h)) appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
             else appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), strdup(vpi_get_str(vpiFullName, highconn_h)));
         }
     }
