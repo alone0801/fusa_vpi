@@ -1,0 +1,78 @@
+########################################################
+# AutoSoC
+# BareMetal SW - BSP (Board Support Package)
+########################################################
+
+This folders is intended to contains all Board Support Package infrastructure required to develop 
+applications for the AutoSoC. The idea is to generate static libraries containing all the BSP 
+functionalities, so they can be linked to user applications. 
+In addition, basic tests for the mor1kx and drivers were included to allow initial setup verification.
+
+The available Makefile automatically executes the Makefiles from folders 'lib/' and 'drivers/',
+building the bsp static libraries, and builds a set of configured test applictions.
+User applications can be added in the test folder to be automatically built by the Makefile.
+
+###############################
+BSP Content
+###############################
+'board/'    : Header file with HW addresses configuration based on AutoSoC.
+'build/'    : Location of mor1kx executables (ELF files) compiled by this Makefile.
+'drivers/'  : Drivers source files and libdrivers.a static library.
+'lib/'      : Support functions required by mor1kx and libsupport.a static library.
+'Makefile'  : BSP main Makefile. Generate BSP static libraries and test application executables.
+'README'    : This file.
+'tests/'    : Location os tests source files.
+
+###############################
+Add New Applications
+###############################
+To add new applications to be built by the Makefile, add a new folder in 'bsp/tests/' with the 
+source files of the applications. Add a file listing all applications to be build to 'tests/'
+named <your-app>.tests (use basic.tests as example). 
+In the Makefile, edit the variable TEST_LIST to point to your-app (TEST_LIST = tests/your-app). 
+The Makefile will build the sources listed in your-app.tests, linking to bsp static libraries, 
+and generate executable files to be loaded to AutoSoC. The executable files will be located in 
+the folder 'build/'.
+
+The 'tests/' folder contains test applications for basic functionalities of mor1kx and the drivers.
+They may be used as examples for building a new application.
+
+###############################
+Usage Intructions:
+###############################
+make all:   Execute the Makefile inside 'lib/'. Generate 'libsupport.a'. 
+            Execute the Makefile inside 'drivers/'. Generate 'libdrivers.a'.
+            Look for source files listed in TEST_LIST. Separate .c and .S files.
+            Build all listed files (linking to 'libsupport.a' and 'libdrivers.a')
+            Move ELF files to 'build/' folder
+
+make clean: Delete 'build/' folder
+            Execute make clean on 'lib/' and 'drivers/'
+
+###############################
+Software Dependencies
+###############################
+or1k-elf - Bare Metal Cross compiler and Debugger
+
+Instructions: https://openrisc.io/newlib/building.html
+
+Tips: - It is necessary to rebuild all following the instructions
+      - Set the PREFIX variable to the local tools path
+      - Use the lib versions listed on the website. 
+        It doesnt work with newer versions
+      - During the build of gcc-stage1, the files da.po, de.po and zh_TW.po 
+        from /gcc/gcc/po, should be edited to remove the comments starting with "#~|"
+        the make will return an error on the lines that should be removed
+
+
+###############################
+Original Repositories
+###############################
+The OpenRISC compatible files used for this BSP were downloaded from the OpenRISC community.
+The original files were modified to be used in the AutoSoC, and new files were added.
+
+Original repositories can be found in:
+Drivers and Basic Tests: https://github.com/juliusbaxter/mor1kx-dev-env
+Current mor1kx Tests Repo: https://github.com/openrisc/or1k-tests
+OpenRISC main repository: https://github.com/openrisc/
+

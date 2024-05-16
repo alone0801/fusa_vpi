@@ -1,0 +1,35 @@
+########################################################
+# AutoSoC
+# BareMetal SW - Drivers
+########################################################
+
+This folder contains all Drivers available for AutoSoC. New drivers should be added
+as intructed below.
+
+The available Makefile builds all drivers into a static library to be linked 
+against user applications. 
+
+Makefile will automatically search all folders for '.c' files and folders named 'include'.
+All '.c' files will be compiled and linked as a static library called libdrivers.a
+The '.h' files inside of all 'include' folders, will be copied to libdrivers/include/
+
+###############################
+Add New Drivers:
+###############################
+To add a new-driver, just add a folder in 'Software/Baremetal/bsp/drivers/new-driver'
+The header files required for driver usage should be added to 'new-driver/include'.
+The other source files can have any organization inside the folder 'new-driver'.
+
+###############################
+Usage Intructions:
+###############################
+make all:   Build all available drivers as 'libdrivers/libdrivers.a'. 
+            Add all driver headers to 'libdrivers/include/'
+
+make clean: Delete libdrivers/*
+            Delete *.o files from all drivers folders.
+
+To build your applications using the drivers add the following to your compilation instructions:
+'-L./drivers/libdrivers'        :Location for searching static library.
+'-ldrivers'                     :libdrivers.a static library.
+'-Idrivers/libdrivers/include'  :Location of Header Files to be included in the application.

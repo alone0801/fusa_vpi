@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<FI_CONFIG>
+    <FAULT_TARGET>autosoc_tb.dut</FAULT_TARGET>
+    <TESTBENCH_NAME>autosoc_tb</TESTBENCH_NAME>
+    <OBSERVATION_POINTS>
+    <CHECKER_STROBE>autosoc_tb.dut.cp_ctrl_error</CHECKER_STROBE>
+    <!--<FUNCTIONAL_STROBE>test.dut_inst.mem2_i.crc_gen_wr_i.d</FUNCTIONAL_STROBE>-->
+    <!--<NOSTOP_STROBE>test.dut_inst.mem2_data_out</NOSTOP_STROBE>-->
+    </OBSERVATION_POINTS>
+    <ISO_MODE>ENA</ISO_MODE>
+</FI_CONFIG>
+

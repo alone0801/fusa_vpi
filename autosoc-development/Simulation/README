@@ -1,0 +1,89 @@
+########################################################
+# AutoSoC
+# Simulation Setup and Environment
+#
+# For more information go to: http://www.autosoc.org
+########################################################
+
+This folder contains the environment for Simulation of the AutoSoC. A Makefile is included to automate the
+simulation and fault injection with Xcelium XFS tool.
+
+###############################
+Basic Usage
+###############################
+First, environment variables should be configured by typing the command:
+> source tools/set_env_variables[.csh|.sh]
+
+After, Makefile can be executed. For example to elaborate design and run simulation (without faults injection), type the command:
+> make sim
+
+For more information on the Makefile, type the command:
+> make help
+
+###############################
+Makefile Options
+###############################
+
+The Makefile can be executed with the following options:
+(${SIM_FOLDER} value should be configured in ./tools/set_env_variable file. Default is 'basicSafeConfig')
+
+'make elab':        Elaboration of design according with setup files inside of ${SIM_FOLDER}
+'make sim':         Regular simulation. Testbenche configuration parameters should be set in $(SIM_FOLDER}/xrunPlusArgs.f
+'make debug':       Start simulation environment with GUI. For Waveform debug.
+'make good_sim':    Good simulation for Fault Injection. Strobes should be configured in file $(SIM_FOLDER}/strobes.list
+'make fault_sim':   Fault Injection simulation. Fault Injection campaign is controlled by script tools/fault_inj_control.csh 
+'make clean':       Delete build directory
+
+
+###############################
+Configuring the Simulation
+###############################
+The folders inside 'Simulation' should contain the setup files for simulating the AutoSoC.
+New AutoSoC configurations can be added by creating a new folder and including the setup required files. 
+The included folder 'basicSafeConfig' can be used as an example.
+
+Each AutoSoC configuraton folder should contain the following files:
+'xrunElab.f'        : Files to be considered for the Elaboration of the design and specific configurations for the Xcelium.
+'xrunPlusArgs.f'    : Configurations for the AutoSoC Testbench. The available options are:
+                        "+elf_load=<ELF image>" - ELF file to be load to memory for Simulation.
+                        "+clean_ram"            - Clear all content of RAM on start of Simulation.
+                        "+jtag_vpi_enable"      - Enable connection of JTAG Debug tool (OpenOCD).
+                        "+enable_jtag_vpi"      - Should be used together with +jtag_vpi_enable.
+                        "+enable_jtag_vpi"      - Should be used together with +jtag_vpi_enable.
+
+                        Safety Mechanisms Configuration (Hardware):
+                        "+define+LOCKSTEP"      - Enable Lockstep SM (Redundancy of Main CPU with time diversity).
+                        "+define+PARITY"        - Enable BUS Parity (Parity check on data exchanges CPU <-> Memory).
+                        "+define+MEMECC"        - Enable ECC  correction on main Memory
+
+                        Safety Mechanisms Configuration (Hardware/Software):
+                        "+define+CHECKPOINT"    - Enable SW Control Flow Verification (Monitor bus for signatures from the SW tasks).
+                                                - Checkpoint requires a compatible SW application. It expects a periodic signature in 
+                                                - a specific memory address (Signatures, Memory Address and Timeouts are configurable).
+                                                - It is compatible with the application '$SW_DIR/RTEMS/sample_apps/autosoc.exe'.
+
+'faultTarget.spec'  : Design Fault Target, for Fault Injection Campaigns. Define Instance of design that should be considered as fault target.
+'strobes.list'      : Strobes for Fault Analysis. Signals of the design that are going to identify fault propagation and detection.
+
+For more information on simulation options, configuration of Faults and Strobes refer to XFS User Manual.
+
+###############################
+Content
+###############################
+'tools/'        : Scripts and Configuration files used by the Makefile
+'build_dir/'    : Location of data created by the Simulation. It is deleted with make clean.
+'Makefile'      : Simulation Makefile
+'README'        : This file.
+
+
+###############################
+Add New AutoSoC Configurations
+###############################
+To add new configurations of the AutoSoC to be simulated, copy the folder 'basicSafeConfig' to <new_config>.
+> cp -r basicSafeConfig <new_config>
+
+Edit the configuration files inside <new_config> according with the desired configuration (correct HARDWARE files to be considered during elaboration, fault targets, strobe definitions, ...)
+
+Edit the variable SIM_FOLDER inside the file 'tools/set_env_variables.csh' to point to the created folder <new_config>:
+setenv SIM_FOLDER <new_config>
+

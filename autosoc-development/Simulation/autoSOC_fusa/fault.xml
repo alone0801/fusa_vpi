@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<INJECT>
+    <ID>1</ID>
+    <LOCATION>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.insn_fetch_to_decode[5]</LOCATION>
+    <TYPE>SA1</TYPE>
+    <TIME>20</TIME>
+</INJECT>

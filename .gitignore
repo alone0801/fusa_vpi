@@ -41,4 +41,5 @@ result.xml
 summary.xml
 test_demo/
 RTEMS/
-autosoc-development/
+*.fsdb
+flt_target_dbg.list

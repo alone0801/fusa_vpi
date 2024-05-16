@@ -1,0 +1,22 @@
+########################################################
+# AutoSoC
+# BareMetal SW - Support Library Folder
+########################################################
+
+This folder contains required low level functionalities for usage of mor1kx processors. 
+It includes basic C funtions and Assembly files.
+
+The available Makefile builds all basic functions into a static library to be linked 
+against user applications. 
+
+###############################
+Usage Intructions:
+###############################
+make all:   Build all auxiliary functions as 'libsupport.a'. 
+
+make clean: Delete all build and temporary files.
+
+To build your applications using the drivers add the following to your compilation instructions:
+'-L./lib'       :Location for searching static library.
+'-lsupport'     :libsupport.a static library.
+'-Ilib/include' :Location of Header Files to be included in the application.

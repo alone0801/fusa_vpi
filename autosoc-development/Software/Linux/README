@@ -1,0 +1,23 @@
+########################################################
+# AutoSoC
+# Linux
+########################################################
+
+This folders is intended to contains all a build of Linux for the AutoSoC. 
+Currently, it contains a sample of linux image and the configuration files used to build it.
+The sample linux image can be used in RTL Simulation. It boots the kernel and load a sample initramfs to the memory.
+
+To simulate the sample Linux, set the file 'sample_linux/vmlinux-sample' in the xrunPlusArgs.f simulation configuration file.
+For more information about the simulation check the Simulation folder.
+
+###############################
+Original Repositories
+###############################
+The Linux repository used is available in the OpenRISC community.
+The configuration files used for building the sample linux image are in config_files folder.
+The sample linux to be used in simulation is inside the sample_linux folder.
+
+Original repositories can be found in:
+Linux: https://github.com/openrisc/linux
+
+Tutorial on Linux: https://github.com/openrisc/tutorials/blob/master/docs/Linux.md
