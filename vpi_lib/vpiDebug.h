@@ -313,3 +313,6 @@ void         triggerOnLoop( p_cback_data );
 void         addEosCallback( void ( * )( p_cb_data ) );             /* in eosCallback.c */
 void         dummyEosHandler( );
 void         vcd_vpi_register();
+int time_record_print( p_cb_data cb_data_p );
+void timeRecordEosHandler( p_cb_data data );
+

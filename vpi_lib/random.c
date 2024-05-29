@@ -31,8 +31,9 @@ FaultData *random_process(const char* filename) {
 
     int index = 0;
     while (fgets(line, sizeof(line), fp)) {
-        if (sscanf(line, "%*d %19s { %*d \"%99[^\"]\" }",
+        if (sscanf(line, "%*d %19s { %*d \"%199[^\"]\" }",
                    faults[index].fault_time, faults[index].fault_location) == 2) {
+ //           printf("++++++DEBUG%s++++++++++++=",faults[index].fault_location);
             index++;
         }
     }

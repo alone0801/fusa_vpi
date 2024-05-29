@@ -15,9 +15,10 @@ static char status_checker[10] = "Undetect";
 static char status_functional[10] = "Undetect";
 static char strobe_mode[10] = "Dual";
 static char FAULT_ID[100];
-static char FAULT_LOCATION[100];
+static char FAULT_LOCATION[200];
 static char FAULT_TYPE[10];
 static char FAULT_TIME[10];
+static int tolerant_time = 10;
 static int fault_classification( p_cb_data cb_data_p );
 static void FaultClassEosHandler( p_cb_data data );
 void parse_injectXML(const char* filename);
@@ -25,6 +26,7 @@ void SAInject(const char* fault_location, const char* fault_time, const char* fa
 void generateXML(const char* idValue, const char* locationValue, const char* statusValue,const char* typeValue);
 void fault_injector_register();
 void value_get(const char* fault_location);
+static int timeoutHandler( p_cb_data cb_data_p );
 /*
  *  Create a new vdiff_node (addendum to callback data structures)
  */
@@ -184,7 +186,9 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
         if (strcmp(strobe_mode, "Single") == 0) printf("the classificaiton of the inject fault is :%s\n",status_checker);
         else printf("the classificaiton of the inject fault is :\nFunctional:%s,\nChecker:%s\n",status_functional,status_checker);
        */
-       vpi_control(vpiStop,1);
+       //vpi_control(vpiStop,1);
+        vpi_control(vpiFinish,1);
+
  }
 
 }
@@ -391,15 +395,23 @@ void vcdCompareCheck( )
 void vcdCompareCall( )
 {
     char* path = tf_getcstringp( 1 );
+    //char* step = tf_getcstringp( 2 );
     char  filename[100];
     char  FI_PATH[100];
     char  FS_PATH[100];
+    char  TIME_PATH[100];
+    if (strcmp(path, "good_sim") == 0) {
+        addEosCallback( timeRecordEosHandler );
+    }
+    else {
     strcpy(FS_PATH, path);
     strcat(FS_PATH,"/fault.set");
     strcpy(FI_PATH, path);
     strcat(FI_PATH,"/FI.xml");
     strcpy(filename, path);
     strcat(filename,"/golden.vcd");
+    strcpy(TIME_PATH, path);
+    strcat(TIME_PATH,"/golden.time");
     vpi_printf( "vcdCompare: reading <%s>\n", filename );
     initializeStringList(&checker_list);
     initializeStringList(&functional_list);
@@ -422,6 +434,7 @@ void vcdCompareCall( )
         strcpy(FAULT_LOCATION, faults[id].fault_location);
         fault.fault_node_name = FAULT_LOCATION;
         fault.injection_time = atoi(faults[id].fault_time);
+        //printf("**********DEBUG%s",faults[id].fault_location);
         }
     if(strcmp(iso_mode, "ENA") == 0){
         fault.fault_node_name = check_alias(fault.fault_node_name,&port_list);
@@ -432,10 +445,12 @@ void vcdCompareCall( )
     hashInitialize( &vcdHash, 200 );
     addEosCallback( FaultClassEosHandler );
     addEosCallback( vcdCompareEosHandler );
+    timeCheck(TIME_PATH);
     processVcd( readVcdHeader( filename ) );
     //value_get("test.dut_inst.mem2_i.crc_chk_i.crc_gen_i.d");
 
     fault_injector_register();
+    }
 }
 
 /*
@@ -445,12 +460,53 @@ void vcdCompareMisc( int data, int reason )
 {
     if ( reason == reason_finish ) dummyEosHandler( );
 }
+static void setTimeoutCallback( int time )
+{
+    static s_vpi_time time_s = { vpiSimTime };
 
+    s_cb_data callbackData = { cbAtStartOfSimTime, timeoutHandler, 0, &time_s, 0 };
+
+    callbackData.time->high = 0;
+    callbackData.time->low  = time;
+    vpi_register_cb( &callbackData );
+}
+
+static int timeoutHandler( p_cb_data cb_data_p )
+{   
+    int current=(int)cb_data_p->time->low;
+    int golden = current-tolerant_time;
+    strcpy(status_functional, "Detect");
+    printf("****Time out while fault simulation*****\n");
+    printf("golden time is %d, current time is %d",golden,current);
+    //vpi_control(vpiStop,1);
+    vpi_control(vpiFinish,1);
+}
+void timeCheck(const char* filename){
+    int golden_time;
+    int stop_time;
+    FILE *file;
+
+
+    // 打开文件golden.time
+    file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        return EXIT_FAILURE;
+    }
+    if (fscanf(file, "%d", &golden_time) != 1) {
+        perror("Error reading integer from file");
+        fclose(file);
+        return EXIT_FAILURE;
+    }
+    fclose(file);
+    stop_time=golden_time+tolerant_time;
+    setTimeoutCallback(stop_time);
+    }
 /*void parseXML(const char* filename, struct StringList* list) {*/
 void parseXML(const char* filename) {
     xmlDocPtr doc;
     xmlNodePtr root, node;
-
+    
     doc = xmlReadFile(filename, NULL, 0);
     if (doc == NULL) {
         fprintf(stderr, "Failed to parse XML file.\n");
@@ -534,8 +590,11 @@ void parse_injectXML(const char* filename) {
             } else if (xmlStrcmp(node->name, (const xmlChar *)"LOCATION") == 0) {
                 strcpy(FAULT_LOCATION, (char *)xmlNodeGetContent(node));
                 fault.fault_node_name = FAULT_LOCATION;
+                printf("++++++++DEBUG:%s++++++++++",fault.fault_node_name);
             } else if (xmlStrcmp(node->name, (const xmlChar *)"TYPE") == 0) {
+                printf("++++++++DEBUG:%s++++++++++",fault.fault_node_name);
                 strcpy(FAULT_TYPE, (char *)xmlNodeGetContent(node));
+                printf("++++++++DEBUG:%s++++++++++",fault.fault_node_name);
                 if(strcmp("SEU", FAULT_TYPE) == 0)
                     fault.fault_type = SEU_FAULT;
                 else if(strcmp("SA0", FAULT_TYPE) == 0)
@@ -548,6 +607,7 @@ void parse_injectXML(const char* filename) {
                     fault.fault_type = SA_FAULT;
                     fault.fault_value = 1;
                 }
+                printf("++++++++DEBUG:%s++++++++++",fault.fault_node_name);
             } else if (xmlStrcmp(node->name, (const xmlChar *)"TIME") == 0) {
                 strcpy(FAULT_TIME, (char *)xmlNodeGetContent(node));
                 fault.injection_time = atoi(FAULT_TIME);

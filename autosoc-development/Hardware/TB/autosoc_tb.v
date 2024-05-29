@@ -145,11 +145,11 @@ module autosoc_tb;
         .can_tx_o       (can_loopback_tx),
         .can_bus_off_on (can_loopback_bus_off_on) 
     );
-
+/*
 initial begin
       $fsdbDumpfile("test.fsdb");
       $fsdbDumpvars(0,autosoc_tb);
 end
-
+*/
 
 endmodule

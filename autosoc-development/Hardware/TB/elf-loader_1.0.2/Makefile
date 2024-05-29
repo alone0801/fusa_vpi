@@ -7,7 +7,7 @@ OBJS   = vpiDebug.o dumpHier.o dumpUpstream.o causalTree.o vcdCompare.o extractM
          traceSignal.o oscDetect.o eventTree.o hierTrace.o backTrace.o evCallback.o  \
          eosCallback.o vcdReader.o hash.o util.o  StringList.o fault_injector.o port_alias.o random.o 
 
-all:		elf-loader.so
+all:		clean elf-loader.so
 share:      libvpiDebug.so
 libvpiDebug.so: 	${OBJS} 
 		$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^

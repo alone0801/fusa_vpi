@@ -44,3 +44,6 @@ RTEMS/
 *.fsdb
 flt_target_dbg.list
 verdiLog/
+test_dir1/
+*.swo
+verilog.dump

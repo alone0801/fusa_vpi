@@ -30,13 +30,12 @@ module fi_wrapper();
     // generate strobe signal in wave.vcd while golden simualtion
     initial begin
     `ifdef good_sim
+        $vcdCompare("good_sim");
         $dumpfile("{current_path}/golden.vcd");
 {dumpvars_checker}
 {dumpvars_functional}
     `else
         $vcdCompare("{current_path}");
-        $dumpfile("fault.vcd");
-        $dumpvars(0,{test_name});
     `endif
     end
 endmodule

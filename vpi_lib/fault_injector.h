@@ -5,7 +5,7 @@
 #define SEU_FAULT 1
 
 struct Fault{
-    PLI_BYTE8 *fault_node_name;
+    PLI_INT32 *fault_node_name;
     PLI_INT32 fault_type;
     PLI_INT32 fault_value;
     double injection_time;

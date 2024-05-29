@@ -4,9 +4,39 @@
     <TESTBENCH_NAME>autosoc_tb</TESTBENCH_NAME>
     <OBSERVATION_POINTS>
     <CHECKER_STROBE>autosoc_tb.dut.cp_ctrl_error</CHECKER_STROBE>
+    <CHECKER_STROBE>autosoc_tb.dut.intgen0.irq_o</CHECKER_STROBE>
+    <CHECKER_STROBE>autosoc_tb.dut.safeMon_error_alarm</CHECKER_STROBE>
+    <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.dbus_adr_o</FUNCTIONAL_STROBE>
+    <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.dbus_dat_o</FUNCTIONAL_STROBE>
+    <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.dbus_req_o</FUNCTIONAL_STROBE>
+    <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.dbus_bsel_o</FUNCTIONAL_STROBE>
+    <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.dbus_we_o</FUNCTIONAL_STROBE>
+    <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.dbus_burst_o</FUNCTIONAL_STROBE>
+    <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.spr_bus_addr_o</FUNCTIONAL_STROBE>
+    <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.spr_bus_we_o</FUNCTIONAL_STROBE>
+    <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.spr_bus_stb_o</FUNCTIONAL_STROBE>
+    <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.spr_bus_dat_o</FUNCTIONAL_STROBE>
+    <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.spr_sr_o</FUNCTIONAL_STROBE>
+    <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.ibus_adr_o</FUNCTIONAL_STROBE>
+    <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.ibus_burst_o</FUNCTIONAL_STROBE>
+    <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.ibus_req_o</FUNCTIONAL_STROBE>
+    <NOSTOP_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.dbus_adr_o</NOSTOP_STROBE>
+    <NOSTOP_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.dbus_dat_o</NOSTOP_STROBE>
+    <NOSTOP_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.dbus_req_o</NOSTOP_STROBE>
+    <NOSTOP_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.dbus_bsel_o</NOSTOP_STROBE>
+    <NOSTOP_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.dbus_we_o</NOSTOP_STROBE>
+    <NOSTOP_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.dbus_burst_o</NOSTOP_STROBE>
+    <NOSTOP_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.spr_bus_addr_o</NOSTOP_STROBE>
+    <NOSTOP_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.spr_bus_we_o</NOSTOP_STROBE>
+    <NOSTOP_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.spr_bus_stb_o</NOSTOP_STROBE>
+    <NOSTOP_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.spr_bus_dat_o</NOSTOP_STROBE>
+    <NOSTOP_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.spr_sr_o</NOSTOP_STROBE>
+    <NOSTOP_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.ibus_adr_o</NOSTOP_STROBE>
+    <NOSTOP_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.ibus_burst_o</NOSTOP_STROBE>
+    <NOSTOP_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.ibus_req_o</NOSTOP_STROBE>
     <!--<FUNCTIONAL_STROBE>test.dut_inst.mem2_i.crc_gen_wr_i.d</FUNCTIONAL_STROBE>-->
     <!--<NOSTOP_STROBE>test.dut_inst.mem2_data_out</NOSTOP_STROBE>-->
     </OBSERVATION_POINTS>
-    <ISO_MODE>ENA</ISO_MODE>
+    <ISO_MODE>DISENA</ISO_MODE>
 </FI_CONFIG>
 

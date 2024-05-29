@@ -109,7 +109,7 @@ void fault_injector(p_cb_data cb_data)
 
     if(signal_handle == 0)
     {
-        vpi_printf((PLI_BYTE8*) "UVM_ERROR: set: unable to locate hdl path (%s)\n",fault_p->fault_node_name);
+        vpi_printf((PLI_BYTE8*) "INJECT_ERROR: set: unable to locate hdl path (%s)\n",fault_p->fault_node_name);
         vpi_printf((PLI_BYTE8*) " Either the name is incorrect, or you may not have PLI/ACC visibility to that name\n");
     }
     else

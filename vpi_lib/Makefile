@@ -7,10 +7,10 @@ LDFLAGS = -shared  -fPIC -m64
 CC = gcc
 OBJS   = vpiDebug.o dumpHier.o dumpUpstream.o causalTree.o vcdCompare.o extractMod.o \
          traceSignal.o oscDetect.o eventTree.o hierTrace.o backTrace.o evCallback.o  \
-         eosCallback.o vcdReader.o hash.o util.o  StringList.o fault_injector.o port_alias.o random.o 
+         eosCallback.o vcdReader.o hash.o util.o  StringList.o fault_injector.o port_alias.o random.o  timeRecord
 SHARE_OBJS = vpiDebug.o dumpHier.o dumpUpstream.o causalTree.o sharevcd.o extractMod.o \
          traceSignal.o oscDetect.o eventTree.o hierTrace.o backTrace.o evCallback.o  \
-         eosCallback.o vcdReader.o hash.o util.o  StringList.o fault_injector.o port_alias.o random.o 
+         eosCallback.o vcdReader.o hash.o util.o  StringList.o fault_injector.o port_alias.o random.o timeRecord.o 
 all:		libvpiDebug.so libsharefusa.so
 share:      libvpiDebug.so
 libvpiDebug.so: 	${OBJS} 
@@ -36,6 +36,7 @@ oscDetect.o:	vpiDebug.h oscDetect.c
 traceSignal.o:	vpiDebug.h traceSignal.c
 util.o:                    util.c
 vcdCompare.o:	vpiDebug.h vcdCompare.c StringList.h StringList.c
+timeRecord.o:   vpiDebug.h timeRecord.c
 vcdReader.o:               vcdReader.c
 vpiDebug.o:	vpiDebug.h vpiDebug.c
 fault_injector.o: fault_injector.c fault_injector.h

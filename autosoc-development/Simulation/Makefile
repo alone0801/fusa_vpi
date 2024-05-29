@@ -111,7 +111,10 @@ vcs_good:
 	+define+CHECKPOINT +define+LOCKSTEP +define+PARITY +define+MEMECC \
 	-l compile.log +lint=TFIPC-L -notice -debug_access+all -kdb -lca -full64 &&\
 	./simv -l good_sim.log \
-	+elf_load=$(SW_dir)/Baremetal/sample_apps/hello.elf +clear_ram
+	+elf_load=$(SW_dir)/Baremetal/sample_apps/hello.elf +clear_ram \
+	-ucli -i $(fusa_lib)/ucli.tcl
+
+
 
 #+elf_load=$(SW_dir)/Baremetal/sample_apps/can_selftest.elf +clear_ram  
 #+define+CHECKPOINT +define+LOCKSTEP +define+PARITY +define+MEMECC \
@@ -124,7 +127,8 @@ vcs_fault:
 	/home/ICer/fusa_vpi/autosoc-development/Hardware/TB/elf-loader_1.0.2/elf-loader.so \
 	-f rtl.f fi_wrapper.v +define+fault_sim   -lxml2 -lelf -sverilog \
 	+define+CHECKPOINT +define+LOCKSTEP +define+PARITY +define+MEMECC \
-	-l compile.log +lint=TFIPC-L -notice -debug_access+all -kdb -lca -full64 &&\
+	-l compile.log +lint=TFIPC-L -notice -debug_access+all -kdb -lca -full64  \
+	+elf_load=$(SW_dir)/Baremetal/sample_apps/hello.elf +clear_ram &&\
 	./simv -l good_sim.log +elf_load=$(SW_dir)/Baremetal/sample_apps/hello.elf +clear_ram 
 
 list:
