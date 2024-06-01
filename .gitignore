@@ -47,3 +47,6 @@ verdiLog/
 test_dir1/
 *.swo
 verilog.dump
+FM_*/
+*.xml
+*.set

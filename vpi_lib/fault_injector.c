@@ -29,8 +29,8 @@ void fault_injector_register( )
     fault_p = &fault;
 
     vpi_printf("Fault node name is %s\n",fault_p->fault_node_name);
-    vpi_printf("Fault type is %d\n",fault_p->fault_type);
-    vpi_printf("Fault value is %d\n",fault_p->fault_value);
+    //vpi_printf("Fault type is %s\n",fault_p->fault_type);
+    //vpi_printf("Fault value is %d\n",fault_p->fault_value);
     vpi_printf("Injection time is %f\n",fault_p->injection_time);
 
     //Specifying the fault injeciton time
@@ -122,9 +122,7 @@ void fault_injector(p_cb_data cb_data)
         
         fault_value.format = vpiIntVal;
         fault_value.value.integer = fault_p->fault_value;
-        printf("value before put:\n");
         vpi_put_value(signal_handle, &fault_value, &time_s, flag);
-        printf("value after put:\n");
     }
 }
 

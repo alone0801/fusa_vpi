@@ -24,9 +24,9 @@ def aggregate_results(root_dir, output_file):
 
     # Write aggregated results to the specified output file
     with open(output_file, 'w') as f:
-        f.write("<LOCATION> <TYPE> <RESULT>\n")
+        f.write("<LOCATION> <TYPE> <TIME> <RESULT>\n")
         for idx, result in enumerate(results, 1):
-            line = f"{result['LOCATION']}  {result['TYPE']}  {result['STATUS']}\n"
+            line = f"{result['LOCATION']}  {result['TYPE']}  {result['TIME']}  {result['STATUS']}\n"
             f.write(line)
 
 if __name__ == "__main__":

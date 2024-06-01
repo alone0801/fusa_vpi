@@ -17,7 +17,7 @@ static char strobe_mode[10] = "Dual";
 static char FAULT_ID[100];
 static char FAULT_LOCATION[200];
 static char FAULT_TYPE[10];
-static char FAULT_TIME[10];
+static char FAULT_TIME[100];
 static int tolerant_time = 10;
 static int fault_classification( p_cb_data cb_data_p );
 static void FaultClassEosHandler( p_cb_data data );
@@ -431,9 +431,23 @@ void vcdCompareCall( )
     printStringList(&nostop_list);
     FaultData *faults = random_process(FS_PATH);
     if(FAULT_LOCATION==NULL||strlen(FAULT_LOCATION) == 0 ){
-        strcpy(FAULT_LOCATION, faults[id].fault_location);
+        strcpy(FAULT_LOCATION, faults[id].location);
         fault.fault_node_name = FAULT_LOCATION;
-        fault.injection_time = atoi(faults[id].fault_time);
+        fault.injection_time = atoi(faults[id].time);
+        strcpy(FAULT_TIME, faults[id].time);
+        strcpy(FAULT_TYPE, faults[id].type);
+        if(strcmp("SEU", FAULT_TYPE) == 0)
+                    fault.fault_type = SEU_FAULT;
+                else if(strcmp("SA0", FAULT_TYPE) == 0)
+                {
+                    fault.fault_type = SA_FAULT;
+                    fault.fault_value = 0;
+                }
+                else if(strcmp("SA1", FAULT_TYPE) == 0)
+                {
+                    fault.fault_type = SA_FAULT;
+                    fault.fault_value = 1;
+                }
         //printf("**********DEBUG%s",faults[id].fault_location);
         }
     if(strcmp(iso_mode, "ENA") == 0){
@@ -590,11 +604,11 @@ void parse_injectXML(const char* filename) {
             } else if (xmlStrcmp(node->name, (const xmlChar *)"LOCATION") == 0) {
                 strcpy(FAULT_LOCATION, (char *)xmlNodeGetContent(node));
                 fault.fault_node_name = FAULT_LOCATION;
-                printf("++++++++DEBUG:%s++++++++++",fault.fault_node_name);
+                //printf("++++++++DEBUG:%s++++++++++",fault.fault_node_name);
             } else if (xmlStrcmp(node->name, (const xmlChar *)"TYPE") == 0) {
                 printf("++++++++DEBUG:%s++++++++++",fault.fault_node_name);
                 strcpy(FAULT_TYPE, (char *)xmlNodeGetContent(node));
-                printf("++++++++DEBUG:%s++++++++++",fault.fault_node_name);
+                //printf("++++++++DEBUG:%s++++++++++",fault.fault_node_name);
                 if(strcmp("SEU", FAULT_TYPE) == 0)
                     fault.fault_type = SEU_FAULT;
                 else if(strcmp("SA0", FAULT_TYPE) == 0)
@@ -607,7 +621,7 @@ void parse_injectXML(const char* filename) {
                     fault.fault_type = SA_FAULT;
                     fault.fault_value = 1;
                 }
-                printf("++++++++DEBUG:%s++++++++++",fault.fault_node_name);
+                //printf("++++++++DEBUG:%s++++++++++",fault.fault_node_name);
             } else if (xmlStrcmp(node->name, (const xmlChar *)"TIME") == 0) {
                 strcpy(FAULT_TIME, (char *)xmlNodeGetContent(node));
                 fault.injection_time = atoi(FAULT_TIME);
@@ -649,6 +663,7 @@ void generateXML(const char* idValue, const char* locationValue, const char* sta
     fprintf(fp, "    <ID>%s</ID>\n", idValue);
     fprintf(fp, "    <LOCATION>%s</LOCATION>\n", locationValue);
     fprintf(fp, "    <TYPE>%s</TYPE>\n", typeValue);
+    fprintf(fp, "    <TIME>%d</TIME>\n",atoi(FAULT_TIME));
     fprintf(fp, "    <STATUS>%s</STATUS>\n", statusValue);
     fprintf(fp, "</RESULT>\n");
 

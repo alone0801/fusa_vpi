@@ -3,7 +3,9 @@
 #include <string.h>
 
 typedef struct {
-    char fault_time[20];
-    char fault_location[200];
+    char time[20];
+    char location[200];
+    char type[10];
+    char result[10];
 } FaultData;
 FaultData *random_process(const char* filename);

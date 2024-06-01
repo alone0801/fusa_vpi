@@ -111,7 +111,7 @@ vcs_good:
 	+define+CHECKPOINT +define+LOCKSTEP +define+PARITY +define+MEMECC \
 	-l compile.log +lint=TFIPC-L -notice -debug_access+all -kdb -lca -full64 &&\
 	./simv -l good_sim.log \
-	+elf_load=$(SW_dir)/Baremetal/sample_apps/hello.elf +clear_ram \
+	+elf_load=$(SW_dir)/Baremetal/sample_apps/calcPrimeArms.elf +clear_ram \
 	-ucli -i $(fusa_lib)/ucli.tcl
 
 
@@ -129,7 +129,7 @@ vcs_fault:
 	+define+CHECKPOINT +define+LOCKSTEP +define+PARITY +define+MEMECC \
 	-l compile.log +lint=TFIPC-L -notice -debug_access+all -kdb -lca -full64  \
 	+elf_load=$(SW_dir)/Baremetal/sample_apps/hello.elf +clear_ram &&\
-	./simv -l good_sim.log +elf_load=$(SW_dir)/Baremetal/sample_apps/hello.elf +clear_ram 
+	./simv -l good_sim.log +elf_load=$(SW_dir)/Baremetal/sample_apps/calcPrimeArms.elf +clear_ram 
 
 list:
 	find $(HW_dir)  -name "*.sv" -or -name "*.v" >> $(fault_dir)/rtl.f	

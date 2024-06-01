@@ -29,12 +29,29 @@ FaultData *random_process(const char* filename) {
         return NULL;
     }
 
+    //int index = 0;
+    //while (fgets(line, sizeof(line), fp)) {
+    //    if (sscanf(line, "%*d %19s { %*d \"%199[^\"]\" }",
+    //               faults[index].fault_time, faults[index].fault_location) == 2) {
+ // //          printf("++++++DEBUG%s++++++++++++=",faults[index].fault_location);
+    //        index++;
+    //    }
+    //}
+    printf("++++++DEBUG:HERE IS RANDOM++++++++++++=");
     int index = 0;
     while (fgets(line, sizeof(line), fp)) {
-        if (sscanf(line, "%*d %19s { %*d \"%199[^\"]\" }",
-                   faults[index].fault_time, faults[index].fault_location) == 2) {
- //           printf("++++++DEBUG%s++++++++++++=",faults[index].fault_location);
+        if (sscanf(line, "%255s %15s %d %15s",
+                   faults[index].location,
+                   faults[index].type,
+                   faults[index].time,
+                   faults[index].result) == 4) {
+            //printf("++++++DEBUG:HEREINBRANCH++++");
+            //printf("++++++DEBUG%s++++++++++++=",faults[index].location);
             index++;
+        }
+        else {
+           // printf("Failed to parse line: %s", line);
+           // return 0 ;
         }
     }
 
