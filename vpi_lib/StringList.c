@@ -1,7 +1,7 @@
 #include "StringList.h"
 
 void initializeStringList(struct StringList* list) {
-    list->strings = (char**)malloc(10 * sizeof(char*));
+    list->strings = (char**)malloc(20 * sizeof(char*));
     list->count = 0;
     list->capacity = 10;
 }
@@ -22,11 +22,28 @@ void printStringList(struct StringList* list) {
     }
 }
 
-void freeStringList(struct StringList* list) {
-    for (i = 0; i < list->count; i++) {
-        free(list->strings[i]);
+//void freeStringList(struct StringList* list) {
+//    for (i = 0; i < list->count; i++) {
+//        free(list->strings[i]);
+//    }
+//    free(list->strings);
+//    list->count = 0;
+//    list->capacity = 0;
+//}
+void freeStringList(StringList* list) {
+    int i=0;
+    if (list->strings) {
+        for ( i ; i < list->count; i++) {
+            if (list->strings[i]) {
+                free(list->strings[i]);
+                list->strings[i] = NULL;
+            }
+        }
+        free(list->strings);
+        list->strings = NULL;
     }
-    free(list->strings);
+    list->count = 0;
+    list->capacity = 0;
 }
 
 int checkStringList(const struct StringList* list, const char* str) {

@@ -1,4 +1,7 @@
 #!/bin/bash
+make vcs_good MACRO=$2
+make vcs_fault MACRO=$2
+cd autoSOC_fusa
 fault_dir=$1
 rm -rf $fault_dir
 EXE_PATH=$(pwd)
@@ -19,7 +22,7 @@ for ((i = 1; i <= num_faults; i++)); do
     echo '<INJECT>' >> fault.xml
     echo "    <ID>$i</ID>" >> fault.xml
     echo '</INJECT>' >> fault.xml
-    $EXE_PATH/simv -l fault_sim.log   +elf_load=$SW_dir/Baremetal/sample_apps/hello.elf +clear_ram  
-    #-ucli -i $fusa_lib/ucli.tcl
+#    $EXE_PATH/simv -l fault_sim.log   +elf_load=$SW_dir/Baremetal/sample_apps/hello.elf +clear_ram  
+    $EXE_PATH/simv -l fault_sim.log  +elf_load=$SW_dir/Baremetal/sample_apps/$2  +clear_ram -ucli -i $fusa_lib/ucli.tcl
     cd .. || exit
 done

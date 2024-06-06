@@ -2,6 +2,7 @@ export fusa_lib=~/fusa_vpi/vpi_lib
 export fault_dir=autoSOC_fusa
 export HW_dir=/home/ICer/fusa_vpi/autosoc-development/Hardware
 export SW_dir=/home/ICer/fusa_vpi/autosoc-development/Software
+export MACRO=hello.elf
 #LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):~/fusa_vpi/vpi_lib/
 #export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):~/fusa_vpi/vpi_lib/
 
@@ -109,10 +110,12 @@ vcs_good:
 	/home/ICer/fusa_vpi/autosoc-development/Hardware/TB/elf-loader_1.0.2/elf-loader.so \
 	-f rtl.f fi_wrapper.v +define+good_sim   -lxml2 -lelf -sverilog \
 	+define+CHECKPOINT +define+LOCKSTEP +define+PARITY +define+MEMECC \
-	-l compile.log +lint=TFIPC-L -notice -debug_access+all -kdb -lca -full64 &&\
+	-l compile.log +lint=TFIPC-L -notice -debug_access+all  -full64 &&\
 	./simv -l good_sim.log \
-	+elf_load=$(SW_dir)/Baremetal/sample_apps/calcPrimeArms.elf +clear_ram \
-	-ucli -i $(fusa_lib)/ucli.tcl
+	+elf_load=$(SW_dir)/Baremetal/sample_apps/$(MACRO) +clear_ram \
+
+#-kdb -lca 
+#	-ucli -i $(fusa_lib)/ucli.tcl
 
 
 
@@ -127,9 +130,9 @@ vcs_fault:
 	/home/ICer/fusa_vpi/autosoc-development/Hardware/TB/elf-loader_1.0.2/elf-loader.so \
 	-f rtl.f fi_wrapper.v +define+fault_sim   -lxml2 -lelf -sverilog \
 	+define+CHECKPOINT +define+LOCKSTEP +define+PARITY +define+MEMECC \
-	-l compile.log +lint=TFIPC-L -notice -debug_access+all -kdb -lca -full64  \
-	+elf_load=$(SW_dir)/Baremetal/sample_apps/hello.elf +clear_ram &&\
-	./simv -l good_sim.log +elf_load=$(SW_dir)/Baremetal/sample_apps/calcPrimeArms.elf +clear_ram 
+	-l compile.log +lint=TFIPC-L -notice -debug_access+all  -full64  &&\
+	./simv -l fault_sim.log +elf_load=$(SW_dir)/Baremetal/sample_apps/$(MACRO) +clear_ram \
+    -ldb -lca  -ucli -i $(fusa_lib)/ucli.tcl
 
 list:
 	find $(HW_dir)  -name "*.sv" -or -name "*.v" >> $(fault_dir)/rtl.f	

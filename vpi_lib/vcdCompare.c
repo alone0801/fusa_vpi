@@ -27,6 +27,7 @@ void generateXML(const char* idValue, const char* locationValue, const char* sta
 void fault_injector_register();
 void value_get(const char* fault_location);
 static int timeoutHandler( p_cb_data cb_data_p );
+void freeStringList(StringList *list);
 /*
  *  Create a new vdiff_node (addendum to callback data structures)
  */
@@ -121,8 +122,9 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
     struct event* ptr = top;
     int flag_stop=0; 
     /*flag control if drop this simulation at the end of time step*/
-    static s_vpi_time time_s = { vpiSimTime };
-
+    static s_vpi_time time_s = { vpiScaledRealTime };
+    static s_vpi_time time_int = { vpiSimTime };
+    vpi_get_time( 0, &time_int );
     vpi_get_time( 0, &time_s );
  /*   printf("Compare at%ld:%ld:\n", time_s.high, time_s.low );
     printEventList(top);
@@ -141,7 +143,9 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
             char* name = node ? FullName( node->refn->refn ) : "<noname>";
 
             vpi_printf( "*** Unexpected <%s> event on <%s(%s)> at %ld:%ld\n",
-                         ptr->vact, name, ptr->mark, time_s.high, time_s.low );
+                         ptr->vact, name, ptr->mark, time_int.high, time_int.low );
+            vpi_printf( "*** Unexpected <%s> event on <%s(%s)> at %lf\n",
+                         ptr->vact, name, ptr->mark, time_s.real );
 
             triggerOnDiff( node->refn );
             if(!checkStringList(&nostop_list,name))flag_stop=1;
@@ -154,8 +158,8 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
 
             char* name = node ? FullName( node->refn->refn ) : "<noname>";
 
-            vpi_printf( "*** Missing <%s> event on <%s(%s)> at %ld:%ld\n",
-                         ptr->vexp, name, ptr->mark, time_s.high, time_s.low );
+            vpi_printf( "*** Missing <%s> event on <%s(%s)> at %lf\n",
+                         ptr->vexp, name, ptr->mark, time_s.real );
 
             triggerOnDiff( node->refn );
             if(!checkStringList(&nostop_list,name))flag_stop=1;
@@ -168,8 +172,8 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
 
             char* name = node ? FullName( node->refn->refn ) : "<noname>";
 
-            vpi_printf( "*** Mismatch on <%s(%s)>: exp=<%s>, act=<%s> at %ld:%ld\n",
-                         name, ptr->mark, ptr->vexp, ptr->vact, time_s.high, time_s.low );
+            vpi_printf( "*** Mismatch on <%s(%s)>: exp=<%s>, act=<%s> at %lf\n",
+                         name, ptr->mark, ptr->vexp, ptr->vact, time_s.real );
             if(!checkStringList(&nostop_list,name))flag_stop=1;
             if(checkStringList(&checker_list,name)) strcpy(status_checker, "Detect");  
             if(checkStringList(&functional_list,name)) strcpy(status_functional, "Detect");
@@ -186,8 +190,14 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
         if (strcmp(strobe_mode, "Single") == 0) printf("the classificaiton of the inject fault is :%s\n",status_checker);
         else printf("the classificaiton of the inject fault is :\nFunctional:%s,\nChecker:%s\n",status_functional,status_checker);
        */
-       //vpi_control(vpiStop,1);
-        vpi_control(vpiFinish,1);
+        freeStringList(&fault_target);
+        freeStringList(&checker_list);
+        freeStringList(&functional_list);
+        freeStringList(&nostop_list);
+        vpi_control(vpiStop,1);
+        //vpi_control(vpiFinish,1);
+
+        return(0);
 
  }
 
@@ -226,19 +236,24 @@ static int timeHandler( p_cb_data cb_data_p )
     processVcd( ( void* )cb_data_p->user_data );
 }
 
-static void setTimeCallback( long time, void* ptr )
-{
+static void setTimeCallback( double time, void* ptr )
+{   
+    uint64_t time_64 = (uint64_t) time;
+    uint32_t high = (uint32_t)(time_64 >> 32)&(0xFFFFFFFFFFFFFFFF);
+    uint32_t low = (uint32_t)(time_64 & 0xFFFFFFFF);
+    //static s_vpi_time time_s = { vpiScaledRealTime };
     static s_vpi_time time_s = { vpiSimTime };
+   // s_cb_data callbackData = { cbAtStartOfSimTime, timeHandler, 0, &time_s, 0 };
 
     s_cb_data callbackData = { cbAtStartOfSimTime, timeHandler, 0, &time_s, 0 };
 
-    callbackData.time->high = 0;
-    callbackData.time->low  = time;
-
+    callbackData.time->high = high;
+    callbackData.time->low  = low;
+  //  callbackData.time->real  = time;
+    //printf("++++++DEBUG:TIMEHANDLER_TIME:%d:%d++++++++++++++",callbackData.time->high,callbackData.time->low);
     callbackData.user_data = ( char* )ptr; /* VCD handle */
 
-    DBG_VDIFF(( "Next wakeup call at %ld:%ld\n", callbackData.time->high,
-                                                 callbackData.time->low ));
+    //DBG_VDIFF(( "Next wakeup call at %lf\n", callbackData.time->real));
 
     vpi_register_cb( &callbackData );
 }
@@ -337,7 +352,7 @@ static void processVcd( void* ptr )
              *  happen before this time must be mismatches.
              */
            /*  printEventList(top);*/
-            if ( atol( str + 1 ) ) { setTimeCallback( atol( ++str ), ptr ); return; }
+            if ( atol( str + 1 ) ) { setTimeCallback( atof( ++str ), ptr ); return; }
         }
         else /* assume single-bit change record */
         {
@@ -402,6 +417,7 @@ void vcdCompareCall( )
     char  TIME_PATH[100];
     if (strcmp(path, "good_sim") == 0) {
         addEosCallback( timeRecordEosHandler );
+        //timeCheck("/home/ICer/fusa_vpi/autosoc-development/Simulation/fault.time");
     }
     else {
     strcpy(FS_PATH, path);
@@ -417,7 +433,7 @@ void vcdCompareCall( )
     initializeStringList(&functional_list);
     initializeStringList(&nostop_list);
     initializeStringList(&fault_target);
-    /*parseXML("FI.xml", &checker_list);*/
+    /////*parseXML("FI.xml", &checker_list);*/
     parseXML(FI_PATH);
     parse_injectXML("./fault.xml"); 
     printf("FAULT_ID:%s",FAULT_ID);
@@ -454,18 +470,34 @@ void vcdCompareCall( )
         fault.fault_node_name = check_alias(fault.fault_node_name,&port_list);
         printf("beacause of iso, inject node is %s\n",fault.fault_node_name);
     }
-    //SAInject("test.dut_inst.mem1_i.mem_data_in[0]","50", "SA0");
-    //SAInject(FAULT_LOCATION, faults[id].fault_time, FAULT_TYPE);
     hashInitialize( &vcdHash, 200 );
     addEosCallback( FaultClassEosHandler );
     addEosCallback( vcdCompareEosHandler );
+    //timeCheck("/home/ICer/fusa_vpi/autosoc-development/Simulation/fault.time");
     timeCheck(TIME_PATH);
     processVcd( readVcdHeader( filename ) );
-    //value_get("test.dut_inst.mem2_i.crc_chk_i.crc_gen_i.d");
 
     fault_injector_register();
+    double time_d = 22644900000.00000;
+    uint64_t time_64 = (uint64_t)time_d;
+    uint32_t high = (uint32_t)(time_64 >> 32); 
+    uint32_t low = (uint32_t)(time_64 & 0xFFFFFFFF); 
+    printf("+++++++++++++DEBUG%ld:%ld+++++++++++++++++=",high,low);
+    static s_vpi_time time_test = { vpiSimTime };
+//    freeStringList(&fault_target);
+//    freeStringList(&checker_list);
+//    freeStringList(&functional_list);
+//    freeStringList(&nostop_list);
+    //time_test
     }
 }
+//void freeStringList(StringList *list) {
+//    int i;
+//    for ( i = 0; i < list->count; ++i) {
+//        free(list->strings[i]);
+//    }
+//    list->count = 0;
+//}
 
 /*
  *  PLI misc function for $vcdCompare
@@ -474,30 +506,69 @@ void vcdCompareMisc( int data, int reason )
 {
     if ( reason == reason_finish ) dummyEosHandler( );
 }
-static void setTimeoutCallback( int time )
-{
+//static void setTimeoutCallback( int time )
+//{
+//    static s_vpi_time time_s = { vpiSimTime };
+//    //s_cb_data callbackData = { cbAtStartOfSimTime, timeoutHandler, 0, &time_s, 0 };
+//
+//    s_cb_data callbackData = { cbReadOnlySynch, timeoutHandler, 0, &time_s, 0 };
+//
+//    callbackData.time->high = 0;
+//    callbackData.time->low  = time;
+//    vpi_register_cb( &callbackData );
+//}
+static void setTimeoutCallback(double time) {
+    //static s_vpi_time time_s = { vpiScaledRealTime };
     static s_vpi_time time_s = { vpiSimTime };
-
-    s_cb_data callbackData = { cbAtStartOfSimTime, timeoutHandler, 0, &time_s, 0 };
-
-    callbackData.time->high = 0;
-    callbackData.time->low  = time;
-    vpi_register_cb( &callbackData );
+    s_cb_data callbackData = { cbReadOnlySynch, timeoutHandler, 0, &time_s, 0 };
+    uint64_t time_int = (uint64_t) time;
+    // 将 double 类型的时间值分解为 high 和 low
+    //uint64_t time_ns = (uint64_t)(time * 1e9); // 将时间转换为纳秒（假设 time 是以秒为单位的双精度浮点数）
+    callbackData.time->high = (uint32_t)(time_int >> 32); // 高32位
+    callbackData.time->low  = (uint32_t)(time_int & 0xFFFFFFFF); // 低32位
+    //printf("++++++++++DEBUG%lf++++++++++++",callbackData.time->real);
+    callbackData.time->real =  time;
+    printf("++++++++++DEBUG_add_time_out_cb%lf++++++++++++",callbackData.time->real);
+    vpi_register_cb(&callbackData);
 }
+static int timeoutHandler(p_cb_data cb_data_p)
+{
+    if (cb_data_p == NULL) {
+        printf("Error: cb_data_p is NULL\n");
+        return -1; // 或者其他适当的错误处理
+    }
 
-static int timeoutHandler( p_cb_data cb_data_p )
-{   
-    int current=(int)cb_data_p->time->low;
-    int golden = current-tolerant_time;
+    double current = cb_data_p->time->real;
+    double golden = current - tolerant_time;
     strcpy(status_functional, "Detect");
     printf("****Time out while fault simulation*****\n");
-    printf("golden time is %d, current time is %d",golden,current);
-    //vpi_control(vpiStop,1);
-    vpi_control(vpiFinish,1);
+    printf("golden time is %lf, current time is %lf\n", golden, current);
+
+    //free(cb_data_p);
+    cb_data_p = NULL; // 避免重复释放
+    freeStringList(&fault_target);
+    freeStringList(&checker_list);
+    freeStringList(&functional_list);
+    freeStringList(&nostop_list);
+    vpi_control(vpiStop, 1);
+    return(0);
 }
+
+//static int timeoutHandler( p_cb_data cb_data_p )
+//{   
+//    int current=(int)cb_data_p->time->low;
+//    int golden = current-tolerant_time;
+//    strcpy(status_functional, "Detect");
+//    printf("****Time out while fault simulation*****\n");
+//    printf("golden time is %d, current time is %d",golden,current);
+//    //vpi_control(vpiStop,1);
+//    free(cb_data_p);
+//    cb_data_p = NULL;
+//    return(vpi_control(vpiFinish,1));
+//}
 void timeCheck(const char* filename){
-    int golden_time;
-    int stop_time;
+    double golden_time;
+    double stop_time;
     FILE *file;
 
 
@@ -507,7 +578,7 @@ void timeCheck(const char* filename){
         perror("Error opening file");
         return EXIT_FAILURE;
     }
-    if (fscanf(file, "%d", &golden_time) != 1) {
+    if (fscanf(file, "%lf", &golden_time) != 1) {
         perror("Error reading integer from file");
         fclose(file);
         return EXIT_FAILURE;
@@ -574,8 +645,11 @@ void parseXML(const char* filename) {
             }
         }
         if (xmlStrcmp(node->name, (const xmlChar *)"TESTBENCH_NAME") == 0)
-        {
-            strcpy(TESTBENCH_NAME, (char *)xmlNodeGetContent(node));
+        {   
+            xmlChar* content = xmlNodeGetContent(node);
+            //strcpy(TESTBENCH_NAME, (char *)xmlNodeGetContent(node));
+            strcpy(TESTBENCH_NAME, (char*)content);
+            xmlFree(content);
         }
     }
     if (functional_list.count==0) strcpy(strobe_mode, "Single");
