@@ -276,7 +276,7 @@ char* check_alias(const char* node_name, PortInfoNode**  head) {
     while (current != NULL) {
         if (strcmp(current->internalName, node_name) == 0) {
             if (current->alias == 1) {
-                return current->externalName;
+                return iso_exchange(node_name);
             } else {
                 return current->internalName;
             }

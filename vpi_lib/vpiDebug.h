@@ -11,6 +11,8 @@
 #include "StringList.h"
 #include "port_alias.h"
 #include "random.h"
+#include "iso.h"
+
 /*
  *  Debug output (flags defined in vpiDebug.c)
  */

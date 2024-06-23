@@ -1,3 +1,7 @@
+#ifndef PORT_ALIAS_H
+#define PORT_ALIAS_H
+
+
 #include "vpi_user.h"
 #include <stdio.h>
 #include <stdlib.h>    /* ANSI C standard library */
@@ -23,4 +27,4 @@ void port_tranverse(vpiHandle mod_h, int top,PortInfoNode** head);
 void printList(PortInfoNode **head);
 void appendNode(PortInfoNode** head, const char* internalName, const char* externalName);
 void process_prime(PortInfoNode** head);
-
+#endif

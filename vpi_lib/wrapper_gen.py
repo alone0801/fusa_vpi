@@ -30,12 +30,12 @@ module fi_wrapper();
     // generate strobe signal in wave.vcd while golden simualtion
     initial begin
     `ifdef good_sim
-        $vcdCompare("good_sim");
+        $vcdCompare("{current_path}","good_sim");
         $dumpfile("{current_path}/golden.vcd");
 {dumpvars_checker}
 {dumpvars_functional}
     `else
-        $vcdCompare("{current_path}");
+        $vcdCompare("{current_path}","fault_sim");
     `endif
     end
 endmodule
@@ -60,8 +60,8 @@ verilog_code = verilog_code.format(current_path=current_path,dumpvars_checker=du
 
 
 # write to file
-with open('fi_wrapper.v', 'w') as file:
+with open('fi_wrapper.sv', 'w') as file:
     file.write(verilog_code)
 print(external_params    ["CHECKER_STROBE"]);
-print("Verilog code generate in fi_wrapper.v")
+print("Verilog code generate in fi_wrapper.sv")
 

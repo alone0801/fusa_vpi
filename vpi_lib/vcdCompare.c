@@ -8,9 +8,10 @@
 static hash_table vcdHash;
 static StringList checker_list,functional_list,nostop_list,fault_target;
 static PortInfoNode* port_list = NULL;
+static Module* iso_inst_list = NULL;
 static int flag_continue=0;
 //static char fault_target[100];
-static char iso_mode[5];
+static char iso_mode[20];
 static char status_checker[10] = "Undetect";
 static char status_functional[10] = "Undetect";
 static char strobe_mode[10] = "Dual";
@@ -392,7 +393,7 @@ static void vcdCompareEosHandler( p_cb_data data )
  */
 void vcdCompareCheck( )
 {
-    if ( tf_nump( ) == 1 )
+    if ( tf_nump( ) == 2 )
     {
         if ( tf_typep( 1 ) == tf_string ) return;
 
@@ -400,7 +401,7 @@ void vcdCompareCheck( )
     }
     else
     {
-        tf_error( "Error: Use only one parameter\n" );
+        tf_error( "Error: Need two parameter for task\n" );
     }
 }
 
@@ -410,16 +411,25 @@ void vcdCompareCheck( )
 void vcdCompareCall( )
 {
     char* path = tf_getcstringp( 1 );
+    char* step = tf_getcstringp( 2 );
+    vpiHandle systf_h, arg_itr, arg_h;
+    s_vpi_value value_s;
+    systf_h = vpi_handle(vpiSysTfCall, NULL);
+    arg_itr = vpi_iterate(vpiArgument, systf_h);
+    arg_h = vpi_scan(arg_itr);
+    value_s.format = vpiStringVal;
+    vpi_get_value(arg_h, &value_s);
+    //path = value_s.value.str;
+    arg_h = vpi_scan(arg_itr);
+    vpi_get_value(arg_h, &value_s);
+    //step = value_s.value.str;
+    vpi_free_object(arg_itr); /* free iterator -- did not scan to null */
     //char* step = tf_getcstringp( 2 );
     char  filename[100];
     char  FI_PATH[100];
     char  FS_PATH[100];
     char  TIME_PATH[100];
-    if (strcmp(path, "good_sim") == 0) {
-        addEosCallback( timeRecordEosHandler );
-        //timeCheck("/home/ICer/fusa_vpi/autosoc-development/Simulation/fault.time");
-    }
-    else {
+
     strcpy(FS_PATH, path);
     strcat(FS_PATH,"/fault.set");
     strcpy(FI_PATH, path);
@@ -436,7 +446,7 @@ void vcdCompareCall( )
     /////*parseXML("FI.xml", &checker_list);*/
     parseXML(FI_PATH);
     parse_injectXML("./fault.xml"); 
-    printf("FAULT_ID:%s",FAULT_ID);
+    vpi_printf("FAULT_ID:%s\n",FAULT_ID);
     int id = atoi(FAULT_ID)-1;
     port_alias(&fault_target,&port_list);
     printf("checker strobe list:\n");
@@ -468,7 +478,17 @@ void vcdCompareCall( )
         }
     if(strcmp(iso_mode, "ENA") == 0){
         fault.fault_node_name = check_alias(fault.fault_node_name,&port_list);
-        printf("beacause of iso, inject node is %s\n",fault.fault_node_name);
+        vpi_printf("Fault Isolation has been Enable\n");
+        vpi_printf("because of iso, inject node is %s\n",fault.fault_node_name);
+    }
+    if (strcmp(step, "good_sim") == 0) {
+        addEosCallback( timeRecordEosHandler );
+        //iso_gen("test_new.test_ins.sub_inst.a",&iso_inst_list);
+        iso_itr(&port_list,&iso_inst_list);
+        printList(&port_list);
+        vpi_printf("instrumenting the isolation in DUT\n");
+        //timeCheck("/home/ICer/fusa_vpi/autosoc-development/Simulation/fault.time");
+        return;
     }
     hashInitialize( &vcdHash, 200 );
     addEosCallback( FaultClassEosHandler );
@@ -478,26 +498,13 @@ void vcdCompareCall( )
     processVcd( readVcdHeader( filename ) );
 
     fault_injector_register();
-    double time_d = 22644900000.00000;
-    uint64_t time_64 = (uint64_t)time_d;
-    uint32_t high = (uint32_t)(time_64 >> 32); 
-    uint32_t low = (uint32_t)(time_64 & 0xFFFFFFFF); 
-    printf("+++++++++++++DEBUG%ld:%ld+++++++++++++++++=",high,low);
-    static s_vpi_time time_test = { vpiSimTime };
-//    freeStringList(&fault_target);
-//    freeStringList(&checker_list);
-//    freeStringList(&functional_list);
-//    freeStringList(&nostop_list);
-    //time_test
-    }
+    //double time_d = 22644900000.00000;
+    //uint64_t time_64 = (uint64_t)time_d;
+    //uint32_t high = (uint32_t)(time_64 >> 32); 
+    //uint32_t low = (uint32_t)(time_64 & 0xFFFFFFFF); 
+    //printf("+++++++++++++DEBUG%ld:%ld+++++++++++++++++=",high,low);
+    //static s_vpi_time time_test = { vpiSimTime };
 }
-//void freeStringList(StringList *list) {
-//    int i;
-//    for ( i = 0; i < list->count; ++i) {
-//        free(list->strings[i]);
-//    }
-//    list->count = 0;
-//}
 
 /*
  *  PLI misc function for $vcdCompare
@@ -506,17 +513,6 @@ void vcdCompareMisc( int data, int reason )
 {
     if ( reason == reason_finish ) dummyEosHandler( );
 }
-//static void setTimeoutCallback( int time )
-//{
-//    static s_vpi_time time_s = { vpiSimTime };
-//    //s_cb_data callbackData = { cbAtStartOfSimTime, timeoutHandler, 0, &time_s, 0 };
-//
-//    s_cb_data callbackData = { cbReadOnlySynch, timeoutHandler, 0, &time_s, 0 };
-//
-//    callbackData.time->high = 0;
-//    callbackData.time->low  = time;
-//    vpi_register_cb( &callbackData );
-//}
 static void setTimeoutCallback(double time) {
     //static s_vpi_time time_s = { vpiScaledRealTime };
     static s_vpi_time time_s = { vpiSimTime };
@@ -528,7 +524,7 @@ static void setTimeoutCallback(double time) {
     callbackData.time->low  = (uint32_t)(time_int & 0xFFFFFFFF); // 低32位
     //printf("++++++++++DEBUG%lf++++++++++++",callbackData.time->real);
     callbackData.time->real =  time;
-    printf("++++++++++DEBUG_add_time_out_cb%lf++++++++++++",callbackData.time->real);
+    //printf("++++++++++DEBUG_add_time_out_cb%lf++++++++++++",callbackData.time->real);
     vpi_register_cb(&callbackData);
 }
 static int timeoutHandler(p_cb_data cb_data_p)
@@ -541,8 +537,8 @@ static int timeoutHandler(p_cb_data cb_data_p)
     double current = cb_data_p->time->real;
     double golden = current - tolerant_time;
     strcpy(status_functional, "Detect");
-    printf("****Time out while fault simulation*****\n");
-    printf("golden time is %lf, current time is %lf\n", golden, current);
+    vpi_printf("****Time out while fault simulation*****\n");
+    vpi_printf("golden time is %lf, current time is %lf\n", golden, current);
 
     //free(cb_data_p);
     cb_data_p = NULL; // 避免重复释放
@@ -554,18 +550,6 @@ static int timeoutHandler(p_cb_data cb_data_p)
     return(0);
 }
 
-//static int timeoutHandler( p_cb_data cb_data_p )
-//{   
-//    int current=(int)cb_data_p->time->low;
-//    int golden = current-tolerant_time;
-//    strcpy(status_functional, "Detect");
-//    printf("****Time out while fault simulation*****\n");
-//    printf("golden time is %d, current time is %d",golden,current);
-//    //vpi_control(vpiStop,1);
-//    free(cb_data_p);
-//    cb_data_p = NULL;
-//    return(vpi_control(vpiFinish,1));
-//}
 void timeCheck(const char* filename){
     double golden_time;
     double stop_time;
@@ -709,13 +693,13 @@ static int fault_classification( p_cb_data cb_data_p )
     result[0] = status_functional[0];
     result[1] = status_checker[0];
     result[2] = '\0'; 
-    printf("Strobe Mode is %s\n",strobe_mode);
+    vpi_printf("Strobe Mode is %s\n",strobe_mode);
     if (strcmp(strobe_mode, "Single") == 0){
-        printf("the classificaiton of the inject fault is :%s\n",status_checker);
+        vpi_printf("the classificaiton of the inject fault is :%s\n",status_checker);
         generateXML("NULL","NULL",status_checker,FAULT_TYPE);
     }
     else { 
-        printf("the classificaiton of the inject fault is :\nFunctional:%s,\nChecker:%s\n",status_functional,status_checker);
+        vpi_printf("the classificaiton of the inject fault is :\nFunctional:%s,\nChecker:%s\n",status_functional,status_checker);
         generateXML(FAULT_ID,FAULT_LOCATION,result,FAULT_TYPE); 
     }
 }
