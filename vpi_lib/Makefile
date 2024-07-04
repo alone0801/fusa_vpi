@@ -7,10 +7,10 @@ LDFLAGS = -shared  -fPIC -m64
 CC = gcc
 OBJS   = vpiDebug.o dumpHier.o dumpUpstream.o causalTree.o vcdCompare.o extractMod.o \
          traceSignal.o oscDetect.o eventTree.o hierTrace.o backTrace.o evCallback.o  \
-         eosCallback.o vcdReader.o hash.o util.o  StringList.o fault_injector.o port_alias.o random.o  timeRecord.o iso.o
+         eosCallback.o vcdReader.o hash.o util.o  StringList.o fault_modeling.o fault_injector.o port_alias.o random.o  timeRecord
 SHARE_OBJS = vpiDebug.o dumpHier.o dumpUpstream.o causalTree.o sharevcd.o extractMod.o \
          traceSignal.o oscDetect.o eventTree.o hierTrace.o backTrace.o evCallback.o  \
-         eosCallback.o vcdReader.o hash.o util.o  StringList.o fault_injector.o port_alias.o random.o timeRecord.o iso.o
+         eosCallback.o vcdReader.o hash.o util.o  StringList.o fault_modeling.o fault_injector.o port_alias.o random.o timeRecord.o 
 all:		libvpiDebug.so libsharefusa.so
 share:      libvpiDebug.so
 libvpiDebug.so: 	${OBJS} 
@@ -40,10 +40,10 @@ timeRecord.o:   vpiDebug.h timeRecord.c
 vcdReader.o:               vcdReader.c
 vpiDebug.o:	vpiDebug.h vpiDebug.c
 fault_injector.o: fault_injector.c fault_injector.h
+fault_modeling.o:fault_modeling.c
 StringList.o: StringList.c StringList.h
 port_alias.o: port_alias.c
 random.o: random.c random.h
-iso.o : iso.c iso.h
 sharevcd.o:  vcdCompare.c vpiDebug.h
 	$(CC) $(CFLAGS) -D SHARE_LIB -c -fPIC $< -o $@
 
