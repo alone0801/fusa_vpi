@@ -23,6 +23,7 @@ module dut
 
    // MEM1, 128-bit, ASILD,
    input logic 	       mem1_wr,
+   input logic [7:0]   mem1_addr,
    input logic [31:0]  mem1_data_in,
    output logic [31:0] mem1_data_out ,
    output logic        mem1_err_detected,
@@ -30,6 +31,7 @@ module dut
 
    // MEM2, 64-bit, ASILB,
    input logic 	       mem2_wr,
+   input logic [7:0]   mem2_addr,
    input logic [7:0]   mem2_data_in,
    output logic [7:0]  mem2_data_out ,
    output logic        mem2_err_detected,
@@ -49,6 +51,7 @@ module dut
      ( .clk           (clk),
        .rst_n         (rst_n),
        .mem_wr        (mem1_wr),
+       .mem_addr      (mem1_addr),
        .mem_data_in   (mem1_data_in),
        .mem_data_out  (mem1_data_out),
        .err_detected  (mem1_err_detected),
@@ -68,6 +71,7 @@ module dut
      ( .clk           (clk),
        .rst_n         (rst_n),
        .mem_wr        (mem2_wr),
+       .mem_addr      (mem2_addr),
        .mem_data_in   (mem2_data_in),
        .mem_data_out  (mem2_data_out),
        .err_detected  (mem2_err_detected),

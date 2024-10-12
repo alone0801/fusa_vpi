@@ -108,15 +108,26 @@ vcs_good:
 	vcs +vpi +define+BYTE_COUNT_MEM1 -P $(fusa_lib)/pli.tab \
 	-load  \
 	/home/ICer/fusa_vpi/autosoc-development/Hardware/TB/elf-loader_1.0.2/elf-loader.so \
-	-f rtl.f fi_wrapper.v +define+good_sim   -lxml2 -lelf -sverilog \
+	-f rtl.f fi_wrapper.sv +define+good_sim   -lxml2 -lelf -sverilog \
 	+define+CHECKPOINT +define+LOCKSTEP +define+PARITY +define+MEMECC \
-	-l compile.log +lint=TFIPC-L -notice -debug_access+all  -full64 &&\
+	-l compile.log +lint=TFIPC-L -notice -debug_access+all  -full64  -kdb -lca &&\
 	./simv -l good_sim.log \
 	+elf_load=$(SW_dir)/Baremetal/sample_apps/$(MACRO) +clear_ram \
-
 #-kdb -lca 
 #	-ucli -i $(fusa_lib)/ucli.tcl
 
+vcs_sim:
+	source tools/set_env_variables.sh && \
+	cd ${fault_dir}/ && \
+	rm -rf csrc simv  simv.daidir	&& \
+	vcs  +vpi +define+BYTE_COUNT_MEM1 -P $(fusa_lib)/pli.tab \
+	-load  \
+	/home/ICer/fusa_vpi/autosoc-development/Hardware/TB/elf-loader_1.0.2/elf-loader.so \
+	-f rtl.f  +define+good_sim   -lxml2 -lelf -sverilog \
+	+define+CHECKPOINT +define+LOCKSTEP +define+PARITY +define+MEMECC \
+	-l compile.log +lint=TFIPC-L -notice -debug_access+all  -full64  -kdb -lca &&\
+	./simv -l good_sim.log \
+	+elf_load=$(SW_dir)/Baremetal/sample_apps/$(MACRO) +clear_ram \
 
 
 #+elf_load=$(SW_dir)/Baremetal/sample_apps/can_selftest.elf +clear_ram  
@@ -128,9 +139,9 @@ vcs_fault:
 	rm -rf csrc simv  simv.daidir	&& \
 	vcs +vpi  -P $(fusa_lib)/pli.tab -L/home/ICer/fusa_vpi/vpi_lib -load  \
 	/home/ICer/fusa_vpi/autosoc-development/Hardware/TB/elf-loader_1.0.2/elf-loader.so \
-	-f rtl.f fi_wrapper.v +define+fault_sim   -lxml2 -lelf -sverilog \
+	-f rtl.f fi_wrapper.sv +define+fault_sim   -lxml2 -lelf -sverilog \
 	+define+CHECKPOINT +define+LOCKSTEP +define+PARITY +define+MEMECC \
-	-l compile.log +lint=TFIPC-L -notice -debug_access+all  -full64  &&\
+	-l compile.log +lint=TFIPC-L -notice -debug_access+all  -full64  -kdb -lca &&\
 	./simv -l fault_sim.log +elf_load=$(SW_dir)/Baremetal/sample_apps/$(MACRO) +clear_ram \
     -ldb -lca  -ucli -i $(fusa_lib)/ucli.tcl
 
@@ -138,4 +149,10 @@ list:
 	find $(HW_dir)  -name "*.sv" -or -name "*.v" >> $(fault_dir)/rtl.f	
 verdi:
 	cd ${fault_dir} && \
-	verdi -ssf test.fsdb
+	verdi -ssf test.fsdb  -sswr ./signal.rc 
+verdi_fault:
+	cd ${fault_dir} && \
+	verdi -ssf fault.fsdb
+verdi_good:
+	cd ${fault_dir} && \
+	verdi -ssf good.fsdb

@@ -225,6 +225,8 @@ Selection-LineColor = ID_BLUE2
 Selection-LineWidth = 1
 [FSM_Dlg-Print]
 Orientation = Landscape
+[FileBrowser]
+nWaveOpenFsdbDirHistory = "\"/home/ICer/fusa_vpi/autosoc-development/Simulation/autoSOC_fusa/signal.rc\"" "\"/home/ICer/fusa_vpi/autosoc-development/Simulation/autoSOC_fusa/iso.fsdb\""
 [Form]
 version = Verdi_O-2018.09-SP2
 openfile.fm = 100,100,723,532
@@ -275,10 +277,11 @@ import_filter = *.v; *.vc; *.f
 designTreeFont = *-adobe-courier-medium-r-*-*-12-*-*-*-*-*-iso8859-*
 import_filter_vhdl = *.vhd; *.vhdl; *.f
 import_default_language = Verilog
-import_filter_verilog = *.v; *.vc; *.f
+import_filter_verilog = *.fsdb
 simulation_file_type = *.fsdb;*.fsdb.gz;*.fsdb.bz2;*.ff;*.dump
 PrefetchViewableAnnot = TRUE
 ProfileTime = FALSE
+import_from = source
 [Hier]
 filterTimeout = 1500
 [ImportLiberty]
@@ -396,9 +399,15 @@ savePropDtl = TRUE
 monoFontDlg = 1086,449,366,432
 SetWindowTimeUnitDialog = 1060,607,433,118
 GoToLineForm_base = 1037,586,479,161
+importDesignForm = 919,379,715,574
 QwWarnMsgDlg = 969,956,600,250
+QwInfoMsgDlg = 350,265,750,260
+QwQuestionMsgDlg = 1116,555,324,232
+qWaveSignalDialog = 438,359,1747,736
+dockContainerWindowTitleDialog = 969,609,620,139
+openFileDlg = 620,370,1314,592
 saveSigDlg = 899,473,756,386
-QwUserAskDlg = 1059,517,441,302
+QwUserAskDlg = 1059,591,441,302
 [Relationship]
 hideRecursiceNode = FALSE
 [Session Cache]
@@ -483,7 +492,7 @@ SimMode = TRUE
 interactiveDebugging = TRUE
 KeepBreakPoints = FALSE
 vcs_svPath = /home/ICer/fusa_vpi/autosoc-development/Simulation/autoSOC_fusa/simv
-vcs_svOption = +elf_load=/home/ICer/fusa_vpi/autosoc-development/Software/Baremetal/sample_apps/hello.elf +clear_ram
+vcs_svOption = +elf_load=/home/ICer/fusa_vpi/autosoc-development/Software/Baremetal/sample_apps/hello.elf +clear_ram -ldb -lca -ucli
 [SimulationPlus2]
 eventDumpUnfinish = FALSE
 [Source]
@@ -739,7 +748,7 @@ waveform_vertical_scroll_bar = TRUE
 scope_to_save_with_macro
 open_file_dir
 open_rc_file_dir
-getSignalForm = 0 0 800 479 100 30 100 30
+getSignalForm = 831 376 1221 479 559 352 612 168
 viewPort = 0 38 2558 395 525 222
 signalSpacing = 5
 digitalSignalHeight = 15
@@ -1012,6 +1021,10 @@ hspiceIncOpenMode = TRUE
 pcSelectMode = TRUE
 hierarchyDelimiter = /
 RecentFile1 = "\"/home/ICer/fusa_vpi/autosoc-development/Simulation/autoSOC_fusa/test.fsdb\""
+RecentFile2 = "\"/home/ICer/fusa_vpi/autosoc-development/Simulation/autoSOC_fusa/signal.rc\""
+RecentFile3 = "\"/home/ICer/fusa_vpi/autosoc-development/Simulation/autoSOC_fusa/iso.fsdb\""
+RecentFile4 = "\"/home/ICer/fusa_vpi/autosoc-development/Simulation/autoSOC_fusa/fault.fsdb\""
+RecentFile5 = "\"/home/ICer/fusa_vpi/autosoc-development/Simulation/autoSOC_fusa/fault.fsdb\""
 open_file_time_range = FALSE
 value_window_aligment = Right
 signal_window_alignment = Auto

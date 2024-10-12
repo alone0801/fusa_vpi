@@ -10,10 +10,11 @@
 #include <stdio.h> 
 #include "StringList.h"
 typedef struct PortInfoNode {
-    char internalName[150];
-    char externalName[150];
+    char internalName[400];
+    char externalName[400];
     int  alias;
     int  root;  /*root = 1 alias 到顶了   root = 0  还需要继续遍历查找上一层驱动*/
+    char * map_name;
     struct PortInfoNode* next;
 } PortInfoNode;
 

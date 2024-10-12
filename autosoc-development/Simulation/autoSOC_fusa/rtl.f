@@ -87,7 +87,7 @@
 /home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_fetch_espresso.v
 /home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_fetch_prontoespresso.v
 /home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_fetch_tcm_prontoespresso.v
-/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_icache.v
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_icache.sv
 /home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_immu.v
 /home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_lockstep_cpu_cappuccino.v
 /home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_lsu_cappuccino.v

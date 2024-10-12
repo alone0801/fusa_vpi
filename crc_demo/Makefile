@@ -34,17 +34,19 @@ vcs:
 fault_sim:
 	rm -rf csrc simv  simv.daidir
 	vcs -full64 +vpi +define+BYTE_COUNT_MEM1 -P $(fusa_lib)/pli.tab   \
-	-load $(fusa_lib)/libvpiDebug.so  -f demo_rtl.f fi_wrapper.v -debug_all -sverilog \
+	-load $(fusa_lib)/libvpiDebug.so  -f demo_rtl.f fi_wrapper.sv -debug_all -sverilog \
 	+define+FAULT_LOCATION=u_tb.dut_inst.mem1_i.mem_data_in[0] \
 	+define+FAULT_VALUE=0 \
-	+define+FAULT_TIME=80 -lxml2 
+	+define+FAULT_TIME=80 -lxml2 \
+	+lint=TFIPC-L -notice -debug_access+all  -full64  -kdb -lca
 	./simv -l fault_sim.log
 #-ucli -i ../vpi_lib/ucli.tcl
 good_sim:
 	python ../vpi_lib/wrapper_gen.py 
 	rm -rf csrc simv  simv.daidir
 	vcs +vpi +define+BYTE_COUNT_MEM1 -P $(fusa_lib)/pli.tab -full64 \
-	-load $(fusa_lib)/libvpiDebug.so   -f demo_rtl.f +define+good_sim -sverilog fi_wrapper.v -lxml2
+	-load $(fusa_lib)/libvpiDebug.so   -f demo_rtl.f +define+good_sim -sverilog fi_wrapper.sv -lxml2 \
+	+lint=TFIPC-L -notice -debug_access+all  -full64  -kdb -lca
 	./simv -l good_sim.log 
 test: 
 	rm -rf csrc simv  simv.daidir
@@ -62,3 +64,6 @@ merge:
 	sh report.sh ./fault_dir
 irun:
 	-loadvpi /usr/local/lib64/python3.6/site-packages/cocotb/libs/libcocotbvpi_ius.so:vlog_startup_routines_bootstrap +access+rwc
+verdi:
+	verdi -ssf test.fsdb  &
+#-sswr ./signal.rc 

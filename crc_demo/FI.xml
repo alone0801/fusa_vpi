@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <FI_CONFIG>
-    <FAULT_TARGET>test.dut_inst.mem1_i</FAULT_TARGET>
+    <FAULT_TARGET>test.dut_inst.mem1_i.mem_with_crc_i</FAULT_TARGET>
     <!--<FAULT_TARGET>test.dut_inst.mem2_i</FAULT_TARGET>-->
     <TESTBENCH_NAME>test</TESTBENCH_NAME>
     <OBSERVATION_POINTS>
@@ -15,6 +15,6 @@
     <!--<NOSTOP_STROBE>test.dut_inst.mem2_i.crc_gen_wr_i.d</NOSTOP_STROBE>-->
     <!--<NOSTOP_STROBE>test.dut_inst.mem2_data_out</NOSTOP_STROBE>-->
     </OBSERVATION_POINTS>
-    <ISO_MODE>ENA</ISO_MODE>
+    <ISO_MODE>DISENA</ISO_MODE>
 </FI_CONFIG>
 

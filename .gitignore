@@ -50,3 +50,6 @@ verilog.dump
 FM_*/
 *.xml
 *.set
+*.sw*
+*.fsdb*
+fi_wrapper.sv

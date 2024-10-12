@@ -484,8 +484,9 @@ void vcdCompareCall( )
     if (strcmp(step, "good_sim") == 0) {
         addEosCallback( timeRecordEosHandler );
         //iso_gen("test_new.test_ins.sub_inst.a",&iso_inst_list);
+        
+        //printList(&port_list);
         iso_itr(&port_list,&iso_inst_list);
-        printList(&port_list);
         vpi_printf("instrumenting the isolation in DUT\n");
         //timeCheck("/home/ICer/fusa_vpi/autosoc-development/Simulation/fault.time");
         return;
@@ -664,7 +665,7 @@ void parse_injectXML(const char* filename) {
                 fault.fault_node_name = FAULT_LOCATION;
                 //printf("++++++++DEBUG:%s++++++++++",fault.fault_node_name);
             } else if (xmlStrcmp(node->name, (const xmlChar *)"TYPE") == 0) {
-                printf("++++++++DEBUG:%s++++++++++",fault.fault_node_name);
+                //printf("++++++++DEBUG:%s++++++++++",fault.fault_node_name);
                 strcpy(FAULT_TYPE, (char *)xmlNodeGetContent(node));
                 //printf("++++++++DEBUG:%s++++++++++",fault.fault_node_name);
                 if(strcmp("SEU", FAULT_TYPE) == 0)

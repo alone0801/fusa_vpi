@@ -19,6 +19,7 @@
 
 module crc_mem
   #(parameter DATA_WIDTH = 8,
+    parameter ADDR_WIDTH = 8,
     parameter POLYNOMIAL_BITS = 1,
     parameter OUTPUT_FF = 1
     )
@@ -26,6 +27,7 @@ module crc_mem
   (input logic clk,
    input logic 			 rst_n,
    input logic 			 mem_wr,
+   input logic [ADDR_WIDTH-1:0]  mem_addr,
    input logic [DATA_WIDTH-1:0]  mem_data_in,
    output logic [DATA_WIDTH-1:0] mem_data_out ,
    output logic 		 err_detected,
@@ -48,12 +50,14 @@ module crc_mem
 
    mem_with_crc
      #(.DATA_WIDTH      (DATA_WIDTH),
-       .POLYNOMIAL_BITS (POLYNOMIAL_BITS)
+       .POLYNOMIAL_BITS (POLYNOMIAL_BITS),
+       .ADDR_WIDTH      (ADDR_WIDTH)
        )
    mem_with_crc_i
      (.clk          (clk),
       .rst_n        (rst_n),
       .mem_wr       (mem_wr),
+      .mem_addr     (mem_addr),
       .mem_data_in  (mem_data_in),
       .crc_data_in  (crc_wr),
       .mem_data_out (mem),

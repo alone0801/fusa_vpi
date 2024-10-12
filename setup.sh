@@ -1,3 +1,4 @@
+#set env_var for this platform
 export fusa_lib=${PWD}/vpi_lib
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${fusa_lib}/
 export SW_dir=/home/ICer/fusa_vpi/autosoc-development/Software

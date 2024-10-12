@@ -18,40 +18,45 @@
 //__CDS_SVN_TAG__
 
 module mem_with_crc
-    #(parameter DATA_WIDTH = 8,
-        parameter POLYNOMIAL_BITS = 1
+    #(  parameter DATA_WIDTH = 8,
+        parameter POLYNOMIAL_BITS = 1 ,
+        parameter ADDR_WIDTH = 8
     )
     (
 		input logic                        clk,
 		input logic                        rst_n,
 		input logic                        mem_wr,
+        input logic [ADDR_WIDTH-1:0]       mem_addr,
 		input logic [DATA_WIDTH-1:0]       mem_data_in,
 		input logic [POLYNOMIAL_BITS-1:0]  crc_data_in,
 		output logic [DATA_WIDTH-1:0]      mem_data_out,
 		output logic [POLYNOMIAL_BITS-1:0] crc_data_out
    );
+    parameter DEPTH_WIDTH = 2 ** ADDR_WIDTH ;
+    //bin2onhot();
+    logic [DATA_WIDTH-1:0] mem [0:DEPTH_WIDTH-1];
+    logic [POLYNOMIAL_BITS-1:0] mem_crc [0:DEPTH_WIDTH-1];
 
-    //----------------------------------------------------------------------
-    // Memory model: here just a register
-    //----------------------------------------------------------------------
-    logic [DATA_WIDTH-1:0] mem;
-    logic [POLYNOMIAL_BITS-1:0] mem_crc;
-
-    always @(posedge clk or negedge rst_n) begin
-        if (~rst_n) begin
-            mem     <= '0;
-			mem_crc <= '0;
+    genvar i;
+    generate 
+        for(i=0;i<DEPTH_WIDTH;i=i+1) begin
+            always @(posedge clk or negedge rst_n) begin
+                if (~rst_n) begin
+                    mem[i]     <= '0;
+	        		mem_crc[i] <= '0;
+                end
+                else begin
+                    if (mem_wr&&(mem_addr==i)) begin
+                        mem[i]     <= mem_data_in;
+                        mem_crc[i] <= crc_data_in;
+	        		end
+	        	end
+	        end
         end
-        else begin
-            if (mem_wr) begin
-                mem     <= mem_data_in;
-                mem_crc <= crc_data_in;
-			end
-		end
-	end
-
-    assign mem_data_out = mem;
-    assign crc_data_out = mem_crc;
+    endgenerate
+    assign mem_data_out = mem[mem_addr];
+    assign crc_data_out = mem_crc[mem_addr];
+    
 
 endmodule
 

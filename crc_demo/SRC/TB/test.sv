@@ -26,13 +26,15 @@ module test;
 	// MEM1
 	reg          mem1_wr;
 	reg   [31:0] mem1_data_in;
-	wire   [31:0] mem1_data_out;
+	reg   [7:0]  mem1_addr;
+    wire   [31:0] mem1_data_out;
 	wire          mem1_err_detected;
 	wire          mem1_err_corrected;
 
 	// MEM2
 	reg         mem2_wr;
 	reg   [7:0] mem2_data_in;
+    reg   [7:0] mem2_addr;
 	wire   [7:0] mem2_data_out;
 	wire         mem2_err_detected;
 	wire         mem2_err_corrected;
@@ -108,11 +110,13 @@ module test;
 		.clk                (clk),
 		.rst_n              (rst_n),
 		.mem1_wr            (mem1_wr),
-		.mem1_data_in       (mem1_data_in),
+		.mem1_addr          (mem1_addr),
+        .mem1_data_in       (mem1_data_in),
 		.mem1_data_out      (mem1_data_out),
 		.mem1_err_detected  (mem1_err_detected),
 		.mem1_err_corrected (mem1_err_corrected),
 		.mem2_wr            (mem2_wr),
+        .mem2_addr          (mem2_addr),
 		.mem2_data_in       (mem2_data_in),
 		.mem2_data_out      (mem2_data_out),
 		.mem2_err_detected  (mem2_err_detected),
@@ -192,10 +196,10 @@ module test;
 		// default values
 		mem1_wr            <= 0;
 		mem1_data_in       <= 0;
-
+        mem1_addr          <= 0;
 		mem2_wr            <= 0;
 		mem2_data_in       <= 0;
-
+        mem2_addr          <= 0;
 		cnt                <= 0;
 
 		// Wait until rst is done
@@ -208,9 +212,9 @@ module test;
 			forever begin
 				// at next clock cycle
 				@(negedge clk);
-
+                mem1_addr    <= mem1_addr + 1;
 				mem1_wr      <= 1'b1;
-				mem1_data_in <= mem1_data_in + 1;
+				mem1_data_in <= mem1_data_in + 32'h1111;
 			end
 		end
 
@@ -221,7 +225,7 @@ module test;
 			forever begin
 				// at next clock cycle
 				@(negedge clk);
-
+				mem1_addr    <= mem1_addr + 1;
 				mem1_wr      <= 1'b1;
 				mem1_data_in <= {cnt, cnt, cnt, cnt};
 				cnt          <= cnt + 1;
@@ -291,6 +295,10 @@ module test;
         c=5;
         d=7;
         end
+    initial begin
+      $fsdbDumpfile("test.fsdb");
+      $fsdbDumpvars(0,test);
+    end
 endmodule // test
 
 interface intf;
@@ -298,3 +306,4 @@ interface intf;
    reg mem1_err_detected_dly;
 
 endinterface 
+
