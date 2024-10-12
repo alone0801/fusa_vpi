@@ -5,11 +5,9 @@
 
 void fault_injector_callback(p_cb_data cb_data);
 void fault_injector(p_cb_data cb_data);
-void const_inject_register( vpiHandle obj );
-void InjectHandler(p_cb_data cb_data);
-//void iso_test(char* port_name);
 
-void fault_injector_register( )
+////////////////////////////////////////// Written by Wayne //////////////////////
+void fault_injector_check( )
 {
     s_cb_data cb_data_s;
     s_vpi_time time_s;
@@ -56,14 +54,6 @@ void fault_injector_register( )
     cb_data_s.user_data = (PLI_BYTE8 *)module_handle;  //Pass fault related infomation to fault_injector()
     cb_handle = vpi_register_cb(&cb_data_s);
     vpi_free_object(cb_handle);
-    /****/
-    vpiHandle signal_handle = vpi_handle_by_name("test_new.test_ins.sub_inst.a",0);
-    s_vpi_value value_s;
-    //value_s.format = vpiLogicVal;
-    value_s.format = vpiReg;
-    vpi_put_value(signal_handle, &value_s, NULL, vpiNoDelay);
-    //iso_test("test_new.test_ins.sub_inst.a");
-    /****/
 }
 
 void fault_injector_callback(p_cb_data cb_data)
@@ -127,46 +117,13 @@ void fault_injector(p_cb_data cb_data)
         //Determination of fault type
         if(fault_p->fault_type == SA_FAULT)
             flag = vpiForceFlag;
-            //flag = vpiNoDelay;
-            //flag = vpiInertialDelay;
         else
             flag = vpiInertialDelay;
         
         fault_value.format = vpiIntVal;
         fault_value.value.integer = fault_p->fault_value;
         vpi_put_value(signal_handle, &fault_value, &time_s, flag);
-        //const_inject_register(signal_handle);
-        vpiHandle test_h = vpi_handle_by_name("test_new.test_ins.a",0);
-        s_vpi_value test_value = { vpiIntVal, { 0 } };
-        test_value.format = vpiIntVal;
-        test_value.value.integer = 0;
-//        vpi_put_value(test_h, &test_value , &time_s, flag);
     }
 }
 
-void const_inject_register( vpiHandle obj )
-{
-    static s_vpi_time  time_s  = { vpiSimTime };
-    static s_vpi_value value_s = { vpiBinStrVal };
-
-    s_cb_data cbData = { cbValueChange, InjectHandler, 0, &time_s, &value_s };
-    cbData.obj = obj;
-    //vpi_register_cb( &cbData );
-    vpi_printf( "*********Callback set on value change*********\n");
-}
-
-void InjectHandler(p_cb_data cb_data){
-    s_vpi_value fault_value = { vpiIntVal, { 0 } };
-    s_vpi_time  time_s = { vpiSimTime, 0, 0, 0.0 };
-    static s_vpi_time time_int = { vpiSimTime };
-    vpi_get_time( 0, &time_int );
-    fault_value.format = vpiIntVal;
-    fault_value.value.integer = fault_p->fault_value;
-    value_get(fault_p->fault_node_name);
-    vpi_printf("*****DEBUG:call back to %d at time %d*****\n",fault_p->fault_value,time_int.low);
-    //vpi_put_value(cb_data->obj, &fault_value, &time_s, vpiInertialDelay);
-    //vpi_put_value(cb_data->obj, &fault_value, &time_s, vpiNoDelay);
-    value_get(fault_p->fault_node_name);
-
-}
-
+////////////////////////////////// Written by Wayne /////////////////////////////

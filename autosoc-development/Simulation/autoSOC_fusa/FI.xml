@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <FI_CONFIG>
-    <FAULT_TARGET>autosoc_tb.dut</FAULT_TARGET>
+    <FAULT_TARGET>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu</FAULT_TARGET>
+    <FAULT_EXCLUDE></FAULT_EXCLUDE>
     <TESTBENCH_NAME>autosoc_tb</TESTBENCH_NAME>
     <OBSERVATION_POINTS>
     <CHECKER_STROBE>autosoc_tb.dut.cp_ctrl_error</CHECKER_STROBE>
