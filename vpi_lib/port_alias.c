@@ -277,14 +277,14 @@ void process_prime(PortInfoNode** head) {
 char* check_alias(const char* node_name, PortInfoNode**  head) {
     PortInfoNode* current = *head;
     while (current != NULL) {
-        vpiHandle iso_mod_h,signal_mod_h,iso_port_h,signal_h;
-        iso_port_h = vpi_handle_by_name(current->internalName,0);
-        signal_h   = vpi_handle_by_name(node_name,0);
-        if(signal_h==NULL) return node_name;
-        iso_mod_h    = vpi_handle(vpiScope,iso_port_h);
-        signal_mod_h = vpi_handle(vpiScope,signal_h);
-        if (strcmp(vpi_get_str(vpiFullName,iso_mod_h),vpi_get_str(vpiFullName,signal_mod_h))==0) {
-        //if (strcmp(current->internalName, node_name) == 0) {
+        if (strcmp(current->internalName, node_name) == 0) {
+        //vpiHandle iso_mod_h,signal_mod_h,iso_port_h,signal_h;
+        //iso_port_h = vpi_handle_by_name(current->internalName,0);
+        //signal_h   = vpi_handle_by_name(node_name,0);
+        //if(signal_h==NULL) return node_name;//??
+        //iso_mod_h    = vpi_handle(vpiScope,iso_port_h);
+        //signal_mod_h = vpi_handle(vpiScope,signal_h);
+        //if (strcmp(vpi_get_str(vpiFullName,iso_mod_h),vpi_get_str(vpiFullName,signal_mod_h))==0) {
             if (current->alias == 1) {
                 vpi_printf("DEBUG::THIS NODE WILL BACKWORD PROPAGATING\n");
                 return iso_exchange(node_name);

@@ -151,7 +151,9 @@ void iso_gen(char* port_name, Module** head){
         if(i<port_num-1)fprintf(fp,".%s(%s),",vpi_get_str(vpiName,lowConn),high_port);
         else fprintf(fp,".%s(%s));\n",vpi_get_str(vpiName,lowConn),high_port);
     }
-    fprintf(fp,"initial begin\n");
+    fprintf(fp,"reg flag;\n");
+    fprintf(fp,"always@(flag) begin\n");
+    fprintf(fp,"if(flag) begin\n");
     port_itr = vpi_iterate(vpiPort,scope_h);
     while(port_h=vpi_scan(port_itr)){
         vpiHandle lowConn = vpi_handle(vpiLowConn, port_h);
@@ -177,6 +179,34 @@ void iso_gen(char* port_name, Module** head){
             }
         }
     }
+    fprintf(fp,"end\n");
+    fprintf(fp,"else begin\n");
+    port_itr = vpi_iterate(vpiPort,scope_h);
+    while(port_h=vpi_scan(port_itr)){
+        vpiHandle lowConn = vpi_handle(vpiLowConn, port_h);
+        vpiHandle HighConn = vpi_handle(vpiHighConn, port_h);
+        switch(vpi_get(vpiDirection,port_h)){
+            case vpiInput: 
+            {
+                break;
+            }
+            case vpiOutput: 
+            {
+              if(vpi_get(vpiType, HighConn)==vpiPartSelect) {
+                          vpiHandle parent_h =vpi_handle(vpiParent,HighConn);
+                          fprintf(fp,"release %s[%d:%d] ;\n",vpi_get_str(vpiFullName,parent_h),getExprValue(HighConn,vpiLeftRange),getExprValue(HighConn,vpiRightRange));
+              }
+              else fprintf(fp,"release %s ; \n", vpi_get_str(vpiFullName,HighConn));
+              break;
+            }
+            case vpiInout: 
+            {
+                fprintf(fp,"This version don't support");
+                break;
+            }
+        }
+    }
+    fprintf(fp,"end\n");
     fprintf(fp,"end\n");
     fprintf(fp,"endmodule\n");
     fprintf(fp,"bind  %s %s_iso_%d %s_iso(",vpi_get_str(vpiFullName,module_h),gen_scope_generate(vpi_get_str(vpiName,scope_h)),inst_num,gen_scope_generate(vpi_get_str(vpiName,scope_h))); 
@@ -272,9 +302,9 @@ void iso_itr(PortInfoNode**  port_list_head,Module** iso_inst_head){
     }
 
 }
-
+//add the fucntion to force the output port replacing original module while mapping fault injetion point
 char* iso_exchange(char* singal_name){
-    vpiHandle signal_h,scope_h,mod_h;
+    vpiHandle signal_h,scope_h,mod_h,port_itr;
     signal_h=vpi_handle_by_name(singal_name,0);
     mod_h   = vpi_handle(vpiScope,signal_h);
     scope_h =vpi_handle(vpiScope,mod_h);
@@ -283,18 +313,52 @@ char* iso_exchange(char* singal_name){
     const char* modName = gen_scope_generate(vpi_get_str(vpiName, mod_h));
     const char* signalName = vpi_get_str(vpiName, signal_h);
     size_t total_length = 2*strlen(modName) + strlen("_iso.") + strlen(scopeName) + 2*strlen(".") + strlen(signalName) + 1;
+    size_t flag_length = 2*strlen(modName) + strlen("_iso.") + strlen(scopeName) + 2*strlen(".") + 4 + 1;
+
     char* iso_name = (char*)malloc(total_length);
+    char* flag_name = (char*)malloc(flag_length);
     iso_name[0] = '\0';
     strcat(iso_name, scopeName);
     //vpi_printf("DEBUG::%s\n",scopeName);
     strcat(iso_name, ".");
     strcat(iso_name, modName);
     strcat(iso_name, "_iso.");
+    strcat(flag_name,iso_name);
+    strcat(flag_name,"flag");
+    iso_flag_en(flag_name);
     strcat(iso_name, modName);
     //vpi_printf("DEBUG::%s\n",modName);
     strcat(iso_name, ".");
     strcat(iso_name, signalName);
     //vpi_printf("DEBUG::%s\n",signalName);
+    /** force statement **/
+    /**
+    port_itr = vpi_iterate(vpiPort,mod_h);
+    while(port_h=vpi_scan(port_itr)){
+        vpiHandle lowConn = vpi_handle(vpiLowConn, port_h);
+        vpiHandle HighConn = vpi_handle(vpiHighConn, port_h);
+        switch(vpi_get(vpiDirection,port_h)){
+            case vpiInput: 
+            {
+                break;
+            }
+            case vpiOutput: 
+            {
+              if(vpi_get(vpiType, HighConn)==vpiPartSelect) {
+                          vpiHandle parent_h =vpi_handle(vpiParent,HighConn);
+                          fprintf(fp,"force %s[%d:%d] = %s;\n",vpi_get_str(vpiFullName,parent_h),getExprValue(HighConn,vpiLeftRange),getExprValue(HighConn,vpiRightRange),vpi_get_str(vpiName,lowConn));
+              }
+              else fprintf(fp,"force %s = %s ; \n", vpi_get_str(vpiFullName,HighConn),vpi_get_str(vpiName,lowConn));
+              break;
+            }
+            case vpiInout: 
+            {
+                fprintf(fp,"This version don't support");
+                break;
+            }
+        }
+    }
+    **/
     return iso_name;
 }
 
@@ -358,4 +422,22 @@ void hierarchy_replace(char* p) {
         }
         p++; // 移动到下一个字符
     }
+}
+
+void iso_flag_en(char* p) {
+    PLI_INT32 flag = vpiForceFlag; 
+    vpiHandle signal_handle;
+    s_vpi_value fault_value = { vpiIntVal, { 0 } };
+    s_vpi_time  time_s = { vpiSimTime, 0, 0, 0.0 };
+    signal_handle = vpi_handle_by_name(p,0);
+        if(signal_handle == 0)
+            {
+                vpi_printf((PLI_BYTE8*) "FUSA_ERROR: unable to locate hdl path (%s) for iso_flag\n",*p);
+            }
+        else
+        {
+            fault_value.format = vpiIntVal;
+            fault_value.value.integer = 1;
+            vpi_put_value(signal_handle, &fault_value, &time_s, flag);
+        }
 }

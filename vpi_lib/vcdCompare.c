@@ -8,9 +8,10 @@
 static hash_table vcdHash;
 static StringList checker_list,functional_list,nostop_list,fault_target,fault_exclude;
 static PortInfoNode* port_list = NULL;
+static Module* iso_inst_list = NULL;
 static int flag_continue=0;
 //static char fault_target[100];
-static char iso_mode[5];
+static char iso_mode[20];
 static char status_checker[10] = "Undetect";
 static char status_functional[10] = "Undetect";
 static char strobe_mode[10] = "Dual";
@@ -395,6 +396,19 @@ static void vcdCompareEosHandler( p_cb_data data )
 void vcdCompareCheck( )
 {
     char* path = tf_getcstringp( 1 );
+    char* step = tf_getcstringp( 2 );
+    vpiHandle systf_h, arg_itr, arg_h;
+    s_vpi_value value_s;
+    systf_h = vpi_handle(vpiSysTfCall, NULL);
+    arg_itr = vpi_iterate(vpiArgument, systf_h);
+    arg_h = vpi_scan(arg_itr);
+    value_s.format = vpiStringVal;
+    vpi_get_value(arg_h, &value_s);
+    //path = value_s.value.str;
+    arg_h = vpi_scan(arg_itr);
+    vpi_get_value(arg_h, &value_s);
+    //step = value_s.value.str;
+    vpi_free_object(arg_itr); /* free iterator -- did not scan to null */
     char  FI_PATH[100];
 
     strcpy(FI_PATH, path);
@@ -411,16 +425,16 @@ void vcdCompareCheck( )
     vpi_printf("Successfully perform parseXML()\n");
     if (strcmp(path, "good_sim") == 0) 
         fault_modeling_check(&fault_target,&fault_exclude);
-    if ( tf_nump( ) == 1 )
-    {
-        if ( tf_typep( 1 ) == tf_string ) return;
-
-        tf_error( "Error: Non-string parameter\n" );
-    }
-    else
-    {
-        tf_error( "Error: Use only one parameter\n" );
-    }
+//    if ( tf_nump( ) == 1 )
+//    {
+//        if ( tf_typep( 1 ) == tf_string ) return;
+//
+//        tf_error( "Error: Non-string parameter\n" );
+//    }
+//    else
+//    {
+//        tf_error( "Error: Use only one parameter\n" );
+//    }
 }
 
 /*
@@ -429,7 +443,7 @@ void vcdCompareCheck( )
 void vcdCompareCall( )
 {
     char* path = tf_getcstringp( 1 );
-    //char* step = tf_getcstringp( 2 );
+    char* step = tf_getcstringp( 2 );
     char  filename[100];
     char  FI_PATH[100];
     char  FS_PATH[100];
@@ -441,57 +455,74 @@ void vcdCompareCall( )
         //timeCheck("/home/ICer/fusa_vpi/autosoc-development/Simulation/fault.time");
     }
     else {
+        //////
+        //PLI_INT32 flag = vpiForceFlag; 
+        //vpiHandle signal_handle;
+        //s_vpi_value fault_value = { vpiIntVal, { 0 } };
+        //s_vpi_time  time_s = { vpiSimTime, 0, 0, 0.0 };
+        //signal_handle = vpi_handle_by_name("test.dut_inst.mem1_i.mem_with_crc_i_iso.flag",0);
+        //    if(signal_handle == 0)
+        //        {
+        //            vpi_printf((PLI_BYTE8*) "FUSA_ERROR: unable to locate hdl path (%s) for iso_flag\n",fault_p->fault_node_name);
+        //        }
+        //    else
+        //    {
+        //        fault_value.format = vpiIntVal;
+        //        fault_value.value.integer = 1;
+        //        vpi_put_value(signal_handle, &fault_value, &time_s, flag);
+        //    }
+        //////
         vpi_printf("path = %s\n",path);
-    strcpy(FS_PATH, path);
-    strcat(FS_PATH,"/fault.set");
-    strcpy(FI_PATH, path);
-    strcat(FI_PATH,"/FI.xml");
-    strcpy(filename, path);
-    strcat(filename,"/golden.vcd");
-    strcpy(TIME_PATH, path);
-    strcat(TIME_PATH,"/golden.time");
-    vpi_printf( "vcdCompare: reading <%s>\n", filename );
-    initializeStringList(&checker_list);
-    initializeStringList(&functional_list);
-    initializeStringList(&nostop_list);
-    initializeStringList(&fault_target);
-    /////*parseXML("FI.xml", &checker_list);*/
-    vpi_printf("FI_PATH = %s\n",FI_PATH);
-    parseXML(FI_PATH);
-    parse_injectXML("./fault.xml"); 
-    printf("FAULT_ID:%s",FAULT_ID);
-    int id = atoi(FAULT_ID)-1;
-    port_alias(&fault_target,&port_list);
-    printf("checker strobe list:\n");
-    printStringList(&checker_list);
-    printf("functional strobe list:\n");
-    printStringList(&functional_list);
-    printf("nostop strobe list:\n");
-    printStringList(&nostop_list);
-    FaultData *faults = random_process(FS_PATH);
-    if(FAULT_LOCATION==NULL||strlen(FAULT_LOCATION) == 0 ){
-        strcpy(FAULT_LOCATION, faults[id].location);
-        fault.fault_node_name = FAULT_LOCATION;
-        fault.injection_time = atoi(faults[id].time);
-        strcpy(FAULT_TIME, faults[id].time);
-        strcpy(FAULT_TYPE, faults[id].type);
-        if(strcmp("SEU", FAULT_TYPE) == 0)
-                    fault.fault_type = SEU_FAULT;
-                else if(strcmp("SA0", FAULT_TYPE) == 0)
-                {
-                    fault.fault_type = SA_FAULT;
-                    fault.fault_value = 0;
-                }
-                else if(strcmp("SA1", FAULT_TYPE) == 0)
-                {
-                    fault.fault_type = SA_FAULT;
-                    fault.fault_value = 1;
-                }
-        //printf("**********DEBUG%s",faults[id].fault_location);
+        strcpy(FS_PATH, path);
+        strcat(FS_PATH,"/fault.set");
+        strcpy(FI_PATH, path);
+        strcat(FI_PATH,"/FI.xml");
+        strcpy(filename, path);
+        strcat(filename,"/golden.vcd");
+        strcpy(TIME_PATH, path);
+        strcat(TIME_PATH,"/golden.time");
+        vpi_printf( "vcdCompare: reading <%s>\n", filename );
+        initializeStringList(&checker_list);
+        initializeStringList(&functional_list);
+        initializeStringList(&nostop_list);
+        initializeStringList(&fault_target);
+        /////*parseXML("FI.xml", &checker_list);*/
+        vpi_printf("FI_PATH = %s\n",FI_PATH);
+        parseXML(FI_PATH);
+        parse_injectXML("./fault.xml"); 
+        printf("FAULT_ID:%s",FAULT_ID);
+        int id = atoi(FAULT_ID)-1;
+        port_alias(&fault_target,&port_list);
+        printf("checker strobe list:\n");
+        printStringList(&checker_list);
+        printf("functional strobe list:\n");
+        printStringList(&functional_list);
+        printf("nostop strobe list:\n");
+        printStringList(&nostop_list);
+        FaultData *faults = random_process(FS_PATH);
+        if(FAULT_LOCATION==NULL||strlen(FAULT_LOCATION) == 0 ){
+            strcpy(FAULT_LOCATION, faults[id].location);
+            fault.fault_node_name = FAULT_LOCATION;
+            fault.injection_time = atoi(faults[id].time);
+            strcpy(FAULT_TIME, faults[id].time);
+            strcpy(FAULT_TYPE, faults[id].type);
+            if(strcmp("SEU", FAULT_TYPE) == 0)
+                        fault.fault_type = SEU_FAULT;
+                    else if(strcmp("SA0", FAULT_TYPE) == 0)
+                    {
+                        fault.fault_type = SA_FAULT;
+                        fault.fault_value = 0;
+                    }
+                    else if(strcmp("SA1", FAULT_TYPE) == 0)
+                    {
+                        fault.fault_type = SA_FAULT;
+                        fault.fault_value = 1;
+                    }
+            //printf("**********DEBUG%s",faults[id].fault_location);
         }
     if(strcmp(iso_mode, "ENA") == 0){
         fault.fault_node_name = check_alias(fault.fault_node_name,&port_list);
-        vpi_printf("Fault Isolation has been Enable\n");
+        vpi_printf("\nFault Isolation has been Enable\n");
         vpi_printf("because of iso, inject node is %s\n",fault.fault_node_name);
     }
     if (strcmp(step, "good_sim") == 0) {

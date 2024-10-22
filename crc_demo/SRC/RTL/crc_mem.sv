@@ -24,11 +24,11 @@ module crc_mem
     parameter OUTPUT_FF = 1
     )
 
-  (input logic clk,
-   input logic 			 rst_n,
-   input logic 			 mem_wr,
-   input logic [ADDR_WIDTH-1:0]  mem_addr,
-   input logic [DATA_WIDTH-1:0]  mem_data_in,
+  (input wire clk,
+   input wire 			 rst_n,
+   input wire 			 mem_wr,
+   input wire [ADDR_WIDTH-1:0]  mem_addr,
+   input wire [DATA_WIDTH-1:0]  mem_data_in,
    output logic [DATA_WIDTH-1:0] mem_data_out ,
    output logic 		 err_detected,
    output logic 		 err_corrected

@@ -192,6 +192,7 @@ module test;
 	//----------------------------------------------------------------------
 	// Stimulus
 	//----------------------------------------------------------------------
+    integer i;
 	initial begin
 		// default values
 		mem1_wr            <= 0;
@@ -209,11 +210,21 @@ module test;
 			$display("-I- Start MEM1 count up : %0t", $time);
 			mem1_data_in <= {4'b0,4'b0,4'b0,4'b0};
 
-			forever begin
+			//forever begin
+            for(i=0;i<50;i=i+1) begin
 				// at next clock cycle
 				@(negedge clk);
                 mem1_addr    <= mem1_addr + 1;
 				mem1_wr      <= 1'b1;
+				mem1_data_in <= mem1_data_in + 32'h1111;
+			end
+            @(negedge clk);
+            mem1_addr <=0;
+            for(i=0;i<50;i=i+1) begin
+				// at next clock cycle
+				@(negedge clk);
+                mem1_addr    <= mem1_addr + 1;
+				mem1_wr      <= 1'b0;
 				mem1_data_in <= mem1_data_in + 32'h1111;
 			end
 		end
@@ -221,16 +232,32 @@ module test;
 		else if (TESTNAME == "BYTE_COUNT_MEM1") begin
 			$display("-I- Start MEM1 byte count up : %0t", $time);
 			mem1_data_in <= {4'b0,4'b0,4'b0, 4'b0};
-
-			forever begin
+            for(i=0;i<50;i=i+1) begin
 				// at next clock cycle
 				@(negedge clk);
-				mem1_addr    <= mem1_addr + 1;
+                mem1_addr    <= mem1_addr + 1;
 				mem1_wr      <= 1'b1;
-				mem1_data_in <= {cnt, cnt, cnt, cnt};
-				cnt          <= cnt + 1;
+				mem1_data_in <= mem1_data_in + 32'h1111;
+			end
+            @(negedge clk);
+            mem1_addr <=0;
+            for(i=0;i<50;i=i+1) begin
+				// at next clock cycle
+				@(negedge clk);
+                mem1_addr    <= mem1_addr + 1;
+				mem1_wr      <= 1'b0;
+				mem1_data_in <= mem1_data_in + 32'h1111;
 			end
 		end
+//			forever begin
+//				// at next clock cycle
+//				@(negedge clk);
+//				mem1_addr    <= mem1_addr + 1;
+//				mem1_wr      <= 1'b1;
+//				mem1_data_in <= {cnt, cnt, cnt, cnt};
+//				cnt          <= cnt + 1;
+//			end
+//		end
 
 		else if (TESTNAME == "COUNT_MEM2") begin
 			$display("-I- Start MEM2 count up : %0t", $time);
@@ -298,6 +325,7 @@ module test;
     initial begin
       $fsdbDumpfile("test.fsdb");
       $fsdbDumpvars(0,test);
+      $fsdbDumpMDA();
     end
 endmodule // test
 

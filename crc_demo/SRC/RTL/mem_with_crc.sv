@@ -23,19 +23,19 @@ module mem_with_crc
         parameter ADDR_WIDTH = 8
     )
     (
-		input logic                        clk,
-		input logic                        rst_n,
-		input logic                        mem_wr,
-        input logic [ADDR_WIDTH-1:0]       mem_addr,
-		input logic [DATA_WIDTH-1:0]       mem_data_in,
-		input logic [POLYNOMIAL_BITS-1:0]  crc_data_in,
-		output logic [DATA_WIDTH-1:0]      mem_data_out,
-		output logic [POLYNOMIAL_BITS-1:0] crc_data_out
+		input wire                        clk,
+		input wire                        rst_n,
+		input wire                        mem_wr,
+        input wire [ADDR_WIDTH-1:0]       mem_addr,
+		input wire [DATA_WIDTH-1:0]       mem_data_in,
+		input wire [POLYNOMIAL_BITS-1:0]  crc_data_in,
+		output wire [DATA_WIDTH-1:0]      mem_data_out,
+		output wire [POLYNOMIAL_BITS-1:0] crc_data_out
    );
     parameter DEPTH_WIDTH = 2 ** ADDR_WIDTH ;
     //bin2onhot();
-    logic [DATA_WIDTH-1:0] mem [0:DEPTH_WIDTH-1];
-    logic [POLYNOMIAL_BITS-1:0] mem_crc [0:DEPTH_WIDTH-1];
+    reg [DATA_WIDTH-1:0] mem [0:DEPTH_WIDTH-1];
+    reg [POLYNOMIAL_BITS-1:0] mem_crc [0:DEPTH_WIDTH-1];
 
     genvar i;
     generate 

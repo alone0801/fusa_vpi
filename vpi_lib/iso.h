@@ -6,7 +6,7 @@ typedef struct Module {
     char* map_name;
     struct Module* next;
 } Module;
-
+void iso_flag_en(char* p);
 void iso_gen(char* port_name, Module** head);
 void redirect_stdout_to_file(const char* filename);
 int getExprValue(vpiHandle conn, int r);
@@ -18,3 +18,4 @@ char* iso_exchange(char* singal_name);
 char* gen_scope_generate(const char* mod_name);
 void blank_cut(char* p);
 void hierarchy_replace(char* p);
+
