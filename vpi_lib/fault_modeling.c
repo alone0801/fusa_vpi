@@ -52,7 +52,7 @@ void fault_modeling(p_cb_data cb_data)
 
     type = SA_FAULT;                          // to be determined////////////
     vpi_printf("This is fault_modeling() running\n");
-    fp = fopen("result_FM_decode.xml","w");           // to be determined/////////////
+    fp = fopen("Fault_list.xml","w");           // to be determined/////////////
     if(fp == NULL)
         printf("Error opening file!\n");
     else
