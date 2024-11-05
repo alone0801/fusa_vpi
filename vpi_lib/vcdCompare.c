@@ -423,7 +423,7 @@ void vcdCompareCheck( )
     vpi_printf("path = %s\n",path);
     parseXML(FI_PATH);
     vpi_printf("Successfully perform parseXML()\n");
-    if (strcmp(path, "good_sim") == 0) 
+    if (strcmp(step, "good_sim") == 0) 
         fault_modeling_check(&fault_target,&fault_exclude);
 //    if ( tf_nump( ) == 1 )
 //    {
