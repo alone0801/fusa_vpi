@@ -520,11 +520,7 @@ void vcdCompareCall( )
                     }
             //printf("**********DEBUG%s",faults[id].fault_location);
         }
-    if(strcmp(iso_mode, "ENA") == 0){
-        fault.fault_node_name = check_alias(fault.fault_node_name,&port_list);
-        vpi_printf("\nFault Isolation has been Enable\n");
-        vpi_printf("because of iso, inject node is %s\n",fault.fault_node_name);
-    }
+
     if (strcmp(step, "good_sim") == 0) {
         addEosCallback( timeRecordEosHandler );
         //iso_gen("test_new.test_ins.sub_inst.a",&iso_inst_list);
@@ -534,6 +530,13 @@ void vcdCompareCall( )
         vpi_printf("instrumenting the isolation in DUT\n");
         //timeCheck("/home/ICer/fusa_vpi/autosoc-development/Simulation/fault.time");
         return;
+    }
+    else {
+        if(strcmp(iso_mode, "ENA") == 0){
+            fault.fault_node_name = check_alias(fault.fault_node_name,&port_list);
+            vpi_printf("\nFault Isolation has been Enable\n");
+            vpi_printf("because of iso, inject node is %s\n",fault.fault_node_name);
+        }
     }
     hashInitialize( &vcdHash, 200 );
     addEosCallback( FaultClassEosHandler );
