@@ -1,6 +1,7 @@
 #!/bin/bash
-make vcs_good MACRO=$2
-make vcs_fault MACRO=$2
+#make vcs_good MACRO=$2
+#make vcs_fault MACRO=$2
+start_time=$(date +%s)
 cd autoSOC_fusa
 fault_dir=$1
 rm -rf $fault_dir
@@ -26,3 +27,5 @@ for ((i = 1; i <= num_faults; i++)); do
     $EXE_PATH/simv -l fault_sim.log  +elf_load=$SW_dir/Baremetal/sample_apps/$2  +clear_ram -ucli -i $fusa_lib/ucli.tcl
     cd .. || exit
 done
+end_time=$(date +%s)
+echo "PBS 8-node simulation time: $(($end_time - $start_time)) seconds"
