@@ -10,6 +10,8 @@ static StringList checker_list,functional_list,nostop_list,fault_target,fault_ex
 static PortInfoNode* port_list = NULL;
 static Module* iso_inst_list = NULL;
 static int flag_continue=0;
+static int flag_checker=0;
+static int flag_functional=0;
 //static char fault_target[100];
 static char iso_mode[20];
 static char status_checker[10] = "Undetect";
@@ -19,6 +21,8 @@ static char FAULT_ID[100];
 static char FAULT_LOCATION[200];
 static char FAULT_TYPE[10];
 static char FAULT_TIME[100];
+static char CHECKER_TIME[100]="NULL";
+static char FUNCTIONAL_TIME[100]="NULL";
 static int tolerant_time = 10;
 static int fault_classification( p_cb_data cb_data_p );
 static void FaultClassEosHandler( p_cb_data data );
@@ -150,9 +154,20 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
                          ptr->vact, name, ptr->mark, time_s.real );
 
             triggerOnDiff( node->refn );
+//            if(!checkStringList(&nostop_list,name))flag_stop=1;
+//            if(checkStringList(&checker_list,name)) strcpy(status_checker, "Detect");
+//            if(checkStringList(&functional_list,name)) strcpy(status_functional, "Detect");
             if(!checkStringList(&nostop_list,name))flag_stop=1;
-            if(checkStringList(&checker_list,name)) strcpy(status_checker, "Detect");
-            if(checkStringList(&functional_list,name)) strcpy(status_functional, "Detect");
+            if(checkStringList(&checker_list,name)) {
+                if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
+                flag_checker=1;
+                strcpy(status_checker, "Detect");
+            }
+            if(checkStringList(&functional_list,name)) {
+                if(!flag_functional) sprintf(FUNCTIONAL_TIME, "%lf", time_s.real);
+                flag_functional=1;
+                strcpy(status_functional, "Detect");
+            }
         }
         else if ( ptr->vact == 0 )
         {
@@ -165,8 +180,16 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
 
             triggerOnDiff( node->refn );
             if(!checkStringList(&nostop_list,name))flag_stop=1;
-            if(checkStringList(&checker_list,name)) strcpy(status_checker, "Detect");
-            if(checkStringList(&functional_list,name)) strcpy(status_functional, "Detect");
+            if(checkStringList(&checker_list,name)) {
+                if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
+                flag_checker=1;
+                strcpy(status_checker, "Detect");
+            }
+            if(checkStringList(&functional_list,name)) {
+                if(!flag_functional) sprintf(FUNCTIONAL_TIME, "%lf", time_s.real);
+                flag_functional=1;
+                strcpy(status_functional, "Detect");
+            }
         }
         else if ( strcmp( ptr->vexp, ptr->vact ) )
         {
@@ -176,9 +199,22 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
 
             vpi_printf( "*** Mismatch on <%s(%s)>: exp=<%s>, act=<%s> at %lf\n",
                          name, ptr->mark, ptr->vexp, ptr->vact, time_s.real );
-            if(!checkStringList(&nostop_list,name))flag_stop=1;
-            if(checkStringList(&checker_list,name)) strcpy(status_checker, "Detect");  
-            if(checkStringList(&functional_list,name)) strcpy(status_functional, "Detect");
+
+//            if(!checkStringList(&nostop_list,name))flag_stop=1;
+//            if(checkStringList(&checker_list,name)) strcpy(status_checker, "Detect");  
+//            if(checkStringList(&functional_list,name)) strcpy(status_functional, "Detect");
+//                        if(!checkStringList(&nostop_list,name))flag_stop=1;
+            if(checkStringList(&checker_list,name)) {
+                if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
+                flag_checker=1;
+                strcpy(status_checker, "Detect");
+            }
+            if(checkStringList(&functional_list,name)) {
+                if(!flag_functional) sprintf(FUNCTIONAL_TIME, "%lf", time_s.real);
+                flag_functional=1;
+                strcpy(status_functional, "Detect");
+            }
+
             triggerOnDiff( node->refn );
         }
         ptr = ptr->next;
@@ -822,7 +858,9 @@ void generateXML(const char* idValue, const char* locationValue, const char* sta
     fprintf(fp, "    <ID>%s</ID>\n", idValue);
     fprintf(fp, "    <LOCATION>%s</LOCATION>\n", locationValue);
     fprintf(fp, "    <TYPE>%s</TYPE>\n", typeValue);
-    fprintf(fp, "    <TIME>%d</TIME>\n",atoi(FAULT_TIME));
+    fprintf(fp, "    <INJECT_TIME>%d</INJECT_TIME>\n",atoi(FAULT_TIME));
+    fprintf(fp, "    <CHECKER_TIME>%d</CHECKER_TIME>\n",atoi(CHECKER_TIME));
+    fprintf(fp, "    <FUNCTIONAL_TIME>%d</FUNCTIONAL_TIME>\n",atoi(FUNCTIONAL_TIME));
     fprintf(fp, "    <STATUS>%s</STATUS>\n", statusValue);
     fprintf(fp, "</RESULT>\n");
 
