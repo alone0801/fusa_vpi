@@ -6,9 +6,10 @@
 #include "vpiDebug.h"
 #include"fault_injector.h"
 static hash_table vcdHash;
-static StringList checker_list,functional_list,nostop_list,fault_target,fault_exclude;
+static StringList checker_list,functional_list,nostop_list,fault_target,fault_exclude,fault_tw_str;
 static PortInfoNode* port_list = NULL;
 static Module* iso_inst_list = NULL;
+static int fault_tw[2];
 static int flag_continue=0;
 static int flag_checker=0;
 static int flag_functional=0;
@@ -30,7 +31,7 @@ void parse_injectXML(const char* filename);
 void SAInject(const char* fault_location, const char* fault_time, const char* fault_typeo);
 void generateXML(const char* idValue, const char* locationValue, const char* statusValue,const char* typeValue);
 void fault_injector_check();
-void fault_modeling_check(StringList* fault_target,StringList* fault_exclude);
+void fault_modeling_check(StringList* fault_target,StringList* fault_exclude, int fault_tw[]);
 void value_get(const char* fault_location);
 static int timeoutHandler( p_cb_data cb_data_p );
 void freeStringList(StringList *list);
@@ -230,6 +231,7 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
        */
         freeStringList(&fault_target);
         freeStringList(&fault_exclude);
+        freeStringList(&fault_tw_str);
         freeStringList(&checker_list);
         freeStringList(&functional_list);
         freeStringList(&nostop_list);
@@ -440,10 +442,8 @@ void vcdCompareCheck( )
     arg_h = vpi_scan(arg_itr);
     value_s.format = vpiStringVal;
     vpi_get_value(arg_h, &value_s);
-    //path = value_s.value.str;
     arg_h = vpi_scan(arg_itr);
     vpi_get_value(arg_h, &value_s);
-    //step = value_s.value.str;
     vpi_free_object(arg_itr); /* free iterator -- did not scan to null */
     char  FI_PATH[100];
 
@@ -451,16 +451,15 @@ void vcdCompareCheck( )
     strcat(FI_PATH,"/FI.xml");
     initializeStringList(&fault_target);
     initializeStringList(&fault_exclude);
+    initializeStringList(&fault_tw_str);
     initializeStringList(&checker_list);
     initializeStringList(&functional_list);
     initializeStringList(&nostop_list);
-    vpi_printf("This is vcdCompareCheck() running!\n");
-    strcpy(FI_PATH,"/home/ICer/fusa_vpi/autosoc-development/Simulation/autoSOC_fusa/FI.xml");
-    vpi_printf("path = %s\n",path);
     parseXML(FI_PATH);
-    vpi_printf("Successfully perform parseXML()\n");
+    fault_tw[0] = atoi(fault_tw_str.strings[0]);
+    fault_tw[1] = atoi(fault_tw_str.strings[1]);
     if (strcmp(step, "good_sim") == 0) 
-        fault_modeling_check(&fault_target,&fault_exclude);
+        fault_modeling_check(&fault_target,&fault_exclude,&fault_tw);
 //    if ( tf_nump( ) == 1 )
 //    {
 //        if ( tf_typep( 1 ) == tf_string ) return;
@@ -484,8 +483,6 @@ void vcdCompareCall( )
     char  FI_PATH[100];
     char  FS_PATH[100];
     char  TIME_PATH[100];
-    vpi_printf("This is vcdCompareCall() running!!!\n");
-    vpi_printf("path = %s\n",path);
     if (strcmp(path, "good_sim") == 0) {
         addEosCallback( timeRecordEosHandler );
         //timeCheck("/home/ICer/fusa_vpi/autosoc-development/Simulation/fault.time");
@@ -523,10 +520,9 @@ void vcdCompareCall( )
         initializeStringList(&nostop_list);
         initializeStringList(&fault_target);
         /////*parseXML("FI.xml", &checker_list);*/
-        vpi_printf("FI_PATH = %s\n",FI_PATH);
         parseXML(FI_PATH);
         parse_injectXML("./fault.xml"); 
-        printf("FAULT_ID:%s",FAULT_ID);
+        printf("FAULT_ID:%s\n",FAULT_ID);
         int id = atoi(FAULT_ID)-1;
         port_alias(&fault_target,&port_list);
         printf("checker strobe list:\n");
@@ -595,13 +591,6 @@ void vcdCompareCall( )
     //time_test
     }
 }
-//void freeStringList(StringList *list) {
-//    int i;
-//    for ( i = 0; i < list->count; ++i) {
-//        free(list->strings[i]);
-//    }
-//    list->count = 0;
-//}
 
 /*
  *  PLI misc function for $vcdCompare
@@ -652,6 +641,7 @@ static int timeoutHandler(p_cb_data cb_data_p)
     cb_data_p = NULL; // 避免重复释放
     freeStringList(&fault_target);
     freeStringList(&fault_exclude);
+    freeStringLIst(&fault_tw_str);
     freeStringList(&checker_list);
     freeStringList(&functional_list);
     freeStringList(&nostop_list);
@@ -724,6 +714,18 @@ void parseXML(const char* filename) {
             printf("fault_exclude:%s\n",fault_exclude.strings[fault_exclude.count-1]);
             xmlFree(content);
         }
+        if (xmlStrcmp(node->name, (const xmlChar*)"FAULT_TW_START") == 0){
+            xmlChar* content = xmlNodeGetContent(node);
+            fault_tw_str.strings[0] = strdup((const char*)content);
+            printf("fault_tw_str[0]:%s\n",fault_tw_str.strings[0]);
+            xmlFree(content);
+        }
+        if (xmlStrcmp(node->name, (const xmlChar*)"FAULT_TW_END") == 0){
+            xmlChar* content = xmlNodeGetContent(node);
+            fault_tw_str.strings[1] = strdup((const char*)content);
+            printf("fault_tw_str[1]:%s\n",fault_tw_str.strings[1]);
+            xmlFree(content);
+        }
         if (xmlStrcmp(node->name, (const xmlChar*)"ISO_MODE") == 0){
             xmlChar* content = xmlNodeGetContent(node);
             strcpy(iso_mode,content);
@@ -731,18 +733,13 @@ void parseXML(const char* filename) {
             xmlFree(content);
         }
     }
-    vpi_printf("Has found all fault target, fault exclude and iso mode\n");
     for (node = root->children; node != NULL; node = node->next) {
-        vpi_printf("Start of FOR loop\n");
         if (xmlStrcmp(node->name, (const xmlChar*)"OBSERVATION_POINTS") == 0) {
-            vpi_printf("We are in the OBSERVATION POINT\n");
             for ( child = node->children; child != NULL; child = child->next) {
-                vpi_printf("child->name = %s\n",child->name);
                 if (xmlStrcmp(child->name, (const xmlChar*)"CHECKER_STROBE") == 0) {
                     xmlChar* content = xmlNodeGetContent(child);
                     // Add the content to the string list
                     checker_list.strings[checker_list.count++] = strdup((const char*)content);
-                    vpi_printf("content = %s\n",content);
                     xmlFree(content);
                 }
                 else if (xmlStrcmp(child->name, (const xmlChar*)"FUNCTIONAL_STROBE") == 0) {
@@ -759,22 +756,16 @@ void parseXML(const char* filename) {
                  }
             }
         }
-        vpi_printf("Prepare to get the testbench\n");
-        vpi_printf("node->name = %s\n",node->name);
         if (xmlStrcmp(node->name, (const xmlChar *)"TESTBENCH_NAME") == 0)
-        { 
-            vpi_printf("We are in the TESTBENCH\n");  
+        {  
             xmlChar* content = xmlNodeGetContent(node);
             //strcpy(TESTBENCH_NAME, (char *)xmlNodeGetContent(node));
             strcpy(TESTBENCH_NAME, (char*)content);
             xmlFree(content);
         }
-        vpi_printf("Has finished getting the testbench\n");
     }
-    vpi_printf("Has got all the other information\n");
     if (functional_list.count==0) strcpy(strobe_mode, "Single");
     xmlFreeDoc(doc);
-    vpi_printf("parseXML() has finished\n");
 }
 void parse_injectXML(const char* filename) {
     xmlDocPtr doc;

@@ -2,7 +2,10 @@
 <FI_CONFIG>
     <FAULT_TARGET>test.dut_inst.mem1_i.mem_with_crc_i</FAULT_TARGET>
     <!--<FAULT_TARGET>test.dut_inst.mem2_i</FAULT_TARGET>-->
+    <FAULT_EXCLUDE></FAULT_EXCLUDE>
     <TESTBENCH_NAME>test</TESTBENCH_NAME>
+    <FAULT_TW_START>100</FAULT_TW_START>
+    <FAULT_TW_END>200</FAULT_TW_END>
     <OBSERVATION_POINTS>
     <CHECKER_STROBE>test.dut_inst.mem1_err_detected</CHECKER_STROBE>
     <CHECKER_STROBE>test.dut_inst.mem2_err_detected</CHECKER_STROBE>

@@ -11,6 +11,7 @@
 #define SEU_FAULT 1
 
 static StringList *fault_target,*fault_exclude;
+static int fault_tw[2];
 
 void fault_modeling(p_cb_data cb_data);
 int find_submodule(vpiHandle this_mod_h,int type,FILE *fp,int node_num);
@@ -21,14 +22,16 @@ int find_reg_array(vpiHandle module_h,FILE *fp,int node_num);
 int find_wire_array(vpiHandle module_h,FILE *fp,int node_num);
 int GetRandNum(int min,int max,int seed);
 
-void fault_modeling_check(StringList* fault_target_p,StringList* fault_exclude_p)
+void fault_modeling_check(StringList* fault_target_p,StringList* fault_exclude_p,int fault_tw_[])
 {
     s_cb_data cb_data_s;
     vpiHandle cb_handle,module_handle;
 
-    vpi_printf("\nThis is fault_modeling_check() running\n");
+    //vpi_printf("\nThis is fault_modeling_check() running\n");
     fault_target = fault_target_p;
     fault_exclude = fault_exclude_p;
+    fault_tw[0] = fault_tw_[0];
+    fault_tw[1] = fault_tw_[1];
 
     //Registration of fault_modeling simulation callback routine
     cb_data_s.reason = cbEndOfCompile;
@@ -51,7 +54,7 @@ void fault_modeling(p_cb_data cb_data)
     int node_num = 0,type,i;
 
     type = SA_FAULT;                          // to be determined////////////
-    vpi_printf("This is fault_modeling() running\n");
+    //vpi_printf("This is fault_modeling() running\n");
     fp = fopen("Fault_list.xml","w");           // to be determined/////////////
     if(fp == NULL)
         printf("Error opening file!\n");
@@ -72,7 +75,6 @@ void fault_modeling(p_cb_data cb_data)
         find_submodule(module_h,type,fp,node_num);
     }
     fclose(fp);
-    vpi_printf("fault_modeling() has finished\n");
 }
 
 int find_submodule(vpiHandle this_mod_h,int type,FILE *fp,int node_num)

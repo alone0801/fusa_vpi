@@ -3,6 +3,8 @@
     <FAULT_TARGET>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu</FAULT_TARGET>
     <FAULT_EXCLUDE></FAULT_EXCLUDE>
     <TESTBENCH_NAME>autosoc_tb</TESTBENCH_NAME>
+    <FAULT_TW_START>0</FAULT_TW_START>
+    <FAULT_TW_END>100</FAULT_TW_END>
     <OBSERVATION_POINTS>
     <CHECKER_STROBE>autosoc_tb.dut.cp_ctrl_error</CHECKER_STROBE>
     <CHECKER_STROBE>autosoc_tb.dut.intgen0.irq_o</CHECKER_STROBE>
