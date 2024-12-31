@@ -112,12 +112,12 @@ void port_tranverse(vpiHandle mod_h, int top,PortInfoNode** head)
             else appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), strdup(vpi_get_str(vpiFullName, highconn_h)));
         }
     }
-  sub_iterater = vpi_iterate(vpiModule, mod_h);
-  if (sub_iterater != NULL)
-  while ( (sub_handle = vpi_scan(sub_iterater)) != NULL ){
-    port_tranverse(sub_handle , 0 , head);
-  }
-  // if (sub_iterater == NULL) printList(&portInfoList);
+    sub_iterater = vpi_iterate(vpiModule, mod_h);
+    if (sub_iterater != NULL)
+    while ( (sub_handle = vpi_scan(sub_iterater)) != NULL ){
+      port_tranverse(sub_handle , 0 , head);
+    }
+    // if (sub_iterater == NULL) printList(&portInfoList);
 }
 
 void port_isolate(vpiHandle mod_h,PortInfoNode** head)

@@ -15,6 +15,8 @@ static int flag_checker=0;
 static int flag_functional=0;
 //static char fault_target[100];
 static char iso_mode[20];
+static char DUT_NAME[100];
+static int  CON_NUM = 0;
 static char status_checker[10] = "Undetect";
 static char status_functional[10] = "Undetect";
 static char strobe_mode[10] = "Dual";
@@ -559,7 +561,8 @@ void vcdCompareCall( )
         
         //printList(&port_list);
         iso_itr(&port_list,&iso_inst_list);
-        vpi_printf("instrumenting the isolation in DUT\n");
+        concur_gen(CON_NUM,DUT_NAME);
+        vpi_printf("\n****instrumenting the isolation in DUT****\n");
         //timeCheck("/home/ICer/fusa_vpi/autosoc-development/Simulation/fault.time");
         return;
     }
@@ -732,6 +735,12 @@ void parseXML(const char* filename) {
             printf("isolation mode is :%s\n",iso_mode);
             xmlFree(content);
         }
+        if (xmlStrcmp(node->name, (const xmlChar*)"CON") == 0){
+            xmlChar* content = xmlNodeGetContent(node);
+            CON_NUM = atoi(content);
+            printf("Concurrent num is :%d\n",CON_NUM);
+            xmlFree(content);
+        }
     }
     for (node = root->children; node != NULL; node = node->next) {
         if (xmlStrcmp(node->name, (const xmlChar*)"OBSERVATION_POINTS") == 0) {
@@ -763,6 +772,16 @@ void parseXML(const char* filename) {
             strcpy(TESTBENCH_NAME, (char*)content);
             xmlFree(content);
         }
+        if (xmlStrcmp(node->name, (const xmlChar *)"DUT_NAME") == 0)
+        {  
+            xmlChar* content = xmlNodeGetContent(node);
+            //strcpy(TESTBENCH_NAME, (char *)xmlNodeGetContent(node));
+            strcpy(DUT_NAME, (char*)content);
+            xmlFree(content);
+            printf("DUT_NAME is :%s\n",DUT_NAME);
+
+        }
+
     }
     if (functional_list.count==0) strcpy(strobe_mode, "Single");
     xmlFreeDoc(doc);

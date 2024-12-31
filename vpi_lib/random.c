@@ -37,7 +37,7 @@ FaultData *random_process(const char* filename) {
     //        index++;
     //    }
     //}
-    printf("++++++DEBUG:HERE IS RANDOM++++++++++++=");
+    //printf("++++++DEBUG:HERE IS RANDOM++++++++++++=");
     int index = 0;
     while (fgets(line, sizeof(line), fp)) {
         if (sscanf(line, "%255s %15s %d %15s",

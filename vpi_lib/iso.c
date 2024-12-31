@@ -1,11 +1,89 @@
 #include "iso.h"
+
+void concur_gen(int con_num, char* dut_full_name ){
+    vpiHandle tb_h,dut_h,HighConn,lowConn,parent_h,port_itr,port_h;
+    int i,j;
+    int str_param=0;
+    FILE *fp=fopen("fi_wrapper.sv", "a");
+    dut_h = vpi_handle_by_name(dut_full_name,0);
+    printf("----------------DEBUG--------------:dut_name:%s ---------------\n",dut_full_name);
+    if(dut_h==NULL) {
+        printf("didn't specify correct full hiearchy of dut instation in FI.xml , concurrent simulation off\n");
+        return;
+    }
+    /*
+    initial begin
+        for (i = 0; i < 256; i = i + 1) begin
+               data1[i] <= data2[i]; 
+        end
+    end
+     */
+    tb_h = vpi_handle(vpiModule,dut_h);
+    if (fp == NULL) {
+        printf("Error opening file 'fi_wrapper' while generating iso_module,please run good_sim first .\n");
+        return;
+    }
+    if(con_num==0) return;
+    printf("----------------DEBUGAAAAA-------------------------\n");
+    for ( j = 1; j <= con_num; j++) {
+        fprintf(fp,"bind  %s %s ",vpi_get_str(vpiFullName,tb_h),vpi_get_str(vpiDefName,dut_h));
+        //pass param to dut
+        vpiHandle param_itr = vpi_iterate(vpiParameter,dut_h);
+        vpiHandle param_h=vpi_scan(param_itr);
+        if(param_h) fprintf(fp,"#(");
+        printf("----------------DEBUGBBBBB-------------------------\n");
+        while(param_h){
+            str_param=0;
+            s_vpi_value val = {vpiDecStrVal};
+            if(vpi_get(vpiConstType,param_h)==vpiStringConst) val.format = vpiStringVal;
+            vpi_get_value(param_h,&val);
+            char* param_char = (char*)malloc(strlen(val.value.str)+3);
+            if(vpi_get(vpiConstType,param_h)!=vpiStringConst&&atoi(val.value.str)==1297108037){
+                val.format = vpiStringVal;
+                vpi_get_value(param_h,&val);
+                blank_cut(val.value.str);
+                str_param=1;
+            }
+            if(vpi_get(vpiConstType,param_h)==vpiStringConst||str_param) sprintf(param_char,"\"%s\"",val.value.str); 
+            else param_char = val.value.str;
+            fprintf(fp,".%s(%s)",vpi_get_str(vpiName,param_h),param_char);
+            param_h=vpi_scan(param_itr);
+            if(param_h!=NULL) fprintf(fp,",");
+            else fprintf(fp,")");
+        }
+        printf("----------------DEBUGCCCCC-------------------------\n");
+        fprintf(fp,"concur_%d( ",j);
+        int port_num=0;
+        port_itr = vpi_iterate(vpiPort,dut_h);
+        while(port_h=vpi_scan(port_itr)) port_num++;
+        port_itr = vpi_iterate(vpiPort,dut_h);
+        for(i=0 ; i<port_num ; i++) {
+            port_h=vpi_scan(port_itr);
+            vpiHandle HighConn = vpi_handle(vpiHighConn, port_h);
+            vpiHandle lowConn  = vpi_handle(vpiLowConn, port_h);
+            vpiHandle parent_h =vpi_handle(vpiParent,HighConn);
+            printf("----------------DEBUGDDDDD-------------------------\n");
+            char* bind_port = vpi_get_str(vpiName,HighConn);
+            if(bind_port==NULL) continue;
+            printf("_____DEBUG______%s______",bind_port);
+            if(vpi_get(vpiDirection,port_h)==vpiOutput) sprintf(bind_port," ");
+            if(vpi_get(vpiType, HighConn)==vpiConstant) bind_port = vpi_get_str(vpiDecompile,HighConn);
+            else if(vpi_get(vpiType, HighConn)==vpiPartSelect) sprintf(bind_port,"%s[%d:%d]",vpi_get_str(vpiFullName,parent_h),getExprValue(HighConn,vpiLeftRange),getExprValue(HighConn,vpiRightRange));
+            if(i<port_num-1)fprintf(fp,".%s(%s),",vpi_get_str(vpiName,lowConn),bind_port);
+            else fprintf(fp,".%s(%s));\n",vpi_get_str(vpiName,lowConn),bind_port);
+            printf("----------------DEBUGEEEEE-------------------------\n");
+        } 
+    }
+    fclose(fp);
+}
+
 void iso_gen(char* port_name, Module** head){
     vpiHandle signal_h,scope_h,module_h,port_itr,port_h,l_range_h,r_range_h,HighConn,LowConn;
     char* inst_name ;    //char buffer[256];
     signal_h = vpi_handle_by_name(port_name,0);
     FILE *fp=fopen("fi_wrapper.sv", "a");
     if (fp == NULL) {
-        printf("Error opening file.\n");
+        printf("Error opening file 'fi_wrapper' while generating iso_module,please run good_sim first .\n");
         return;
     }
     //redirect_stdout_to_file("fi_wrapper.sv");

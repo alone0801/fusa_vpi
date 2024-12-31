@@ -18,4 +18,4 @@ char* iso_exchange(char* singal_name);
 char* gen_scope_generate(const char* mod_name);
 void blank_cut(char* p);
 void hierarchy_replace(char* p);
-
+void concur_gen(int con_num, char* dut_full_name );
