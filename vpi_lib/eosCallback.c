@@ -9,7 +9,7 @@
  *********************************************************************/
 
 #include "vpiDebug.h"
-
+#include "vpi_user.h"
 /*
  *  List of end-of-simulation callback handlers
  */
@@ -86,3 +86,22 @@ void addEosCallback( void ( *cbFunction )( p_cb_data ) )
 }
 
 void dummyEosHandler( ) { p_cb_data dummyData; eosHandler( dummyData ); }
+
+void register_eosCallback(){
+    s_vpi_systf_data tf_data;
+    tf_data.type=vpiSysTask;
+    tf_data.tfname="$eosCallback";
+    tf_data.calltf=addEosCallback;
+    tf_data.compiletf=NULL;
+    tf_data.sizetf=0;
+    tf_data.user_data=0;
+    vpi_register_systf(&tf_data);
+}
+//extern void register_eosCallback();
+//
+//void (*vlog_startup_routines[])() = 
+//{
+//    /*** add user entries here ***/
+//  register_eosCallback,
+//  NULL /*** final entry must be 0 ***/
+//};

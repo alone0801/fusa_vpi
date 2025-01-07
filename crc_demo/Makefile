@@ -34,7 +34,7 @@ vcs:
 fault_sim:
 	rm -rf csrc simv  simv.daidir
 	vcs -full64 +vpi +define+BYTE_COUNT_MEM1 -P $(fusa_lib)/pli.tab   \
-	-load $(fusa_lib)/libvpiDebug.so  -f demo_rtl.f fi_wrapper.sv -debug_all -sverilog \
+	-load $(fusa_lib)/libvpiDebug.so  -f demo_rtl.cf fi_wrapper.sv -debug_all -sverilog \
 	+define+FAULT_LOCATION=u_tb.dut_inst.mem1_i.mem_data_in[0] \
 	+define+FAULT_VALUE=0 \
 	+define+FAULT_TIME=80 -lxml2 \
@@ -45,7 +45,7 @@ good_sim:
 	python ../vpi_lib/wrapper_gen.py 
 	rm -rf csrc simv  simv.daidir
 	vcs +vpi +define+BYTE_COUNT_MEM1 -P $(fusa_lib)/pli.tab -full64 \
-	-load $(fusa_lib)/libvpiDebug.so   -f demo_rtl.f +define+good_sim -sverilog fi_wrapper.sv -lxml2 \
+	-load $(fusa_lib)/libvpiDebug.so   -f demo_rtl.cf +define+good_sim -sverilog fi_wrapper.sv -lxml2 \
 	+lint=TFIPC-L -notice -debug_access+all  -full64  -kdb -lca
 	./simv -l good_sim.log 
 test: 
@@ -56,6 +56,22 @@ test:
 	+define+FAULT_VALUE=0 \
 	+define+FAULT_TIME=80 -lxml2 
 	./simv -l fault_sim.log
+VPI_FILES = $(fusa_lib)/vcdCompare.vpi
+iverilog_good_sim:
+	python ../vpi_lib/wrapper_gen.py 
+	rm -rf csrc simv simv.vvp simv.daidir
+	LD_PRELOAD=$(fusa_lib)/libvpiDebug.so
+	iverilog -v -g2012 -DFULL64 -o simv.vvp -c demo_rtl.cf fi_wrapper.sv  \
+	-Dgood_sim -DBYTE_COUNT_MEM1  \  	
+	vvp -M. $(addprefix -m ,$(VPI_FILES))   ./simv.vvp
+epicsim_good_sim:
+	python ../vpi_lib/wrapper_gen.py 
+	rm -rf csrc simv epicsim-run simv.daidir
+	LD_PRELOAD=$(fusa_lib)/libvpiDebug.so
+	LD_PRELOAD=/lib64/libxml2.so.2
+	epicsim -v -g2012  -c demo_rtl.cf fi_wrapper.sv -m ../vpi_lib/libvpiDebug.so \
+	-Dgood_sim -DBYTE_COUNT_MEM1  	
+	epicsim-vvp epicsim-run 
 fault_test:
 	cd fault_sim_0;pwd;../simv -l fault_sim.log -ucli -i ../../vpi_lib/ucli.tcl
 merge:

@@ -1,4 +1,4 @@
-#include "vcsuser.h"
+//#include "vcsuser.h"
 #include "vpi_user.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -303,7 +303,8 @@ void         generateCausalTree( vpiHandle );                       /* in traceS
 
 void         dumpCausalTree( int, p_trace_node );                   /* in causalTree.c  */
 
-bool         hasEventCallback( vpiHandle );                         /* in evCallback.c  */
+//bool         hasEventCallback( vpiHandle );                         /* in evCallback.c  */
+int         hasEventCallback( vpiHandle );
 p_cback_data getEventCallback( vpiHandle );
 p_cback_data setEventCallback( vpiHandle );
 p_cback_data getLastEvent( );

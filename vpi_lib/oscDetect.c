@@ -15,7 +15,7 @@
  */
 
 #include "vpiDebug.h"
-
+#include "vpi_user.h"
 /*
  *  Create a new trace_node for a net/reg callback
  */
@@ -201,22 +201,37 @@ typedef struct t_oscDetect_arg
 void oscDetectCheck( int data, int reason )
 {
     int index, err = 0;
-
+	char* str;
     p_oscDetect_arg work = ( p_oscDetect_arg )malloc( sizeof( s_oscDetect_arg ) );
 
     work->list = ( p_object_list )0;
 
     work->stop = 0;
     work->maxt = 100;
+    vpiHandle systf_h, arg_itr, arg_h; 
+	s_vpi_value value_s;
+	// 获取PLI系统任务的句柄 
+	systf_h = vpi_handle(vpiSysTfCall, NULL); 
+	// 获取参数的迭代器 
+	arg_itr = vpi_iterate(vpiArgument, systf_h);
+	if(arg_itr) {
+	/* 遍历所有参数 */
+	 for (index = 1; arg_h = vpi_scan(arg_itr); index++) { 
+     static char* thresh = "thresh=";
+	 if (vpi_get(vpiType, arg_h) == vpiStringVal) { 
+	 value_s.format = vpiStringVal; 
+	 vpi_get_value(arg_h, &value_s); 
+	 char* str = strdup(value_s.value.str);
+//    for ( index = 1; index <= tf_nump( ); index++ )
+//    {
+//        static char* thresh = "thresh=";
 
-    for ( index = 1; index <= tf_nump( ); index++ )
-    {
-        static char* thresh = "thresh=";
-
-        if ( tf_typep( index ) == tf_string )
-        {
-            char* str = tf_getcstringp( index );
-
+//        if ( tf_typep( index ) == tf_string )
+//        vpiHandle obj = vpi_iterate(vpiArgument, tf_ithandle(index));
+//        if(obj)
+//        {
+//            char* str = tf_getcstringp( index );
+//            char* str = vpi_get_str(vpiName, obj);
                  if ( strcmp(  str, "stopOnDetect"           ) == 0 ) work->stop = 1;
             else if ( strncmp( str, thresh, strlen( thresh ) ) == 0 ) work->maxt = atol( str + strlen( thresh ) );
             else
@@ -245,6 +260,7 @@ void oscDetectCheck( int data, int reason )
             tf_text( "oscDetect: Non-string parameter at %d\n", index ); ++err;
         }
     }
+	}
 
     if ( err )
     {
@@ -252,7 +268,7 @@ void oscDetectCheck( int data, int reason )
         tf_text( "oscDetect:            stopOnDetect = enter CLI on detection\n" );
         tf_text( "oscDetect:            thresh=<n>   = set detection event threshold\n" );
  
-        tf_message( ERR_ERROR, "User", "TFARG", "" );
+//        tf_message( ERR_ERROR, "User", "TFARG", "" );
     }
 
     tf_setworkarea( ( char* )work ); /* save flags */
@@ -296,3 +312,24 @@ void oscDetectCall( int data, int reason )
         }
     }
 }
+
+
+void register_oscDetect(){
+    s_vpi_systf_data tf_data;
+    tf_data.type=vpiSysTask;
+    tf_data.tfname="$oscDetect";
+    tf_data.calltf=oscDetectCall;
+    tf_data.compiletf=oscDetectCheck;
+    tf_data.sizetf=0;
+    tf_data.user_data=0;
+    vpi_register_systf(&tf_data);
+}
+
+//extern void register_oscDetect();
+//
+//void (*vlog_startup_routines[])() = 
+//{
+//    /*** add user entries here ***/
+//  register_oscDetect,
+//  NULL /*** final entry must be 0 ***/
+//};

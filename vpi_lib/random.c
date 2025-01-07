@@ -59,3 +59,5 @@ FaultData *random_process(const char* filename) {
 
     return faults;
 }
+
+

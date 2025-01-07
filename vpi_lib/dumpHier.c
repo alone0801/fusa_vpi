@@ -15,6 +15,7 @@
  */
 
 #include "vpiDebug.h"
+#include "vpi_user.h"
 
 /*
  *  PLI instance data for $dumpHier
@@ -32,19 +33,32 @@ typedef struct t_dumpHier_arg
 void dumpHierCheck( int data, int reason )
 {
     int index, err = 0;
-
+	char* str;
     p_dumpHier_arg work = ( p_dumpHier_arg )malloc( sizeof( s_dumpHier_arg ) );
 
     work->modList = ( p_object_list )0;
 
     work->myDummy = 0;
-
-    for ( index = 1; index <= tf_nump( ); index++ )
-    {
-        if ( tf_typep( index ) == tf_string )
-        {
-            char* str = tf_getcstringp( index );
-
+    vpiHandle systf_h, arg_itr, arg_h; 
+	s_vpi_value value_s;
+	// 获取PLI系统任务的句柄 
+	systf_h = vpi_handle(vpiSysTfCall, NULL); 
+	// 获取参数的迭代器 
+	arg_itr = vpi_iterate(vpiArgument, systf_h);
+	if(arg_itr) {
+//    for ( index = 1; index <= tf_nump( ); index++ )
+//    {
+//        if ( tf_typep( index ) == tf_string )
+//        vpiHandle obj = vpi_iterate(vpiArgument, tf_ithandle(index));
+//        if(obj)
+//        {
+//            char* str = tf_getcstringp( index );
+//            char* str = vpi_get_str(vpiName, obj);
+      for (index = 1; arg_h = vpi_scan(arg_itr); index++) { 
+	    if (vpi_get(vpiType, arg_h) == vpiStringVal) { 
+		 value_s.format = vpiStringVal;
+		 vpi_get_value(arg_h, &value_s); 
+		 str = strdup(value_s.value.str); 
             if ( strcmp( str, "myDummy"  ) == 0 ) work->myDummy = 1;
             else
             {
@@ -58,26 +72,26 @@ void dumpHierCheck( int data, int reason )
                     }
                     else
                     {
-                        tf_text( "dumpHier: Object <%s> is not a module\n", str ); ++err;
+                        vpi_printf( "dumpHier: Object <%s> is not a module\n", str ); ++err;
                     }
                 }
                 else
                 {
-                    tf_text( "dumpHier: Unable to find object <%s>\n", str ); ++err;
+                    vpi_printf( "dumpHier: Unable to find object <%s>\n", str ); ++err;
                 }
             }
         }
         else
         {
-            tf_text( "dumpHier: Non-string parameter at %d\n", index ); ++err;
+            vpi_printf( "dumpHier: Non-string parameter at %d\n", index ); ++err;
         }
     }
-
+    }
     if ( err )
     {
-        tf_text( "dumpHier: Usage: $dumpHier( [ <module> [, ... ] ])\n" );
+        vpi_printf( "dumpHier: Usage: $dumpHier( [ <module> [, ... ] ])\n" );
  
-        tf_message( ERR_ERROR, "User", "TFARG", "" );
+//        tf_message( ERR_ERROR, "User", "TFARG", "" );
     }
  
     tf_setworkarea( ( char* )work ); /* save flags */
@@ -119,3 +133,23 @@ void dumpHierCall( int data, int reason )
         }
     }
 }
+
+// 注册函数
+void register_dumpHier() { 
+    s_vpi_systf_data tf_data;
+    tf_data.type=vpiSysTask;
+    tf_data.tfname="$dumpHier";
+    tf_data.calltf=dumpHierCall;
+    tf_data.compiletf=dumpHierCheck;
+    tf_data.sizetf=0;
+    tf_data.user_data=0;
+    vpi_register_systf(&tf_data);
+} 
+
+//extern void register_dumpHier();
+//void (*vlog_startup_routines[])() = 
+//{
+//    /*** add user entries here ***/
+//  register_dumpHier,
+//  NULL /*** final entry must be 0 ***/
+//};

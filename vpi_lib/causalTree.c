@@ -15,6 +15,7 @@
  */
 
 #include "vpiDebug.h"
+#include "vpi_user.h"
 
 /*
  *  Indented dump of nodes in causal tree
@@ -81,9 +82,12 @@ void causalTreeCheck( int data, int reason )
 
     for ( index = 1; index <= tf_nump( ); index++ )
     {
-        if ( tf_typep( index ) == tf_string )
+//        if ( tf_typep( index ) == tf_string )
+        vpiHandle obj = vpi_iterate(vpiArgument, tf_ithandle(index));
+        if(obj)
         {
-            char* str = tf_getcstringp( index );
+//            char* str = tf_getcstringp( index );
+            char* str = vpi_get_str(vpiName, obj);
 
             if ( strcmp( str, "myDummy" ) == 0 ) this->myDummy = 1;
             else
@@ -96,13 +100,13 @@ void causalTreeCheck( int data, int reason )
                 }
                 else
                 {
-                    tf_text( "causalTree: Unable to find object <%s>\n", str ); ++err;
+                    vpi_printf( "causalTree: Unable to find object <%s>\n", str ); ++err;
                 }
             }
         }
         else
         {
-            tf_text( "causalTree: Non-string parameter at %d\n", index ); ++err;
+            vpi_printf( "causalTree: Non-string parameter at %d\n", index ); ++err;
         }
     }
 
@@ -111,14 +115,14 @@ void causalTreeCheck( int data, int reason )
      */
     if ( this->sigList == ( p_object_list )0 )
     {
-        tf_text( "causalTree: No signals specified\n" ); ++err;
+        vpi_printf( "causalTree: No signals specified\n" ); ++err;
     }
  
     if ( err )
     {
-        tf_text( "causalTree: Usage: $causalTree( <signal> [, ... ])\n" );
+        vpi_printf( "causalTree: Usage: $causalTree( <signal> [, ... ])\n" );
  
-        tf_message( ERR_ERROR, "User", "TFARG", "" );
+//        vpi_error( ERR_ERROR, "User", "TFARG", "" );
     }
 
     tf_setworkarea( ( char* )this ); /* save flags */
@@ -140,3 +144,24 @@ void causalTreeCall( int data, int reason )
         generateCausalTree( this->refn ); dumpCausalTree( 0, getEventCallback( this->refn )->tree );
     }
 }
+
+// 注册函数
+void register_causalTree() { 
+    s_vpi_systf_data tf_data;
+    tf_data.type=vpiSysTask;
+    tf_data.tfname="$casusalTree";
+    tf_data.calltf=causalTreeCall;
+    tf_data.compiletf=causalTreeCheck;
+    tf_data.sizetf=0;
+    tf_data.user_data=0;
+    vpi_register_systf(&tf_data); 
+} 
+
+
+//extern void register_causalTree();
+//void (*vlog_startup_routines[])() = 
+//{
+//    /*** add user entries here ***/
+//  register_causalTree,
+//  NULL /*** final entry must be 0 ***/
+//};

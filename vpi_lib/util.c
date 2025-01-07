@@ -9,7 +9,7 @@
  *********************************************************************/
 
 #include "vpiDebug.h"
-
+#include "vpi_user.h"
 char* objectName( vpiHandle obj )
 {
     switch ( vpi_get( vpiType, obj ) )

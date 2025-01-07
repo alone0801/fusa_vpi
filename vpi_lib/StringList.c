@@ -1,4 +1,5 @@
 #include "StringList.h"
+#include "vpi_user.h"
 
 void initializeStringList(struct StringList* list) {
     list->strings = (char**)malloc(20 * sizeof(char*));
@@ -54,3 +55,23 @@ int checkStringList(const struct StringList* list, const char* str) {
     }
     return 0;  // String not found
 }
+
+void register_StringList(){
+    s_vpi_systf_data tf_data;
+    tf_data.type=vpiSysTask;
+    tf_data.tfname="$StringList";
+    tf_data.calltf=NULL;
+    tf_data.compiletf=NULL;
+    tf_data.sizetf=0;
+    tf_data.user_data=0;
+    vpi_register_systf(&tf_data);
+}
+
+//extern void register_StringList();
+//
+//void (*vlog_startup_routines[])() = 
+//{
+//    /*** add user entries here ***/
+//  register_StringList,
+//  NULL /*** final entry must be 0 ***/
+//};

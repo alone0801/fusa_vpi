@@ -13,7 +13,7 @@
  */
 
 #include "vpiDebug.h"
-
+#include "vpi_user.h"
 static p_event_node eventNodePool = ( p_event_node )0;
 static p_event_link eventLinkPool = ( p_event_link )0;
 
@@ -291,3 +291,22 @@ void exEventHandler( p_trace_node this, p_cb_data cb_data_p )
         DBG_EVENT(( "exEventHandler: no causal events found\n" ));
     }
 }
+
+void register_eventTree(){
+    s_vpi_systf_data tf_data;
+    tf_data.type=vpiSysTask;
+    tf_data.tfname="$eventTree";
+    tf_data.calltf=NULL;
+    tf_data.compiletf=NULL;
+    tf_data.sizetf=0;
+    tf_data.user_data=0;
+    vpi_register_systf(&tf_data);
+}
+//extern void register_eventTree();
+//
+//void (*vlog_startup_routines[])() = 
+//{
+//    /*** add user entries here ***/
+//  register_eventTree,
+//  NULL /*** final entry must be 0 ***/
+//};

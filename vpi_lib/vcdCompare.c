@@ -1,10 +1,11 @@
-#include "vcsuser.h"
+//#include "vcsuser.h"
 #include "vpi_user.h"
 #include <strings.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include "vpiDebug.h"
 #include"fault_injector.h"
+#include <stdint.h>
 static hash_table vcdHash;
 static StringList checker_list,functional_list,nostop_list,fault_target,fault_exclude,fault_tw_str;
 static PortInfoNode* port_list = NULL;
@@ -433,10 +434,51 @@ static void vcdCompareEosHandler( p_cb_data data )
  */
 void vcdCompareCheck( )
 {
-    char* path = tf_getcstringp( 1 );
-    char* step = tf_getcstringp( 2 );
+//    char* path = tf_getcstringp( 1 );
+//    char* step = tf_getcstringp( 2 );
+    vpiHandle argument_iter;
+    vpiHandle arg_handle;
+
     vpiHandle systf_h, arg_itr, arg_h;
-    s_vpi_value value_s;
+    s_vpi_value value_s; 
+    char* path; 
+    char* step;
+    // 获取PLI系统任务的句柄 
+    systf_h = vpi_handle(vpiSysTfCall, NULL);
+    // 获取参数的迭代器 
+    arg_itr = vpi_iterate(vpiArgument, systf_h); 
+    if (arg_itr) { 
+        // 获取第一个参数 
+        arg_h = vpi_scan(arg_itr);
+        if(arg_h) {
+          value_s.format = vpiStringVal; 
+          vpi_get_value(arg_h, &value_s); 
+          path = strdup(value_s.value.str); 
+        }
+        // 获取第二个参数 
+        arg_h = vpi_scan(arg_itr);
+        if(arg_h) {
+          value_s.format = vpiStringVal;
+          vpi_get_value(arg_h, &value_s); 
+          step = strdup(value_s.value.str); 
+        }
+        vpi_free_object(arg_itr);  
+        }
+
+
+//    vpi_printf("vcdCompareCheck: Number of arguments: %d\n", arg_count);
+    vpi_printf("vcdCompareCheck: Path: %s\n", path ? path : "NULL");
+    vpi_printf("vcdCompareCheck: Step: %s\n", step ? step : "NULL");
+
+    // 检查参数是否有效
+    if (path == NULL || step == NULL) {
+        vpi_printf("Error: Missing path or step parameter!\n");
+        return;
+    }
+    vpi_printf("Path: %s\n", path);
+
+//    vpiHandle systf_h, arg_itr, arg_h;
+//    s_vpi_value value_s;
     systf_h = vpi_handle(vpiSysTfCall, NULL);
     arg_itr = vpi_iterate(vpiArgument, systf_h);
     arg_h = vpi_scan(arg_itr);
@@ -477,12 +519,55 @@ void vcdCompareCheck( )
  */
 void vcdCompareCall( )
 {
-    char* path = tf_getcstringp( 1 );
-    char* step = tf_getcstringp( 2 );
+
     char  filename[100];
     char  FI_PATH[100];
     char  FS_PATH[100];
     char  TIME_PATH[100];
+
+
+    vpiHandle systf_h, arg_itr, arg_h;
+    s_vpi_value value_s; 
+    char* path; 
+    char* step;
+
+    // 获取PLI系统任务的句柄 
+    systf_h = vpi_handle(vpiSysTfCall, NULL);
+    // 获取参数的迭代器 
+    arg_itr = vpi_iterate(vpiArgument, systf_h); 
+    if (arg_itr) { 
+        // 获取第一个参数 
+        arg_h = vpi_scan(arg_itr);
+        if(arg_h) {
+          value_s.format = vpiStringVal; 
+          vpi_get_value(arg_h, &value_s); 
+          path = strdup(value_s.value.str); 
+        }
+        // 获取第二个参数 
+        arg_h = vpi_scan(arg_itr);
+        if(arg_h) {
+          value_s.format = vpiStringVal;
+          vpi_get_value(arg_h, &value_s); 
+          step = strdup(value_s.value.str); 
+        }
+        vpi_free_object(arg_itr); 
+        }
+
+
+
+    vpi_printf("Path: %s\n", path);
+
+    // 调试输出参数数量和值
+
+    vpi_printf("vcdCompareCheck: Path: %s\n", path ? path : "NULL");
+    vpi_printf("vcdCompareCheck: Step: %s\n", step ? step : "NULL");
+
+    // 检查参数是否有效
+    if (path == NULL || step == NULL) {
+        vpi_printf("Error: Missing path or step parameter!\n");
+        return;
+    }
+
     if (strcmp(path, "good_sim") == 0) {
         addEosCallback( timeRecordEosHandler );
         //timeCheck("/home/ICer/fusa_vpi/autosoc-development/Simulation/fault.time");
@@ -510,6 +595,7 @@ void vcdCompareCall( )
         strcat(FS_PATH,"/fault.set");
         strcpy(FI_PATH, path);
         strcat(FI_PATH,"/FI.xml");
+        printf("FI_PATH: %s\n", FI_PATH);
         strcpy(filename, path);
         strcat(filename,"/golden.vcd");
         strcpy(TIME_PATH, path);
@@ -597,7 +683,7 @@ void vcdCompareCall( )
  */
 void vcdCompareMisc( int data, int reason )
 {
-    if ( reason == reason_finish ) dummyEosHandler( );
+    if ( reason == cbAtEndOfSimTime ) dummyEosHandler( );
 }
 //static void setTimeoutCallback( int time )
 //{
@@ -892,8 +978,48 @@ void vcd_vpi_register(){
 #ifdef SHARE_LIB
 
 #else
-void(*vlog_startup_routines[])()={
-    vcd_vpi_register,
-    NULL
+
+extern void register_causalTree();
+extern void register_dumpHier();
+extern void register_dumpUpstream();
+extern void register_eosCallback();
+extern void register_evCallback();
+extern void register_eventTree();
+extern void register_extractMod();
+extern void register_fault_injector();
+extern void register_fault_modeling();
+extern void register_iso();
+extern void register_oscDetect();
+extern void register_port_alias();
+extern void register_StringList();
+extern void register_timeRecord();
+extern void register_traceSignal();
+extern void register_vcdReader();
+extern void register_vpiDebug();
+extern void vpiDebugCall();
+extern int DbgVdiff;
+void (*vlog_startup_routines[])() = 
+{
+    /*** add user entries here ***/
+  vcd_vpi_register,
+  register_causalTree,
+  register_dumpHier,
+  register_dumpUpstream,
+  register_eosCallback,
+  register_evCallback,
+  register_eventTree,
+  register_extractMod,
+  register_fault_injector,
+  register_fault_modeling,
+  register_iso,
+  register_oscDetect,
+  register_port_alias,
+  register_StringList,
+  register_timeRecord,
+  register_traceSignal,
+  register_vcdReader,
+  register_vpiDebug,
+  vpiDebugCall,
+  NULL /*** final entry must be 0 ***/
 };
 #endif

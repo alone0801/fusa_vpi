@@ -9,7 +9,7 @@
  *********************************************************************/
 
 #include "vpiDebug.h"
-
+#include "vpi_user.h"
 /*
  *  Add "node" as one of the causes of "targ"
  */
@@ -167,6 +167,7 @@ typedef struct t_traceSignal_arg
 void traceSignalCheck( int data, int reason )
 {
     int index, err = 0;
+	char* str;
 
     p_traceSignal_arg this = ( p_traceSignal_arg )malloc( sizeof( s_traceSignal_arg ) );
 
@@ -176,12 +177,28 @@ void traceSignalCheck( int data, int reason )
     this->onVdiff = 0;
     this->onOscil = 0;
     this->onFinal = 0;
-
-    for ( index = 1; index <= tf_nump( ); index++ )
-    {
-        if ( tf_typep( index ) == tf_string )
-        {
-            char* str = tf_getcstringp( index );
+    vpiHandle systf_h, arg_itr, arg_h; 
+	s_vpi_value value_s;
+	// 获取PLI系统任务的句柄 
+	systf_h = vpi_handle(vpiSysTfCall, NULL); 
+	// 获取参数的迭代器 
+	arg_itr = vpi_iterate(vpiArgument, systf_h);
+	if(arg_itr) {
+//    for ( index = 1; index <= tf_nump( ); index++ )
+//    {
+//        if ( tf_typep( index ) == tf_string )
+//        vpiHandle obj = vpi_iterate(vpiArgument, tf_ithandle(index));
+//        if(obj)
+      for (index = 1; arg_h = vpi_scan(arg_itr); index++) { 
+	    if (vpi_get(vpiType, arg_h) == vpiStringVal) { 
+		 value_s.format = vpiStringVal;
+		 vpi_get_value(arg_h, &value_s); 
+		 str = strdup(value_s.value.str);  
+		 
+	  
+//        {
+//            char* str = tf_getcstringp( index );
+//            char* str = vpi_get_str(vpiName, obj);
 
                  if ( strcmp( str, "onEvent"  ) == 0 ) this->onEvent = 1;
             else if ( strcmp( str, "onDiff"   ) == 0 ) this->onVdiff = 1;
@@ -207,6 +224,7 @@ void traceSignalCheck( int data, int reason )
             tf_text( "traceSignal: Non-string parameter at %d\n", index ); ++err;
         }
     }
+    }
 
     /*
      *  We need to see at least one signal
@@ -224,7 +242,7 @@ void traceSignalCheck( int data, int reason )
         tf_text( "traceSignal:            onOscil = display trace on oscullation ($oscDetect)\n" );
         tf_text( "traceSignal:            onFinal = display trace at end-of-simulation (obsolete)\n" );
 
-        tf_message( ERR_ERROR, "User", "TFARG", "" );
+//        tf_message( ERR_ERROR, "User", "TFARG", "" );
     }
 
     tf_setworkarea( ( char* )this ); /* save flags */
@@ -265,5 +283,25 @@ void traceSignalCall( int data, int reason )
  */
 void traceSignalMisc( int data, int reason )
 {
-    if ( reason == reason_finish ) dummyEosHandler( );
+    if ( reason == cbAtEndOfSimTime ) dummyEosHandler( );
 }
+
+void register_traceSignal(){
+    s_vpi_systf_data tf_data;
+    tf_data.type=vpiSysTask;
+    tf_data.tfname="$traceSignal";
+    tf_data.calltf=traceSignalCall;
+    tf_data.compiletf=traceSignalCheck;
+    tf_data.sizetf=0;
+    tf_data.user_data=0;
+    vpi_register_systf(&tf_data);
+}
+
+//extern void register_traceSignal();
+//
+//void (*vlog_startup_routines[])() = 
+//{
+//    /*** add user entries here ***/
+//  register_traceSignal,
+//  NULL /*** final entry must be 0 ***/
+//};

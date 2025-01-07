@@ -9,6 +9,7 @@
  *********************************************************************/
 
 #include "vpiDebug.h"
+#include "vpi_user.h"
 
 /*
  *  Global debug flags

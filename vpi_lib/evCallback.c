@@ -9,7 +9,7 @@
  *********************************************************************/
 
 #include "vpiDebug.h"
-
+#include "vpi_user.h"
 /*
  *  Head of doubly-linked list of last seen events
  */
@@ -140,7 +140,8 @@ static p_cback_data newEventCallback( vpiHandle obj )
 /*
  *  Check whether or not we have a callback set on this signal
  */
-bool hasEventCallback( vpiHandle obj )
+//bool hasEventCallback( vpiHandle obj )
+int hasEventCallback( vpiHandle obj )
 {
     vpiHandle cb, itr = vpi_iterate( vpiCallback, obj );
 
@@ -214,3 +215,23 @@ void triggerOnLoop( p_cback_data this )
         causalTrace( this->tree, "onLoop" );
     }
 }
+
+void register_evCallback(){
+    s_vpi_systf_data tf_data;
+    tf_data.type=vpiSysTask;
+    tf_data.tfname="$evCallback";
+    tf_data.calltf=NULL;
+    tf_data.compiletf=NULL;
+    tf_data.sizetf=0;
+    tf_data.user_data=0;
+    vpi_register_systf(&tf_data);
+}
+
+//extern void register_evCallback();
+//
+//void (*vlog_startup_routines[])() = 
+//{
+//    /*** add user entries here ***/
+//  register_evCallback,
+//  NULL /*** final entry must be 0 ***/
+//};

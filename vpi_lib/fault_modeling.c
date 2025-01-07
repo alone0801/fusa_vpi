@@ -1,4 +1,4 @@
-#include "vcsuser.h"
+//#include "vcsuser.h"
 #include "vpi_user.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,7 +27,7 @@ void fault_modeling_check(StringList* fault_target_p,StringList* fault_exclude_p
     s_cb_data cb_data_s;
     vpiHandle cb_handle,module_handle;
 
-    //vpi_printf("\nThis is fault_modeling_check() running\n");
+    vpi_printf("\nThis is fault_modeling_check() running\n");
     fault_target = fault_target_p;
     fault_exclude = fault_exclude_p;
     fault_tw[0] = fault_tw_[0];
@@ -75,6 +75,7 @@ void fault_modeling(p_cb_data cb_data)
         find_submodule(module_h,type,fp,node_num);
     }
     fclose(fp);
+    vpi_printf("fault_modeling() has finished\n");
 }
 
 int find_submodule(vpiHandle this_mod_h,int type,FILE *fp,int node_num)
@@ -135,7 +136,8 @@ int find_net_or_logic_signal(vpiHandle module_h, FILE *fp,int node_num,int is_lo
 {
     //vpi_printf("This is find_net_signal() running\n");
     vpiHandle signal_iterator,signal_handle,signalBit_iterator,signalBit_handle;
-    vpiHandle port_iterator,port_handle,lowconn_h,use_iterator,use_handle;
+    vpiHandle port_iterator,port_handle,lowconn_h,use_iterator,use_handle,instance_iterator,instance_handle;
+    vpiHandle port_connect_iterator,port_connect_handle;
     int is_port,is_not_port,have_been_used,variable_type;
 
     //vpi_printf("module_h = %s\n",vpi_get_str(vpiFullName,module_h));
@@ -151,29 +153,56 @@ int find_net_or_logic_signal(vpiHandle module_h, FILE *fp,int node_num,int is_lo
             if(!is_logic || (is_logic&&(variable_type != vpiIntegerVar)&&(variable_type != vpiRealVar)&&(variable_type != vpiTimeVar)))
             {
                 // Processing ports
-                port_iterator = vpi_iterate(vpiPorts,signal_handle);
+//                port_iterator = vpi_iterate(vpiPorts,signal_handle);
+                port_iterator = vpi_iterate(vpiPort,signal_handle);
                 if(port_iterator != NULL)
                     while((port_handle = vpi_scan(port_iterator)) != NULL)
                     {
-                        lowconn_h = vpi_handle(vpiLowConn,port_handle);
+//                        lowconn_h = vpi_handle(vpiLowConn,port_handle);
                         have_been_used = 0;
-                        use_iterator = vpi_iterate(vpiUse,lowconn_h);
-                        if(use_iterator != NULL)
+                        is_port = 0;
+                        is_not_port = 0;
+                        //find module instance
+                        instance_iterator = vpi_iterate(vpiModule,module_h);
+//                        use_iterator = vpi_iterate(vpiPort,lowconn_h);
+//                        if(use_iterator != NULL)
+                        if(instance_iterator != NULL)
                         {
-                            have_been_used = 1;
-                            is_port = 0;
-                            is_not_port = 0;
-                            
-                            // Find all place where this signal is used
-                            while((use_handle = vpi_scan(use_iterator)) != NULL)
+                            while ((instance_handle = vpi_scan(instance_iterator)) != NULL)
                             {
-                                //fprintf(fp,"use_handle = %s,Type = %s\n",vpi_get_str(vpiFullName,use_handle),vpi_get_str(vpiType,use_handle));
-                                if(vpi_get(vpiType,use_handle) == vpiPort)
-                                    is_port = 1;                   // There is a port user
-                                else if(vpi_get(vpiType,use_handle) != vpiSysTaskCall)
-                                    is_not_port = 1;            // Once there is a non-port user
+                                // 查找与端口连接的信号
+                                port_connect_iterator = vpi_iterate(vpiPort, instance_handle);
+                                if (port_connect_iterator != NULL)
+                                {
+                                    while ((port_connect_handle = vpi_scan(port_connect_iterator)) != NULL)
+                                    {
+                                        if (port_connect_handle == port_handle)
+                                        {
+                                            // 如果端口与信号相连接
+                                            have_been_used = 1;
+                                            if (vpi_get(vpiType, port_connect_handle) == vpiPort)
+                                                is_port = 1;
+                                            else
+                                                is_not_port = 1;
+                                        }
+                                    }
+                                }
                             }
                         }
+//                            have_been_used = 1;
+//                            is_port = 0;
+//                            is_not_port = 0;
+//                            
+//                            // Find all place where this signal is used
+//                            while((use_handle = vpi_scan(use_iterator)) != NULL)
+//                            {
+//                                //fprintf(fp,"use_handle = %s,Type = %s\n",vpi_get_str(vpiFullName,use_handle),vpi_get_str(vpiType,use_handle));
+//                                if(vpi_get(vpiType,use_handle) == vpiPort)
+//                                    is_port = 1;                   // There is a port user
+//                                else if(vpi_get(vpiType,use_handle) != vpiSysTaskCall)
+//                                    is_not_port = 1;            // Once there is a non-port user
+//                            }
+//                        }
                         
                         // Ports that don't need to be optimized
                         // The condition for determining if this port is to be optimized or not is that
@@ -183,7 +212,7 @@ int find_net_or_logic_signal(vpiHandle module_h, FILE *fp,int node_num,int is_lo
                         //fprintf(fp,"%s Type = %s\nis_port = %d,is_not_port = %d,have_been_used = %d\n",vpi_get_str(vpiFullName,lowconn_h),vpi_get_str(vpiType,lowconn_h),is_port,is_not_port,have_been_used);
                         if(!(is_port && (!is_not_port)) && have_been_used)
                         {
-                            signalBit_iterator = vpi_iterate(vpiBit,lowconn_h);
+                            signalBit_iterator = vpi_iterate(vpiNetBit,lowconn_h);
                             if(signalBit_iterator != NULL)
                                 while((signalBit_handle = vpi_scan(signalBit_iterator)) != NULL)
                                 {
@@ -211,7 +240,7 @@ int find_net_or_logic_signal(vpiHandle module_h, FILE *fp,int node_num,int is_lo
                 {
                     // Processing non-port signals
                     have_been_used = 0;
-                    use_iterator = vpi_iterate(vpiUse,signal_handle);
+                    use_iterator = vpi_iterate(vpiNet,signal_handle);
                     if(use_iterator != NULL)
                     {
                         have_been_used = 1;
@@ -231,7 +260,7 @@ int find_net_or_logic_signal(vpiHandle module_h, FILE *fp,int node_num,int is_lo
                     //fprintf(fp,"%s Type = %s\nis_port = %d,is_not_port = %d,have_been_used = %d\n",vpi_get_str(vpiFullName,signal_handle),vpi_get_str(vpiType,signal_handle),is_port,is_not_port,have_been_used);
                     if(!(is_port && (!is_not_port)) && have_been_used)
                     {
-                        signalBit_iterator = vpi_iterate(vpiBit,signal_handle);
+                        signalBit_iterator = vpi_iterate(vpiNetBit,signal_handle);
                         if(signalBit_iterator != NULL)
                             while((signalBit_handle = vpi_scan(signalBit_iterator)) != NULL)
                             {
@@ -271,12 +300,12 @@ int find_reg_signal(vpiHandle module_h,FILE *fp,int node_num)
     if (signal_iterator != NULL)
         while((signal_handle = vpi_scan(signal_iterator)) != NULL)
         {
-            use_iterator = vpi_iterate(vpiUse,signal_handle);
+            use_iterator = vpi_iterate(vpiReg,signal_handle);
             //fprintf(fp,"reg_signal_handle:use_iterator = %d\n",use_iterator);
             if(use_iterator != NULL)
             {
                 // If it's been used, then it won't be optimized
-                signalBit_iterator = vpi_iterate(vpiBit,signal_handle);
+                signalBit_iterator = vpi_iterate(vpiRegBit,signal_handle);
                 if(signalBit_iterator != NULL)
                     // Processing vector signal
                     while((signalBit_handle = vpi_scan(signalBit_iterator)) != NULL)
@@ -313,7 +342,7 @@ int find_reg_array(vpiHandle module_h,FILE *fp,int node_num)
     if(reg_array_iterator != NULL)
         while((reg_array_handle = vpi_scan(reg_array_iterator)) != NULL)
         {
-            use_iterator = vpi_iterate(vpiUse,reg_array_handle);
+            use_iterator = vpi_iterate(vpiReg,reg_array_handle);
             //fprintf(fp,"reg_array_handle:use_iterator = %d\n",use_iterator);
             if(use_iterator != NULL)
             {
@@ -322,7 +351,7 @@ int find_reg_array(vpiHandle module_h,FILE *fp,int node_num)
                 if(signal_iterator != NULL)
                     while((signal_handle = vpi_scan(signal_iterator)) != NULL)
                         {
-                            signalBit_iterator = vpi_iterate(vpiBit,signal_handle);
+                            signalBit_iterator = vpi_iterate(vpiRegBit,signal_handle);
                             if(signalBit_iterator != NULL)
                                 while((signalBit_handle = vpi_scan(signalBit_iterator)) != NULL)
                                     {
@@ -360,7 +389,7 @@ int find_wire_array(vpiHandle module_h,FILE *fp,int node_num)
     if(wire_array_iterator != NULL)
         while((wire_array_handle = vpi_scan(wire_array_iterator)) != NULL)
         {
-            use_iterator = vpi_iterate(vpiUse,wire_array_handle);
+            use_iterator = vpi_iterate(vpiNetArray,wire_array_handle);
             //fprintf(fp,"wire_array_handle:use_iterator = %d\n",use_iterator);
             if(use_iterator != NULL)
             {
@@ -368,7 +397,8 @@ int find_wire_array(vpiHandle module_h,FILE *fp,int node_num)
                 if(signal_iterator != NULL)
                     while((signal_handle = vpi_scan(signal_iterator)) != NULL)
                     {
-                        signalBit_iterator = vpi_iterate(vpiBit,signal_handle);
+//                        signalBit_iterator = vpi_iterate(vpiBit,signal_handle);
+                        signalBit_iterator = vpi_iterate(vpiNetBit,signal_handle);
                         if(signalBit_iterator != NULL)
                             while((signalBit_handle = vpi_scan(signalBit_iterator)) != NULL)
                             {
@@ -400,3 +430,22 @@ int GetRandNum(int min,int max,int seed)
     srand(seed);
     return min + rand() % (max - min + 1);
 }
+
+void register_fault_modeling(){
+    s_vpi_systf_data tf_data;
+    tf_data.type=vpiSysTask;
+    tf_data.tfname="$fault_modeling";
+    tf_data.calltf=fault_modeling;
+    tf_data.compiletf=fault_modeling_check;
+    tf_data.sizetf=0;
+    tf_data.user_data=0;
+    vpi_register_systf(&tf_data);
+}
+//extern void register_fault_modeling();
+//
+//void (*vlog_startup_routines[])() = 
+//{
+//    /*** add user entries here ***/
+//  register_fault_modeling,
+//  NULL /*** final entry must be 0 ***/
+//};

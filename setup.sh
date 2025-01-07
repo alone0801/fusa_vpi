@@ -5,5 +5,4 @@ export SW_dir=/home/ICer/fusa_vpi/autosoc-development/Software
 #alias fusa_merge="rm -rf summary.xml ;python3 $fusa_lib/result_merge.py"
 alias fusa_merge="rm -rf summary.xml ;sh $fusa_lib/report.sh"
 alias rd_sim="$fusa_lib/fault.csh"
-alias pbs_sim="$fusa_lib/fault_pbs.csh"
 

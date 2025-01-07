@@ -322,11 +322,18 @@ module test;
         c=5;
         d=7;
         end
-    initial begin
-      $fsdbDumpfile("test.fsdb");
-      $fsdbDumpvars(0,test);
-      $fsdbDumpMDA();
-    end
+//    initial begin
+//      $fsdbDumpfile("test.fsdb");
+//      $fsdbDumpvars(0,test);
+//      $fsdbDumpMDA();
+//    end
+
+initial
+begin            
+    $dumpfile("ivwave.vcd");        //生成的vcd文件名称
+    $dumpvars(0, test);    //tb模块名称
+end 
+
 endmodule // test
 
 interface intf;

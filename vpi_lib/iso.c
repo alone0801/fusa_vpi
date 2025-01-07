@@ -1,4 +1,5 @@
 #include "iso.h"
+#include "vpi_user.h"
 void iso_gen(char* port_name, Module** head){
     vpiHandle signal_h,scope_h,module_h,port_itr,port_h,l_range_h,r_range_h,HighConn,LowConn;
     char* inst_name ;    //char buffer[256];
@@ -11,7 +12,7 @@ void iso_gen(char* port_name, Module** head){
     //redirect_stdout_to_file("fi_wrapper.sv");
     scope_h = vpi_handle(vpiModule,signal_h);
     //scope_h = vpi_handle(vpiScope,signal_h);
-    LowConn = vpi_handle(vpiLowConn, signal_h);
+//    LowConn = vpi_handle(vpiLowConn, signal_h);
     
     //snprintf(buffer, sizeof(buffer), "%s_iso.%s.%s",vpi_get_str(vpiFullName,scope_h) ,vpi_get_str(vpiName,scope_h) ,vpi_get_str(vpiName, signal_h) );
     //printf("Stored string: %s\n", buffer);
@@ -40,8 +41,8 @@ void iso_gen(char* port_name, Module** head){
     port_itr = vpi_iterate(vpiPort,scope_h);
     int first_port = 1; // 用于标记第一个端口
     while (port_h = vpi_scan(port_itr)) {
-        HighConn = vpi_handle(vpiHighConn, port_h);
-        LowConn = vpi_handle(vpiLowConn, port_h);
+//        HighConn = vpi_handle(vpiHighConn, port_h);
+//        LowConn = vpi_handle(vpiLowConn, port_h);
         
         if (!first_port) {
             fprintf(fp,", ");
@@ -71,17 +72,17 @@ void iso_gen(char* port_name, Module** head){
     int str_param=0;
     port_itr = vpi_iterate(vpiPort,scope_h);
     while(port_h=vpi_scan(port_itr)){
-        vpiHandle lowConn = vpi_handle(vpiLowConn, port_h);
-        vpiHandle HighConn = vpi_handle(vpiHighConn, port_h);
+//        vpiHandle lowConn = vpi_handle(vpiLowConn, port_h);
+//        vpiHandle HighConn = vpi_handle(vpiHighConn, port_h);
         switch(vpi_get(vpiDirection,port_h)){
             case vpiInput: 
             {
                 if(vpi_get(vpiType, HighConn)==vpiPartSelect) {
                     vpiHandle parent_h =vpi_handle(vpiParent,HighConn);
-                    fprintf(fp,"input logic [%d:%d] %s;\n",getExprValue(HighConn,vpiLeftRange),getExprValue(HighConn,vpiRightRange),vpi_get_str(vpiName,lowConn));//parent_h
+//                    fprintf(fp,"input logic [%d:%d] %s;\n",getExprValue(HighConn,vpiLeftRange),getExprValue(HighConn,vpiRightRange),vpi_get_str(vpiName,lowConn));//parent_h
                 }
                 //else if(vpi_get(vpiType, HighConn)==vpiConstant) ;
-                else fprintf(fp,"input  logic [%d:%d] %s;\n",getExprValue(lowConn,vpiLeftRange),getExprValue(lowConn,vpiRightRange),vpi_get_str(vpiName,lowConn));
+//                else fprintf(fp,"input  logic [%d:%d] %s;\n",getExprValue(lowConn,vpiLeftRange),getExprValue(lowConn,vpiRightRange),vpi_get_str(vpiName,lowConn));
                 port_num++;
                 break;
             }
@@ -89,9 +90,9 @@ void iso_gen(char* port_name, Module** head){
             {
                 if(vpi_get(vpiType, HighConn)==vpiPartSelect) {
                     vpiHandle parent_h =vpi_handle(vpiParent,HighConn);
-                    fprintf(fp,"output logic [%d:%d] %s;\n",getExprValue(HighConn,vpiLeftRange),getExprValue(HighConn,vpiRightRange),vpi_get_str(vpiName,lowConn));
+//                    fprintf(fp,"output logic [%d:%d] %s;\n",getExprValue(HighConn,vpiLeftRange),getExprValue(HighConn,vpiRightRange),vpi_get_str(vpiName,lowConn));
                 }
-                else fprintf(fp,"output logic [%d:%d] %s;\n",getExprValue(lowConn,vpiLeftRange),getExprValue(lowConn,vpiRightRange),vpi_get_str(vpiName,lowConn));
+//                else fprintf(fp,"output logic [%d:%d] %s;\n",getExprValue(lowConn,vpiLeftRange),getExprValue(lowConn,vpiRightRange),vpi_get_str(vpiName,lowConn));
                 port_num++;
                 break;
             }
@@ -99,9 +100,9 @@ void iso_gen(char* port_name, Module** head){
             {
                 if(vpi_get(vpiType, HighConn)==vpiPartSelect) {
                     vpiHandle parent_h =vpi_handle(vpiParent,HighConn);
-                    fprintf(fp,"inout wire [%d:%d] %s;\n",getExprValue(HighConn,vpiLeftRange),getExprValue(HighConn,vpiRightRange),vpi_get_str(vpiName,lowConn));
+//                    fprintf(fp,"inout wire [%d:%d] %s;\n",getExprValue(HighConn,vpiLeftRange),getExprValue(HighConn,vpiRightRange),vpi_get_str(vpiName,lowConn));
                 }
-                else fprintf(fp,"inout  wire  [%d:%d] %s;\n",getExprValue(HighConn,vpiLeftRange),getExprValue(HighConn,vpiRightRange),vpi_get_str(vpiFullName,lowConn));
+//                else fprintf(fp,"inout  wire  [%d:%d] %s;\n",getExprValue(HighConn,vpiLeftRange),getExprValue(HighConn,vpiRightRange),vpi_get_str(vpiFullName,lowConn));
                 port_num++;
                 break;
             }
@@ -144,20 +145,20 @@ void iso_gen(char* port_name, Module** head){
     port_itr = vpi_iterate(vpiPort,scope_h);
     for(i=0 ; i<port_num ; i++) {
         port_h=vpi_scan(port_itr);
-        vpiHandle HighConn = vpi_handle(vpiHighConn, port_h);
-        vpiHandle lowConn = vpi_handle(vpiLowConn, port_h);
-        char* high_port = vpi_get_str(vpiName,lowConn);
+//        vpiHandle HighConn = vpi_handle(vpiHighConn, port_h);
+//        vpiHandle lowConn = vpi_handle(vpiLowConn, port_h);
+//        char* high_port = vpi_get_str(vpiName,lowConn);
         //if (vpi_get(vpiType, HighConn)==vpiConstant) high_port=vpi_get_str(vpiDecompile, HighConn);
-        if(i<port_num-1)fprintf(fp,".%s(%s),",vpi_get_str(vpiName,lowConn),high_port);
-        else fprintf(fp,".%s(%s));\n",vpi_get_str(vpiName,lowConn),high_port);
+//        if(i<port_num-1)fprintf(fp,".%s(%s),",vpi_get_str(vpiName,lowConn),high_port);
+//        else fprintf(fp,".%s(%s));\n",vpi_get_str(vpiName,lowConn),high_port);
     }
     fprintf(fp,"reg flag;\n");
     fprintf(fp,"always@(flag) begin\n");
     fprintf(fp,"if(flag) begin\n");
     port_itr = vpi_iterate(vpiPort,scope_h);
     while(port_h=vpi_scan(port_itr)){
-        vpiHandle lowConn = vpi_handle(vpiLowConn, port_h);
-        vpiHandle HighConn = vpi_handle(vpiHighConn, port_h);
+//        vpiHandle lowConn = vpi_handle(vpiLowConn, port_h);
+//        vpiHandle HighConn = vpi_handle(vpiHighConn, port_h);
         switch(vpi_get(vpiDirection,port_h)){
             case vpiInput: 
             {
@@ -167,9 +168,9 @@ void iso_gen(char* port_name, Module** head){
             {
               if(vpi_get(vpiType, HighConn)==vpiPartSelect) {
                           vpiHandle parent_h =vpi_handle(vpiParent,HighConn);
-                          fprintf(fp,"force %s[%d:%d] = %s;\n",vpi_get_str(vpiFullName,parent_h),getExprValue(HighConn,vpiLeftRange),getExprValue(HighConn,vpiRightRange),vpi_get_str(vpiName,lowConn));
+//                          fprintf(fp,"force %s[%d:%d] = %s;\n",vpi_get_str(vpiFullName,parent_h),getExprValue(HighConn,vpiLeftRange),getExprValue(HighConn,vpiRightRange),vpi_get_str(vpiName,lowConn));
               }
-              else fprintf(fp,"force %s = %s ; \n", vpi_get_str(vpiFullName,HighConn),vpi_get_str(vpiName,lowConn));
+//              else fprintf(fp,"force %s = %s ; \n", vpi_get_str(vpiFullName,HighConn),vpi_get_str(vpiName,lowConn));
               break;
             }
             case vpiInout: 
@@ -183,8 +184,8 @@ void iso_gen(char* port_name, Module** head){
     fprintf(fp,"else begin\n");
     port_itr = vpi_iterate(vpiPort,scope_h);
     while(port_h=vpi_scan(port_itr)){
-        vpiHandle lowConn = vpi_handle(vpiLowConn, port_h);
-        vpiHandle HighConn = vpi_handle(vpiHighConn, port_h);
+//        vpiHandle lowConn = vpi_handle(vpiLowConn, port_h);
+//        vpiHandle HighConn = vpi_handle(vpiHighConn, port_h);
         switch(vpi_get(vpiDirection,port_h)){
             case vpiInput: 
             {
@@ -213,15 +214,15 @@ void iso_gen(char* port_name, Module** head){
     port_itr = vpi_iterate(vpiPort,scope_h);
     for(i=0 ; i<port_num ; i++) {
         port_h=vpi_scan(port_itr);
-        vpiHandle HighConn = vpi_handle(vpiHighConn, port_h);
-        vpiHandle lowConn  = vpi_handle(vpiLowConn, port_h);
+//        vpiHandle HighConn = vpi_handle(vpiHighConn, port_h);
+//        vpiHandle lowConn  = vpi_handle(vpiLowConn, port_h);
         vpiHandle parent_h =vpi_handle(vpiParent,HighConn);
         char* bind_port = vpi_get_str(vpiName,HighConn);
         if(vpi_get(vpiDirection,port_h)==vpiOutput) sprintf(bind_port," ");
-        if(vpi_get(vpiType, HighConn)==vpiConstant) bind_port = vpi_get_str(vpiDecompile,HighConn);
+//        if(vpi_get(vpiType, HighConn)==vpiConstant) bind_port = vpi_get_str(vpiDecompile,HighConn);
         else if(vpi_get(vpiType, HighConn)==vpiPartSelect) sprintf(bind_port,"%s[%d:%d]",vpi_get_str(vpiFullName,parent_h),getExprValue(HighConn,vpiLeftRange),getExprValue(HighConn,vpiRightRange));
-        if(i<port_num-1)fprintf(fp,".%s(%s),",vpi_get_str(vpiName,lowConn),bind_port);
-        else fprintf(fp,".%s(%s));\n",vpi_get_str(vpiName,lowConn),bind_port);
+//        if(i<port_num-1)fprintf(fp,".%s(%s),",vpi_get_str(vpiName,lowConn),bind_port);
+//        else fprintf(fp,".%s(%s));\n",vpi_get_str(vpiName,lowConn),bind_port);
     }
     //freopen("/dev/tty", "a", stdout);
     fclose(fp);
@@ -441,3 +442,22 @@ void iso_flag_en(char* p) {
             vpi_put_value(signal_handle, &fault_value, &time_s, flag);
         }
 }
+
+void register_iso(){
+    s_vpi_systf_data tf_data;
+    tf_data.type=vpiSysTask;
+    tf_data.tfname="$iso";
+    tf_data.calltf=NULL;
+    tf_data.compiletf=NULL;
+    tf_data.sizetf=0;
+    tf_data.user_data=0;
+    vpi_register_systf(&tf_data);
+}
+//extern void register_iso();
+//
+//void (*vlog_startup_routines[])() = 
+//{
+//    /*** add user entries here ***/
+//  register_iso,
+//  NULL /*** final entry must be 0 ***/
+//};

@@ -7,7 +7,7 @@
  * information contained herein except pursuant to a valid written   *
  * license from Synopsys.                                            *
  *********************************************************************/
-
+#include "vpi_user.h"
 #include "vpiDebug.h"
 
 void reportObject( char* head, vpiHandle obj )

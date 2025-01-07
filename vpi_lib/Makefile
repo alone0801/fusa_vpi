@@ -2,22 +2,27 @@
 # Makefile for vpiDebug PLI functions
 #
 
-CFLAGS = -g  -I /home/synopsys/vcs/O-2018.09-SP2/include -m64 -lxml2
+#CFLAGS = -g  -I /home/synopsys/vcs/O-2018.09-SP2/include -m64 -lxml2
+CFLAGS = -g  -I /home/iverilog -m64 -lxml2
 LDFLAGS = -shared  -fPIC -m64
+
 CC = gcc
+
 OBJS   = vpiDebug.o dumpHier.o dumpUpstream.o causalTree.o vcdCompare.o extractMod.o \
-         traceSignal.o oscDetect.o eventTree.o hierTrace.o backTrace.o evCallback.o  \
-         eosCallback.o vcdReader.o hash.o util.o  StringList.o fault_modeling.o fault_injector.o port_alias.o random.o  timeRecord.o iso.o
+         traceSignal.o oscDetect.o eventTree.o evCallback.o   \
+         eosCallback.o vcdReader.o hash.o  StringList.o fault_modeling.o fault_injector.o port_alias.o random.o  timeRecord.o iso.o
 SHARE_OBJS = vpiDebug.o dumpHier.o dumpUpstream.o causalTree.o sharevcd.o extractMod.o \
-         traceSignal.o oscDetect.o eventTree.o hierTrace.o backTrace.o evCallback.o  \
-         eosCallback.o vcdReader.o hash.o util.o  StringList.o fault_modeling.o fault_injector.o port_alias.o random.o timeRecord.o iso.o 
-all:		libvpiDebug.so libsharefusa.so
+         traceSignal.o oscDetect.o eventTree.o evCallback.o  \
+         eosCallback.o vcdReader.o hash.o  StringList.o fault_modeling.o fault_injector.o port_alias.o random.o timeRecord.o iso.o 
+all:		libvpiDebug.so libsharefusa.so 
 share:      libvpiDebug.so
 libvpiDebug.so: 	${OBJS} 
-		$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+		$(CC) $(CFLAGS) $(LDFLAGS) -o  $@ $^
 
 libsharefusa.so: ${SHARE_OBJS}
-		$(CC) $(CFLAGS) $(LDFLAGS) -D SHARE_LIB -o $@ $^
+		$(CC) $(CFLAGS) $(LDFLAGS) -D SHARE_LIB -o  $@ $^
+
+
 
 #libvpiDebug.a:	${OBJS} Makefile
 #		ar r $@ $^
@@ -46,10 +51,14 @@ port_alias.o: port_alias.c
 iso.o : iso.c iso.h
 random.o: random.c random.h
 sharevcd.o:  vcdCompare.c vpiDebug.h
+
 	$(CC) $(CFLAGS) -D SHARE_LIB -c -fPIC $< -o $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) -fPIC -c $< -o $@
 
 clean:
-	rm -f *.o *.so
+	rm -f *.o *.so 
+
+#gcc -shared -o vcdCompare.vpi vcdCompare.o vpiDebug.o causalTree.o dumpHier.o dumpUpstream.o eosCallback.o evCallback.o eventTree.o extractMod.o fault_injector.o fault_modeling.o hash.o iso.o oscDetect.o port_alias.o random.o StringList.o timeRecord.o traceSignal.o vcdReader.o 
+

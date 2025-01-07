@@ -1,4 +1,4 @@
-#include "vcsuser.h"
+//#include "vcsuser.h"
 #include "vpi_user.h"
 #include "fault_injector.h"
 #include <stdio.h>
@@ -81,7 +81,8 @@ void fault_injector_callback(p_cb_data cb_data)
     time_s.real = 0.0;
 
     //Registration of fault_injector simulation callback routine
-    cb_data_s.reason = cbNBASynch;
+//    cb_data_s.reason = cbNBASynch;
+    cb_data_s.reason = cbAtEndOfSimTime;
     cb_data_s.cb_rtn = fault_injector;
     cb_data_s.obj = module_handle;
     cb_data_s.time = &time_s;
@@ -127,3 +128,21 @@ void fault_injector(p_cb_data cb_data)
 }
 
 ////////////////////////////////// Written by Wayne /////////////////////////////
+void register_fault_injector(){
+    s_vpi_systf_data tf_data;
+    tf_data.type=vpiSysTask;
+    tf_data.tfname="$fault_injector";
+    tf_data.calltf=fault_injector_callback;
+    tf_data.compiletf=fault_injector_check;
+    tf_data.sizetf=0;
+    tf_data.user_data=0;
+    vpi_register_systf(&tf_data);
+}
+//extern void register_fault_injector();
+//
+//void (*vlog_startup_routines[])() = 
+//{
+//    /*** add user entries here ***/
+//  register_fault_injector,
+//  NULL /*** final entry must be 0 ***/
+//};

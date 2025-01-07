@@ -15,6 +15,7 @@
  */
 
 #include "vpiDebug.h"
+#include "vpi_user.h"
 
 static hash_table sigHash;
 
@@ -58,19 +59,32 @@ typedef struct t_dumpUpstream_arg
 void dumpUpstreamCheck( int data, int reason )
 {
     int index, err = 0;
-
+	char* str;
     p_dumpUpstream_arg this = ( p_dumpUpstream_arg )malloc( sizeof( s_dumpUpstream_arg ) );
 
     this->sigList = ( p_object_list )0;
 
     this->myDummy = 0;
-
-    for ( index = 1; index <= tf_nump( ); index++ )
-    {
-        if ( tf_typep( index ) == tf_string )
-        {
-            char* str = tf_getcstringp( index );
-
+    vpiHandle systf_h, arg_itr, arg_h; 
+	s_vpi_value value_s;
+	// 获取PLI系统任务的句柄 
+	systf_h = vpi_handle(vpiSysTfCall, NULL); 
+	// 获取参数的迭代器 
+	arg_itr = vpi_iterate(vpiArgument, systf_h);
+	if(arg_itr) {
+//    for ( index = 1; index <= tf_nump( ); index++ )
+//    {
+//        if ( tf_typep( index ) == tf_string )
+//        vpiHandle obj = vpi_iterate(vpiArgument, tf_ithandle(index));
+//        if(obj)
+//        {
+//            char* str = tf_getcstringp( index );
+//            char* str = vpi_get_str(vpiName, obj);
+      for (index = 1; arg_h = vpi_scan(arg_itr); index++) { 
+	    if (vpi_get(vpiType, arg_h) == vpiStringVal) { 
+		 value_s.format = vpiStringVal;
+		 vpi_get_value(arg_h, &value_s); 
+		 str = strdup(value_s.value.str); 
             if ( strcmp( str, "myDummy" ) == 0 ) this->myDummy = 1;
             else
             {
@@ -91,6 +105,7 @@ void dumpUpstreamCheck( int data, int reason )
             tf_text( "dumpUpstream: Non-string parameter at %d\n", index ); ++err;
         }
     }
+	}
 
     /*
      *  We need to see at least one signal
@@ -104,7 +119,7 @@ void dumpUpstreamCheck( int data, int reason )
     {
         tf_text( "dumpUpstream: Usage: $dumpUpstream( <signal> [, ... ])\n" );
  
-        tf_message( ERR_ERROR, "User", "TFARG", "" );
+//        tf_message( ERR_ERROR, "User", "TFARG", "" );
     }
 
     tf_setworkarea( ( char* )this ); /* save flags */
@@ -142,3 +157,23 @@ void dumpUpstreamCall( int data, int reason )
     fprintf( outputFile, "  end\n" );
     fprintf( outputFile, "endmodule\n" );
 }
+
+// 注册函数
+void register_dumpUpstream() { 
+    s_vpi_systf_data tf_data;
+    tf_data.type=vpiSysTask;
+    tf_data.tfname="$dumpUpstreame";
+    tf_data.calltf=dumpUpstreamCall;
+    tf_data.compiletf=dumpUpstreamCheck;
+    tf_data.sizetf=0;
+    tf_data.user_data=0;
+    vpi_register_systf(&tf_data);
+} 
+//extern void register_dumpUpstream();
+//
+//void (*vlog_startup_routines[])() = 
+//{
+//    /*** add user entries here ***/
+//  register_dumpUpstream,
+//  NULL /*** final entry must be 0 ***/
+//};

@@ -1,5 +1,6 @@
 #include "port_alias.h"
 
+
 PortInfoNode* portInfoList = NULL;  // 全局变量用于存储端口信息链表
 PortInfoNode* createNode(const char* internalName, const char* externalName);
 void appendNode(PortInfoNode** head, const char* internalName, const char* externalName);
@@ -83,33 +84,33 @@ void port_tranverse(vpiHandle mod_h, int top,PortInfoNode** head)
         if(direction!=vpiInput)continue;
         if (is_vector) {
             // 处理矢量端口
-            pbiter_handle = vpi_iterate(vpiBit, port_h);
+            pbiter_handle = vpi_iterate(vpiRegBit, port_h);
             if (pbiter_handle) {
                 portbit_handle = vpi_scan(pbiter_handle);
-                while (portbit_handle) {
-                    lowconn_h = vpi_handle(vpiLowConn, portbit_handle);
-                    highconn_h = vpi_handle(vpiHighConn, portbit_handle);
+//                while (portbit_handle) {
+//                    lowconn_h = vpi_handle(vpiLowConn, portbit_handle);
+//                    highconn_h = vpi_handle(vpiHighConn, portbit_handle);
                     // 将端口信息添加到链表
                     // printf(vpi_get_str(vpiFullName, lowconn_h));
                     // printf("\n");
-                    if (top) {
-                        appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
-                    }
-                    else {
+//                    if (top) {
+//                        appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
+//                    }
+//                    else {
                         //HighConn=vpi_get_str(vpiFullName, highconn_h);
-                        if(!vpi_get_str(vpiFullName, highconn_h)) appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
-                        else appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), strdup(vpi_get_str(vpiFullName, highconn_h)));
-                    }
-                    portbit_handle = vpi_scan(pbiter_handle);
-                }
+//                        if(!vpi_get_str(vpiFullName, highconn_h)) appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
+//                        else appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), strdup(vpi_get_str(vpiFullName, highconn_h)));
+//                    }
+//                    portbit_handle = vpi_scan(pbiter_handle);
+//                }
                 // vpi_free_object(pbiter_handle);
             }
         } else {
             // 处理标量端口
-            lowconn_h = vpi_handle(vpiLowConn, port_h);
-            highconn_h = vpi_handle(vpiHighConn, port_h);
-            if (top || !vpi_get_str(vpiFullName, highconn_h)) appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
-            else appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), strdup(vpi_get_str(vpiFullName, highconn_h)));
+//            lowconn_h = vpi_handle(vpiLowConn, port_h);
+//            highconn_h = vpi_handle(vpiHighConn, port_h);
+//            if (top || !vpi_get_str(vpiFullName, highconn_h)) appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
+//            else appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), strdup(vpi_get_str(vpiFullName, highconn_h)));
         }
     }
   sub_iterater = vpi_iterate(vpiModule, mod_h);
@@ -198,25 +199,25 @@ PLI_INT32 PLIbook_PortInfo_calltf(PLI_BYTE8 *user_data)
     test_h = vpi_handle_by_name("test_new.test_ins",0);
     printf(vpi_get_str(vpiType, test_h));
     printf("\n");
-    itr = vpi_iterate(vpiProcess,test_h);
+//    itr = vpi_iterate(vpiProcess,test_h);
     // Stmt_itr_h = vpi_iterate(vpiStmt,mod_h);
     // Stmt_h = vpi_scan(Stmt_itr_h);
     // itr = vpi_iterate(vpiContAssign,mod_h);
     while(process_h = vpi_scan(itr)){
       vpi_printf("process_h's type is : %s\n", vpi_get_str(vpiType, process_h));
-      Stmt_h = vpi_handle(vpiStmt, process_h);
+//      Stmt_h = vpi_handle(vpiStmt, process_h);
       if(!Stmt_h) printf("no handle of Stmt_h\n");
-      Stmt_itr_h = vpi_iterate(vpiStmt,process_h);
+//      Stmt_itr_h = vpi_iterate(vpiStmt,process_h);
       group_h =  vpi_scan(Stmt_itr_h);
       printf("Stmt_itr_h is %s",vpi_get_str(vpiType, Stmt_itr_h));
       printf("\n");
     }
     net_h = vpi_handle_by_name("test_new.test_ins.d",0);
-    event_h = vpi_iterate(vpiDriver,net_h);
-    use_h = vpi_scan(event_h);
+//    event_h = vpi_iterate(vpiDriver,net_h);
+//    use_h = vpi_scan(event_h);
     // use_h = vpi_scan(event_h);
-    op_h = vpi_handle(vpiParent, use_h);
-    var_h = vpi_handle(vpiRhs,use_h);
+//    op_h = vpi_handle(vpiParent, use_h);
+//    var_h = vpi_handle(vpiRhs,use_h);
     printf("net driver is %s\n",vpi_get_str(vpiType ,use_h));
     traverseExpr(var_h);
     printf("\n");
@@ -226,20 +227,20 @@ PLI_INT32 PLIbook_PortInfo_calltf(PLI_BYTE8 *user_data)
  void traverseExpr(vpiHandle expr)
  {
     vpiHandle subExprI, subExprH;
-    switch (vpi_get(vpiExpr,expr))
-    {
-      case vpiOperation:
-        subExprI = vpi_iterate(vpiOperand, expr);
-        if (subExprI)
-          while (subExprH = vpi_scan(subExprI))
-            traverseExpr(subExprH);
+//    switch (vpi_get(vpiExpr,expr))
+//    {
+//      case vpiOperation:
+//        subExprI = vpi_iterate(vpiOperand, expr);
+//        if (subExprI)
+//          while (subExprH = vpi_scan(subExprI))
+//            traverseExpr(subExprH);
         /* else it is of op type vpiNullOp */
-        break;
-      default:
+//        break;
+//      default:
       /* Do whatever to the leaf object. */
-      break;
+//      break;
     }
- }
+// }
 //void port_alias(char* mod_name , PortInfoNode** head){
 void port_alias(StringList* mod_names, PortInfoNode** head){
     vpiHandle mod_h;
@@ -298,3 +299,23 @@ char* check_alias(const char* node_name, PortInfoNode**  head) {
     // If node_name does not exist in the list, return the node_name itself
     return node_name;
 }
+
+void register_port_alias(){
+    s_vpi_systf_data tf_data;
+    tf_data.type=vpiSysTask;
+    tf_data.tfname="$port_alias";
+    tf_data.calltf=PLIbook_PortInfo_calltf;
+    tf_data.compiletf=NULL;
+    tf_data.sizetf=0;
+    tf_data.user_data=0;
+    vpi_register_systf(&tf_data);
+}
+
+//extern void register_port_alias();
+//
+//void (*vlog_startup_routines[])() = 
+//{
+//    /*** add user entries here ***/
+//  register_port_alias,
+//  NULL /*** final entry must be 0 ***/
+//};
