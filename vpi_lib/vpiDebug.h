@@ -59,6 +59,8 @@ typedef struct t_cback_data
 
     char*                last;
 
+    int                  vact_num;
+
     /* pointer to associated trace_node (unique) */
  
     struct t_trace_node* tree;
@@ -305,7 +307,7 @@ void         dumpCausalTree( int, p_trace_node );                   /* in causal
 
 bool         hasEventCallback( vpiHandle );                         /* in evCallback.c  */
 p_cback_data getEventCallback( vpiHandle );
-p_cback_data setEventCallback( vpiHandle );
+p_cback_data setEventCallback( vpiHandle , int);
 p_cback_data getLastEvent( );
 
 void         triggerOnEvent( p_cback_data );

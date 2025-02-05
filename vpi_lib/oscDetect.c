@@ -172,7 +172,7 @@ static int oscDetectCallback( int level, vpiHandle obj, void* userData )
             }
             else /* install callback */
             {
-                p_cback_data node = setEventCallback( obj );
+                p_cback_data node = setEventCallback( obj,1 );
  
                 node->oscp = newOscilNode( node, ( p_oscil_data )userData );
 

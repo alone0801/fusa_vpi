@@ -95,7 +95,7 @@ static void* loopDetected( vpiHandle obj, char* name, void* targ )
  */
 static void* installTrace( vpiHandle obj, char* name, void* targ )
 {
-    p_cback_data node = setEventCallback( obj );
+    p_cback_data node = setEventCallback( obj , 1);
 
     node->tree = newTraceNode( node, ( p_trace_node )targ );
 

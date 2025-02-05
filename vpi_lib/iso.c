@@ -6,7 +6,7 @@ void concur_gen(int con_num, char* dut_full_name ){
     int str_param=0;
     FILE *fp=fopen("fi_wrapper.sv", "a");
     dut_h = vpi_handle_by_name(dut_full_name,0);
-    printf("----------------DEBUG--------------:dut_name:%s ---------------\n",dut_full_name);
+    //printf("----------------DEBUG--------------:dut_name:%s ---------------\n",dut_full_name);
     if(dut_h==NULL) {
         printf("didn't specify correct full hiearchy of dut instation in FI.xml , concurrent simulation off\n");
         return;
@@ -24,14 +24,14 @@ void concur_gen(int con_num, char* dut_full_name ){
         return;
     }
     if(con_num==0) return;
-    printf("----------------DEBUGAAAAA-------------------------\n");
+    //printf("----------------DEBUGAAAAA-------------------------\n");
     for ( j = 1; j <= con_num; j++) {
         fprintf(fp,"bind  %s %s ",vpi_get_str(vpiFullName,tb_h),vpi_get_str(vpiDefName,dut_h));
         //pass param to dut
         vpiHandle param_itr = vpi_iterate(vpiParameter,dut_h);
         vpiHandle param_h=vpi_scan(param_itr);
         if(param_h) fprintf(fp,"#(");
-        printf("----------------DEBUGBBBBB-------------------------\n");
+        //printf("----------------DEBUGBBBBB-------------------------\n");
         while(param_h){
             str_param=0;
             s_vpi_value val = {vpiDecStrVal};
@@ -51,7 +51,7 @@ void concur_gen(int con_num, char* dut_full_name ){
             if(param_h!=NULL) fprintf(fp,",");
             else fprintf(fp,")");
         }
-        printf("----------------DEBUGCCCCC-------------------------\n");
+        //printf("----------------DEBUGCCCCC-------------------------\n");
         fprintf(fp,"concur_%d( ",j);
         int port_num=0;
         port_itr = vpi_iterate(vpiPort,dut_h);
@@ -62,16 +62,16 @@ void concur_gen(int con_num, char* dut_full_name ){
             vpiHandle HighConn = vpi_handle(vpiHighConn, port_h);
             vpiHandle lowConn  = vpi_handle(vpiLowConn, port_h);
             vpiHandle parent_h =vpi_handle(vpiParent,HighConn);
-            printf("----------------DEBUGDDDDD-------------------------\n");
+            //printf("----------------DEBUGDDDDD-------------------------\n");
             char* bind_port = vpi_get_str(vpiName,HighConn);
             if(bind_port==NULL) continue;
-            printf("_____DEBUG______%s______",bind_port);
+            //printf("_____DEBUG______%s______",bind_port);
             if(vpi_get(vpiDirection,port_h)==vpiOutput) sprintf(bind_port," ");
             if(vpi_get(vpiType, HighConn)==vpiConstant) bind_port = vpi_get_str(vpiDecompile,HighConn);
             else if(vpi_get(vpiType, HighConn)==vpiPartSelect) sprintf(bind_port,"%s[%d:%d]",vpi_get_str(vpiFullName,parent_h),getExprValue(HighConn,vpiLeftRange),getExprValue(HighConn,vpiRightRange));
             if(i<port_num-1)fprintf(fp,".%s(%s),",vpi_get_str(vpiName,lowConn),bind_port);
             else fprintf(fp,".%s(%s));\n",vpi_get_str(vpiName,lowConn),bind_port);
-            printf("----------------DEBUGEEEEE-------------------------\n");
+            //printf("----------------DEBUGEEEEE-------------------------\n");
         } 
     }
     fclose(fp);

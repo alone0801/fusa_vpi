@@ -15,10 +15,13 @@ static int flag_checker=0;
 static int flag_functional=0;
 //static char fault_target[100];
 static char iso_mode[20];
-static char DUT_NAME[100];
-static int  CON_NUM = 0;
-static char status_checker[10] = "Undetect";
-static char status_functional[10] = "Undetect";
+char DUT_NAME[100];
+static int  CON_NUM = 1;  // default==1 
+//static char status_checker[10] = "Undetect";
+//static char status_functional[10] = "Undetect";
+//static char status_checker[10][CON_NUM] = "Undetect";
+char (*status_checker)[10] = NULL;
+char (*status_functional)[10] = NULL;
 static char strobe_mode[10] = "Dual";
 static char FAULT_ID[100];
 static char FAULT_LOCATION[200];
@@ -37,6 +40,8 @@ void fault_modeling_check(StringList* fault_target,StringList* fault_exclude, in
 void value_get(const char* fault_location);
 static int timeoutHandler( p_cb_data cb_data_p );
 void freeStringList(StringList *list);
+vpiHandle obj_replace(vpiHandle obj, int vact_num);
+
 /*
  *  Create a new vdiff_node (addendum to callback data structures)
  */
@@ -57,7 +62,7 @@ struct event
 {
     char*         mark;
     char*         vexp;
-    char*         vact;
+    char**        vact;
     struct event* next;
 };
 
@@ -71,16 +76,52 @@ void printEventList(struct event* head) {
 }
 
 static struct event* top = ( struct event* )0;
+vpiHandle obj_replace(vpiHandle obj, int vact_num)
+{
+    int i;
+    vpiHandle con_obj , tb_h;
+    char* origin_name , tb_name , con_name;
+    return(obj);
+    if(vact_num==1)  {
+        return(obj) ;
+    }
+    else {
+        origin_name = vpi_get_str(vpiFullName,obj);
+        tb_h = vpi_handle(vpiModule,obj);
+        tb_name = vpi_get_str(vpiFullName,tb_h); 
+        sprintf(con_name,"%s.con_cur_%d",tb_name,vact_num); 
+        size_t lenA = strlen(con_name);  
+        size_t lenB = strlen(DUT_NAME);  
+        size_t lenC = strlen(origin_name); 
+        size_t new_len = lenA + lenC - lenB;
+        char* replace_name = (char*)malloc(new_len + 1);
+        strcpy(replace_name, con_name);
+        strcat(replace_name, origin_name + lenB);
+        con_obj = vpi_handle_by_name(replace_name,0);
+        printf("+++++++DEBUG::replace_name:%s+++++++++",replace_name);
+        if(con_obj==NULL) {
+            printf("ERROR:concurrent tb generate fail, please check the 'DUT_NAME' and 'TB_NAME' defined in FI.xml");
+            return(0);
+        }
+        return (con_obj);
 
-static struct event* createNewEvent( char* mark, char* vexp, char* vact )
+    }
+}
+
+static struct event* createNewEvent( char* mark, char* vexp, char* vact, int vact_count)
 {
     struct event* ptr = ( struct event* )malloc( sizeof( struct event ) );
-
+    int i;
     ptr->mark = mark;
     ptr->vexp = vexp;
-    ptr->vact = vact;
+    //ptr->vact = vact;
+    ptr->vact = (char**)malloc(CON_NUM * sizeof(char*));
     ptr->next = top; 
-
+    for (i = 0; i < CON_NUM; i++) {
+        ptr->vact[i] = (char*)0;
+    }
+    printf("\nDEBUG::CON_NUM==%d,i==%d in createNewEvent\n",CON_NUM,vact_count);
+    ptr->vact[vact_count] = vact;
     return( top = ptr );
 }
 
@@ -98,26 +139,28 @@ static struct event* expectedEvent( char* mark, char* valu )
         }
         ptr = ptr->next;
     }
-    return( createNewEvent( strdup( mark ), strdup( valu ), ( char* )0 ) );
+    return( createNewEvent( strdup( mark ), strdup( valu ), ( char* )0 , 0) );
 }
 
-static struct event* actualEvent( char* mark, char* valu )
+static struct event* actualEvent( char* mark, char* valu , int vact_count)
 {
     struct event* ptr = top;
-
+    printf("\nDEBUG::CON_NUM==%d,i==%d in actualEvent\n",CON_NUM,vact_count);
     while ( ptr )
     {
         if ( strcmp( mark, ptr->mark ) == 0 )
         {
-            if ( ptr->vact ) free( ptr->vact );
+            printf("\nDEBUG::CON_NUM==%d,i==%d\n",CON_NUM,vact_count);
+            if ( ptr->vact[vact_count] ) free( ptr->vact[vact_count] );
 
-            ptr->vact = strdup( valu ); return( ptr );
+            ptr->vact[vact_count] =  strdup(valu) ;
+            return( ptr );
         }
         ptr = ptr->next;
     }
   /*  printf("Value of valu: %s\n", mark);
     printf("Value of valu: %s\n", valu); */
-    return( createNewEvent( strdup( mark ), ( char* )0, strdup( valu ) ) );
+    return( createNewEvent( strdup( mark ), ( char* )0, strdup( valu ), vact_count) );
 }
 
 /*
@@ -130,6 +173,7 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
 {
     struct event* ptr = top;
     int flag_stop=0; 
+    int i;
     /*flag control if drop this simulation at the end of time step*/
     static s_vpi_time time_s = { vpiScaledRealTime };
     static s_vpi_time time_int = { vpiSimTime };
@@ -145,87 +189,141 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
                                                     ptr->vexp ? ptr->vexp : "<null>",
                                                     ptr->vact ? ptr->vact : "<null>" ));
 
-        if ( ptr->vexp == 0 )
+        if ( ptr->vexp == 0 ) // no expected event at this time step , because or it won't be "0" for char*
         {
-            p_vdiff_node node = ( p_vdiff_node )lookup( ptr->mark, &vcdHash );
+            for(i=0 ; i<CON_NUM ; i++){
+                if(ptr->vact[i] != 0){
+                    p_vdiff_node node = ( p_vdiff_node )lookup( ptr->mark, &vcdHash );
+                    char* name = node ? FullName( node->refn->refn ) : "<noname>";
+                    vpi_printf( "*** CON_%d:: Unexpected <%s> event on <%s(%s)> at %ld:%ld\n",
+                         i, ptr->vact, name, ptr->mark, time_int.high, time_int.low );
+                    if(!checkStringList(&nostop_list,name))flag_stop=1;
+                    if(checkStringList(&checker_list,name)) {
+                        if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
+                        flag_checker=1;
+                        strcpy(status_checker, "Detect");
+                    }
+                    if(checkStringList(&functional_list,name)) {
+                        if(!flag_functional) sprintf(FUNCTIONAL_TIME, "%lf", time_s.real);
+                        flag_functional=1;
+                        strcpy(status_functional, "Detect");
+                    }
 
-            char* name = node ? FullName( node->refn->refn ) : "<noname>";
-
-            vpi_printf( "*** Unexpected <%s> event on <%s(%s)> at %ld:%ld\n",
-                         ptr->vact, name, ptr->mark, time_int.high, time_int.low );
-            vpi_printf( "*** Unexpected <%s> event on <%s(%s)> at %lf\n",
-                         ptr->vact, name, ptr->mark, time_s.real );
-
-            triggerOnDiff( node->refn );
+                }
+            }
+//            p_vdiff_node node = ( p_vdiff_node )lookup( ptr->mark, &vcdHash );
+//
+//            char* name = node ? FullName( node->refn->refn ) : "<noname>";
+//
+//            vpi_printf( "*** Unexpected <%s> event on <%s(%s)> at %ld:%ld\n",
+//                         ptr->vact, name, ptr->mark, time_int.high, time_int.low );
+//            //vpi_printf( "*** Unexpected <%s> event on <%s(%s)> at %lf\n",
+//            //             ptr->vact, name, ptr->mark, time_s.real );
+//
+//            triggerOnDiff( node->refn );
+////            if(!checkStringList(&nostop_list,name))flag_stop=1;
+////            if(checkStringList(&checker_list,name)) strcpy(status_checker, "Detect");
+////            if(checkStringList(&functional_list,name)) strcpy(status_functional, "Detect");
 //            if(!checkStringList(&nostop_list,name))flag_stop=1;
-//            if(checkStringList(&checker_list,name)) strcpy(status_checker, "Detect");
-//            if(checkStringList(&functional_list,name)) strcpy(status_functional, "Detect");
-            if(!checkStringList(&nostop_list,name))flag_stop=1;
-            if(checkStringList(&checker_list,name)) {
-                if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
-                flag_checker=1;
-                strcpy(status_checker, "Detect");
-            }
-            if(checkStringList(&functional_list,name)) {
-                if(!flag_functional) sprintf(FUNCTIONAL_TIME, "%lf", time_s.real);
-                flag_functional=1;
-                strcpy(status_functional, "Detect");
-            }
+//            if(checkStringList(&checker_list,name)) {
+//                if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
+//                flag_checker=1;
+//                strcpy(status_checker, "Detect");
+//            }
+//            if(checkStringList(&functional_list,name)) {
+//                if(!flag_functional) sprintf(FUNCTIONAL_TIME, "%lf", time_s.real);
+//                flag_functional=1;
+//                strcpy(status_functional, "Detect");
+//            }
         }
-        else if ( ptr->vact == 0 )
-        {
-            p_vdiff_node node = ( p_vdiff_node )lookup( ptr->mark, &vcdHash );
-
-            char* name = node ? FullName( node->refn->refn ) : "<noname>";
-
-            vpi_printf( "*** Missing <%s> event on <%s(%s)> at %lf\n",
-                         ptr->vexp, name, ptr->mark, time_s.real );
-
-            triggerOnDiff( node->refn );
-            if(!checkStringList(&nostop_list,name))flag_stop=1;
-            if(checkStringList(&checker_list,name)) {
-                if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
-                flag_checker=1;
-                strcpy(status_checker, "Detect");
-            }
-            if(checkStringList(&functional_list,name)) {
-                if(!flag_functional) sprintf(FUNCTIONAL_TIME, "%lf", time_s.real);
-                flag_functional=1;
-                strcpy(status_functional, "Detect");
-            }
+        else {
+            for(i=0;i<CON_NUM;i++){
+                if ( ptr->vact[i] == 0 ){
+                    p_vdiff_node node = ( p_vdiff_node )lookup( ptr->mark, &vcdHash );
+                    char* name = node ? FullName( node->refn->refn ) : "<noname>";
+                    vpi_printf( "*** CON_%d::Missing <%s> event on <%s(%s)> at %lf\n",
+                                 i,ptr->vexp, name, ptr->mark, time_s.real );
+                    triggerOnDiff( node->refn );
+                    if(!checkStringList(&nostop_list,name))flag_stop=1;
+                    if(checkStringList(&checker_list,name)) {
+                        if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
+                        flag_checker=1;
+                        strcpy(status_checker, "Detect");
+                    }
+                    if(checkStringList(&functional_list,name)) {
+                        if(!flag_functional) sprintf(FUNCTIONAL_TIME, "%lf", time_s.real);
+                        flag_functional=1;
+                        strcpy(status_functional, "Detect");
+                    }
+                }
+                else if(strcmp( ptr->vexp, ptr->vact[i] )){
+                    p_vdiff_node node = ( p_vdiff_node )lookup( ptr->mark, &vcdHash );
+                    char* name = node ? FullName( node->refn->refn ) : "<noname>";
+                    vpi_printf( "*** COM_%d:: Mismatch on <%s(%s)>: exp=<%s>, act=<%s> at %lf\n",
+                                 i, name, ptr->mark, ptr->vexp, ptr->vact[i], time_s.real );
+                    if(checkStringList(&checker_list,name)) {
+                        if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
+                        flag_checker=1;
+                        strcpy(status_checker, "Detect");
+                    }
+                    if(checkStringList(&functional_list,name)) {
+                        if(!flag_functional) sprintf(FUNCTIONAL_TIME, "%lf", time_s.real);
+                        flag_functional=1;
+                        strcpy(status_functional, "Detect");
+                    }
+                }
+            }//for end
         }
-        else if ( strcmp( ptr->vexp, ptr->vact ) )
-        {
-            p_vdiff_node node = ( p_vdiff_node )lookup( ptr->mark, &vcdHash );
+        //else if ( ptr->vact == 0 )
+        //{
+        //    p_vdiff_node node = ( p_vdiff_node )lookup( ptr->mark, &vcdHash );
 
-            char* name = node ? FullName( node->refn->refn ) : "<noname>";
+        //    char* name = node ? FullName( node->refn->refn ) : "<noname>";
 
-            vpi_printf( "*** Mismatch on <%s(%s)>: exp=<%s>, act=<%s> at %lf\n",
-                         name, ptr->mark, ptr->vexp, ptr->vact, time_s.real );
+        //    vpi_printf( "*** Missing <%s> event on <%s(%s)> at %lf\n",
+        //                 ptr->vexp, name, ptr->mark, time_s.real );
 
-//            if(!checkStringList(&nostop_list,name))flag_stop=1;
-//            if(checkStringList(&checker_list,name)) strcpy(status_checker, "Detect");  
-//            if(checkStringList(&functional_list,name)) strcpy(status_functional, "Detect");
-//                        if(!checkStringList(&nostop_list,name))flag_stop=1;
-            if(checkStringList(&checker_list,name)) {
-                if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
-                flag_checker=1;
-                strcpy(status_checker, "Detect");
-            }
-            if(checkStringList(&functional_list,name)) {
-                if(!flag_functional) sprintf(FUNCTIONAL_TIME, "%lf", time_s.real);
-                flag_functional=1;
-                strcpy(status_functional, "Detect");
-            }
+        //    triggerOnDiff( node->refn );
+        //    if(!checkStringList(&nostop_list,name))flag_stop=1;
+        //    if(checkStringList(&checker_list,name)) {
+        //        if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
+        //        flag_checker=1;
+        //        strcpy(status_checker, "Detect");
+        //    }
+        //    if(checkStringList(&functional_list,name)) {
+        //        if(!flag_functional) sprintf(FUNCTIONAL_TIME, "%lf", time_s.real);
+        //        flag_functional=1;
+        //        strcpy(status_functional, "Detect");
+        //    }
+        //}
+        //else if ( strcmp( ptr->vexp, ptr->vact ) )
+        //{
+        //    p_vdiff_node node = ( p_vdiff_node )lookup( ptr->mark, &vcdHash );
 
-            triggerOnDiff( node->refn );
-        }
+        //    char* name = node ? FullName( node->refn->refn ) : "<noname>";
+
+        //    vpi_printf( "*** Mismatch on <%s(%s)>: exp=<%s>, act=<%s> at %lf\n",
+        //                 name, ptr->mark, ptr->vexp, ptr->vact, time_s.real );
+
+        //    if(checkStringList(&checker_list,name)) {
+        //        if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
+        //        flag_checker=1;
+        //        strcpy(status_checker, "Detect");
+        //    }
+        //    if(checkStringList(&functional_list,name)) {
+        //        if(!flag_functional) sprintf(FUNCTIONAL_TIME, "%lf", time_s.real);
+        //        flag_functional=1;
+        //        strcpy(status_functional, "Detect");
+        //    }
+
+        //    triggerOnDiff( node->refn );
+        //}
         ptr = ptr->next;
     }
     compareCallback = 0; /* clear the callback handle */
 
     top = ( struct event* )0; /* manhole -- fix memory leak */
-    if(flag_stop&&!flag_continue){
+    if(flag_stop&&!flag_continue&&(CON_NUM==1)){
         flag_continue = 1;
   /*      printf("Strobe Mode is %s\n",strobe_mode);
         if (strcmp(strobe_mode, "Single") == 0) printf("the classificaiton of the inject fault is :%s\n",status_checker);
@@ -304,11 +402,15 @@ static void setTimeCallback( double time, void* ptr )
 /*
  *  Callback for each event on tracked signals
  */
-int vcdCompareEventHandler( p_vdiff_node this, p_cb_data cb_data_p )
+int vcdCompareEventHandler( p_vdiff_node this, p_cb_data cb_data_p ,int vact_count )
 {
+    int i;
     DBG_VDIFF(( "Event: <%s> = %s\n", this->mark, cb_data_p->value->value.str ));
     //printf("ACTEVENT: <%s> = %s\n", this->mark, cb_data_p->value->value.str );
-    setCompareCallback( actualEvent( this->mark, cb_data_p->value->value.str ) );
+    //for(i=0;i<CON_NUM;i++)setCompareCallback( actualEvent( this->mark, cb_data_p->value->value.str, i ) );
+    
+    printf("\nDEBUG::CON_NUM==%d,i==%d in vcdCompareEventHandler\n",CON_NUM,vact_count);
+    setCompareCallback( actualEvent( this->mark, cb_data_p->value->value.str,  vact_count ) );
 }
 
 /*
@@ -323,8 +425,9 @@ void foundScope( char* name, char* type, char* path )
 
 void foundSignal( char* name, char* type, long size, char* mark )
 {
-    p_cback_data node = setEventCallback( vpi_handle_by_name( name, scope ) );
- 
+    int i;
+    p_cback_data node = setEventCallback( vpi_handle_by_name( name, scope ) , 1 );
+    if(CON_NUM>1){ for(i=1;i<CON_NUM;i++) setEventCallback( vpi_handle_by_name( name, scope ) , i );}
     node->dnod = newVdiffNode( node, mark );
 
     /* also enter the VCD hash code into a lookup table */
@@ -351,6 +454,7 @@ void foundSignal( char* name, char* type, long size, char* mark )
  */
 static void processVcd( void* ptr )
 {
+    int i;
     while ( ptr )
     {
         char* str = readVcdLine( ptr );
@@ -376,13 +480,14 @@ static void processVcd( void* ptr )
                     strcpy(valu, str+1); /*value = bxx*/
                     //printf("EXPECTEVENT: <%s> = %s\n", str, valu );
                     setCompareCallback(expectedEvent(spacePos + 1, valu));
-                    setCompareCallback(actualEvent(spacePos + 1, valu)); /*fix the bug of obeserver point X at 0*/
+                    for(i=0;i<CON_NUM;i++) setCompareCallback(actualEvent(spacePos+1, valu, i));
+                    //setCompareCallback(actualEvent(spacePos + 1, valu)); /*fix the bug of obeserver point X at 0*/
                 } else {
                     *valu = *str;
                     valu[1] = '\0';
                     //printf("EXPECTEVENT: <%s> = %s\n", str, valu );
                     setCompareCallback(expectedEvent(str+1, valu));
-                    setCompareCallback(actualEvent(str+1, valu));
+                    for(i=0;i<CON_NUM;i++) setCompareCallback(actualEvent(str+1, valu, i));
             }
             readVcdLine( ptr );
             }
@@ -739,6 +844,13 @@ void parseXML(const char* filename) {
             xmlChar* content = xmlNodeGetContent(node);
             CON_NUM = atoi(content);
             printf("Concurrent num is :%d\n",CON_NUM);
+            status_checker    = (char (*)[10])malloc(CON_NUM * sizeof(char[10]));
+            status_functional = (char (*)[10])malloc(CON_NUM * sizeof(char[10]));
+            int i;
+            for (i = 0; i < CON_NUM; i++) {
+                strcpy(status_checker[i], "Undetect");
+                strcpy(status_functional[i], "Undetect");
+            }
             xmlFree(content);
         }
     }

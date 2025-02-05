@@ -250,14 +250,14 @@ void extractModCall( int data, int reason )
     {
         if ( vpi_get( vpiDirection, ptr ) != vpiOutput )
         {
-            p_exmod_node node = newExmodNode( setEventCallback( ptr ), file ); 
+            p_exmod_node node = newExmodNode( setEventCallback( ptr ,1), file ); 
 
             node->refn->eptr = node; /* register interest in events */
         }
 
         if ( vpi_get( vpiDirection, ptr ) == vpiInout )
         {
-            p_exmod_node node = newExmodNode( setEventCallback( vpi_handle( vpiHighConn, ptr ) ), file ); 
+            p_exmod_node node = newExmodNode( setEventCallback( vpi_handle( vpiHighConn, ptr ),1 ), file ); 
 
             node->refn->eptr = node; node->dbug = 1; node->name = malloc( 128 );
 
@@ -266,7 +266,7 @@ void extractModCall( int data, int reason )
 
         if ( vpi_get( vpiDirection, ptr ) == vpiInout )
         {
-            p_exmod_node node = newExmodNode( setEventCallback( vpi_handle( vpiLowConn, ptr ) ), file ); 
+            p_exmod_node node = newExmodNode( setEventCallback( vpi_handle( vpiLowConn, ptr ) ,1 ), file ); 
 
             node->refn->eptr = node; node->dbug = 1; node->name = malloc( 128 );
 
