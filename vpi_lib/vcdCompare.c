@@ -35,7 +35,7 @@ static int fault_classification( p_cb_data cb_data_p );
 static void FaultClassEosHandler( p_cb_data data );
 void parse_injectXML(const char* filename);
 void SAInject(const char* fault_location, const char* fault_time, const char* fault_typeo);
-void generateXML(const char* idValue, const char* locationValue, const char* statusValue,const char* typeValue);
+void generateXML(const char* idValue, const char* locationValue, const char** statusValue,const char* typeValue, int vact_num);
 void fault_injector_check(struct Fault *fault_p,int vact_num);
 void fault_modeling_check(StringList* fault_target,StringList* fault_exclude, int fault_tw[]);
 void value_get(const char* fault_location);
@@ -173,12 +173,12 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
                     if(checkStringList(&checker_list,name)) {
                         if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
                         flag_checker=1;
-                        strcpy(status_checker, "Detect");
+                        strcpy(status_checker[i], "Detect");
                     }
                     if(checkStringList(&functional_list,name)) {
                         if(!flag_functional) sprintf(FUNCTIONAL_TIME, "%lf", time_s.real);
                         flag_functional=1;
-                        strcpy(status_functional, "Detect");
+                        strcpy(status_functional[i], "Detect");
                     }
 
                 }
@@ -223,12 +223,12 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
                     if(checkStringList(&checker_list,name)) {
                         if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
                         flag_checker=1;
-                        strcpy(status_checker, "Detect");
+                        strcpy(status_checker[i], "Detect");
                     }
                     if(checkStringList(&functional_list,name)) {
                         if(!flag_functional) sprintf(FUNCTIONAL_TIME, "%lf", time_s.real);
                         flag_functional=1;
-                        strcpy(status_functional, "Detect");
+                        strcpy(status_functional[i], "Detect");
                     }
                 }
                 else if(strcmp( ptr->vexp, ptr->vact[i] )){
@@ -241,12 +241,12 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
                     if(checkStringList(&checker_list,name)) {
                         if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
                         flag_checker=1;
-                        strcpy(status_checker, "Detect");
-                    }
+                        strcpy(status_checker[i], "Detect");
+                                            }
                     if(checkStringList(&functional_list,name)) {
                         if(!flag_functional) sprintf(FUNCTIONAL_TIME, "%lf", time_s.real);
                         flag_functional=1;
-                        strcpy(status_functional, "Detect");
+                        strcpy(status_functional[i], "Detect");
                     }
                 }
             }//for end
@@ -648,9 +648,8 @@ void vcdCompareCall( )
             //printf("**********DEBUG%s",faults[id].fault_location);
             int i;
             for(i=0;i<CON_NUM+1;i++){
-                fault_array[i].fault_node_name = faults[id+i].location; 
-                //printf("+++++++%s+++++++\n",fault_array[i].fault_node_name);
-                fault_array[i].injection_time = atoi(faults[id+1].time);
+                fault_array[i].fault_node_name = strdup(faults[id + i].location);
+                fault_array[i].injection_time = atoi(faults[id+i].time);
                 if(strcmp("SEU", faults[id+i].type) == 0)
                     fault_array[i].fault_type = SEU_FAULT;
                 else if(strcmp("SA0", faults[id+i].type) == 0)
@@ -665,7 +664,6 @@ void vcdCompareCall( )
                     }
             }
         }
-
     if (strcmp(step, "good_sim") == 0) {
         addEosCallback( timeRecordEosHandler );
         //iso_gen("test_new.test_ins.sub_inst.a",&iso_inst_list);
@@ -693,6 +691,7 @@ void vcdCompareCall( )
 
     //fault_injector_check(&fault);
     int i;
+
     for(i=0;i<CON_NUM+1;i++) fault_injector_check(&fault_array[i],i+1);
     /*
     double time_d = 22644900000.00000;
@@ -751,7 +750,7 @@ static int timeoutHandler(p_cb_data cb_data_p)
 
     double current = cb_data_p->time->real;
     double golden = current - tolerant_time;
-    strcpy(status_functional, "Detect");
+    //strcpy(status_functional, "Detect");
     printf("****Time out while fault simulation*****\n");
     printf("golden time is %lf, current time is %lf\n", golden, current);
 
@@ -854,17 +853,18 @@ void parseXML(const char* filename) {
             xmlChar* content = xmlNodeGetContent(node);
             CON_NUM = atoi(content);
             printf("Concurrent num is :%d\n",CON_NUM);
-            status_checker    = (char (*)[10])malloc(CON_NUM * sizeof(char[10]));
-            status_functional = (char (*)[10])malloc(CON_NUM * sizeof(char[10]));
+            status_checker    = (char (*))malloc((CON_NUM+1) * sizeof(char[10]));
+            status_functional = (char (*))malloc((CON_NUM+1) * sizeof(char[10]));
             fault_array = (struct Fault *)malloc((CON_NUM+1) * sizeof(struct Fault));
             int i;
             for (i = 0; i < CON_NUM+1; i++) {
                 fault_array[i].fault_node_name = NULL;  
                 fault_array[i].fault_type = i;         
                 fault_array[i].fault_value = i;   
-                fault_array[i].injection_time = i;  
+                fault_array[i].injection_time = i;
+                //printf("______DEBUG:TIME::%d_______\n",fault_array[i].injection_time );
             }
-            for (i = 0; i < CON_NUM; i++) {
+            for (i = 0; i < CON_NUM+1; i++) {
                 strcpy(status_checker[i], "Undetect");
                 strcpy(status_functional[i], "Undetect");
             }
@@ -959,24 +959,35 @@ void parse_injectXML(const char* filename) {
             } else if (xmlStrcmp(node->name, (const xmlChar *)"TIME") == 0) {
                 strcpy(FAULT_TIME, (char *)xmlNodeGetContent(node));
                 fault.injection_time = atoi(FAULT_TIME);
+                printf("______DEBUG:TIME::%d_______\n",fault_array[1].injection_time );
             }
         }
     xmlFreeDoc(doc);
 }
 static int fault_classification( p_cb_data cb_data_p )
 {
-    char result[2];
-    result[0] = status_functional[0];
-    result[1] = status_checker[0];
-    result[2] = '\0'; 
+    char **result = (char **)malloc((CON_NUM + 1) * sizeof(char *));
+
+    int i;
+
+
+    for(i=0;i<CON_NUM+1;i++){
+        result[i] = (char *)malloc(3 * sizeof(char));
+        result[i][0] = status_functional[i][0];
+        result[i][1] = status_checker[i][0];
+        result[i][2] = '\0'; 
+    }
     printf("Strobe Mode is %s\n",strobe_mode);
     if (strcmp(strobe_mode, "Single") == 0){
         printf("the classificaiton of the inject fault is :%s\n",status_checker);
-        generateXML("NULL","NULL",status_checker,FAULT_TYPE);
+        generateXML("NULL","NULL",status_checker,FAULT_TYPE,CON_NUM);
     }
     else { 
         printf("the classificaiton of the inject fault is :\nFunctional:%s,\nChecker:%s\n",status_functional,status_checker);
-        generateXML(FAULT_ID,FAULT_LOCATION,result,FAULT_TYPE); 
+        generateXML(FAULT_ID,FAULT_LOCATION,result,FAULT_TYPE,CON_NUM); 
+    }
+    for (i = 0; i < CON_NUM + 1; i++) {
+        free(result[i]);
     }
 }
 
@@ -984,26 +995,35 @@ static void FaultClassEosHandler( p_cb_data data )
 {
     fault_classification( data );
 }
-void generateXML(const char* idValue, const char* locationValue, const char* statusValue,const char* typeValue) {
+void generateXML(const char* idValue, const char* locationValue, const char** statusValue,const char* typeValue,int vact_num) {
     FILE *fp;
+    int i;
+    char **type = (char **)malloc((CON_NUM + 1) * sizeof(char *));
+    for(i=0;i<CON_NUM+1;i++){
+        if(fault_array[i].fault_type==SEU_FAULT) type[i]="SEU";
+        if(fault_array[i].fault_type==SA_FAULT&fault_array[i].fault_value==0) type[i]="SA0";
+        if(fault_array[i].fault_type==SA_FAULT&fault_array[i].fault_value==1) type[i]="SA1";    }
     fp = fopen("result.xml", "w");
     if (fp == NULL) {
         printf("Error opening file.\n");
         return;
     }
-
     fprintf(fp, "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n");
+    for(i=0;i<vact_num+1;i++){
     fprintf(fp, "<RESULT>\n");
-    fprintf(fp, "    <ID>%s</ID>\n", idValue);
-    fprintf(fp, "    <LOCATION>%s</LOCATION>\n", locationValue);
-    fprintf(fp, "    <TYPE>%s</TYPE>\n", typeValue);
-    fprintf(fp, "    <INJECT_TIME>%d</INJECT_TIME>\n",atoi(FAULT_TIME));
-    fprintf(fp, "    <CHECKER_TIME>%d</CHECKER_TIME>\n",atoi(CHECKER_TIME));
-    fprintf(fp, "    <FUNCTIONAL_TIME>%d</FUNCTIONAL_TIME>\n",atoi(FUNCTIONAL_TIME));
-    fprintf(fp, "    <STATUS>%s</STATUS>\n", statusValue);
+    fprintf(fp, "    <ID>%d</ID>\n", atoi(idValue)+i);
+    fprintf(fp, "    <LOCATION>%s</LOCATION>\n", fault_array[i].fault_node_name);
+    fprintf(fp, "    <TYPE>%s</TYPE>\n", type[i]);
+    //fprintf(fp, "    <TYPE>%s</TYPE>\n", typeValue);
+    fprintf(fp, "    <INJECT_TIME>%d</INJECT_TIME>\n",fault_array[i].injection_time);
+    //fprintf(fp, "    <CHECKER_TIME>%d</CHECKER_TIME>\n",atoi(CHECKER_TIME));
+    //fprintf(fp, "    <FUNCTIONAL_TIME>%d</FUNCTIONAL_TIME>\n",atoi(FUNCTIONAL_TIME));
+    fprintf(fp, "    <STATUS>%s</STATUS>\n", statusValue[i]);
     fprintf(fp, "</RESULT>\n");
-
+    }
     fclose(fp);
+    free(statusValue);
+    free(type);
     printf("XML file generated successfully.\n");
 }
 void SAInject(const char* fault_location, const char* fault_time, const char* fault_type){

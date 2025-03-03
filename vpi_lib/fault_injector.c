@@ -31,13 +31,13 @@ void fault_injector_check(struct Fault *fault_p ,int vact_num)
     vpi_printf("Fault node name is %s\n",fault_p->fault_node_name);
     //vpi_printf("Fault type is %s\n",fault_p->fault_type);
     //vpi_printf("Fault value is %d\n",fault_p->fault_value);
-    vpi_printf("Injection time is %f\n",fault_p->injection_time);
+    vpi_printf("Injection time is %d\n",fault_p->injection_time);
 
     //Specifying the fault injeciton time
     //time_s.type = vpiScaledRealTime;
     time_s.type = vpiSimTime;
     //time_s.real = fault.injection_time;
-    time_s.low       = fault.injection_time;
+    time_s.low       = fault_p->injection_time;
     time_s.high      = 0;
 
     //Registration of fault_injector simulation callback routine

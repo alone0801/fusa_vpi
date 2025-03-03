@@ -8,7 +8,7 @@ struct Fault{
     PLI_INT32 *fault_node_name;
     PLI_INT32 fault_type;
     PLI_INT32 fault_value;
-    double injection_time;
+    int injection_time;
 }fault,*fault_p;
 
 char TESTBENCH_NAME[100];
