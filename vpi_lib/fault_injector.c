@@ -29,8 +29,6 @@ void fault_injector_check(struct Fault *fault_p ,int vact_num)
     //fault_p = &fault;
 
     vpi_printf("Fault node name is %s\n",fault_p->fault_node_name);
-    //vpi_printf("Fault type is %s\n",fault_p->fault_type);
-    //vpi_printf("Fault value is %d\n",fault_p->fault_value);
     vpi_printf("Injection time is %d\n",fault_p->injection_time);
 
     //Specifying the fault injeciton time

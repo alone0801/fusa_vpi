@@ -4,7 +4,9 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include "vpiDebug.h"
+#include <stdlib.h>
 #include"fault_injector.h"
+extern int num_lines ;
 static hash_table vcdHash;
 static StringList checker_list,functional_list,nostop_list,fault_target,fault_exclude,fault_tw_str;
 static PortInfoNode* port_list = NULL;
@@ -91,14 +93,14 @@ static struct event* createNewEvent( char* mark, char* vexp, char* vact, int vac
         ptr->vact[i] = (char*)0;
     }
     //printf("\nDEBUG::CON_NUM==%d,i==%d in createNewEvent\n",CON_NUM,vact_count);
-    ptr->vact[vact_count] = vact;
+    if (vact != NULL)ptr->vact[vact_count] = strdup(vact);
+    else ptr->vact[vact_count] = vact;
     return( top = ptr );
 }
 
 static struct event* expectedEvent( char* mark, char* valu )
 {
     struct event* ptr = top;
-
     while ( ptr )
     {
         if ( strcmp( mark, ptr->mark ) == 0 )
@@ -166,9 +168,9 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
                     p_vdiff_node node = ( p_vdiff_node )lookup( ptr->mark, &vcdHash );
                     char* name = node ? FullName( node->refn->refn ) : "<noname>";
                     if(i==0) vpi_printf( "*** DUT:: Unexpected <%s> event on <%s(%s)> at %ld:%ld\n",
-                         ptr->vact, name, ptr->mark, time_int.high, time_int.low );
+                         ptr->vact[i], name, ptr->mark, time_int.high, time_int.low );
                     else vpi_printf( "*** CON_%d:: Unexpected <%s> event on <%s(%s)> at %ld:%ld\n",
-                         i, ptr->vact, name, ptr->mark, time_int.high, time_int.low );
+                         i, ptr->vact[i], name, ptr->mark, time_int.high, time_int.low );
                     if(!checkStringList(&nostop_list,name))flag_stop=1;
                     if(checkStringList(&checker_list,name)) {
                         if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
@@ -326,7 +328,7 @@ static void setCompareCallback( struct event* ptr )
     if ( ptr && ( compareCallback == 0 ) )
     {
         static s_vpi_time time_s = { vpiSimTime };
-
+        
         s_cb_data callbackData = { cbReadOnlySynch, compareHandler, 0, &time_s, 0 };
 
         callbackData.time->high = 0;
@@ -615,8 +617,9 @@ void vcdCompareCall( )
         initializeStringList(&nostop_list);
         initializeStringList(&fault_target);
         /////*parseXML("FI.xml", &checker_list);*/
+        FaultData *faults = random_process(FS_PATH);
+        parse_injectXML("./fault.xml");
         parseXML(FI_PATH);
-        parse_injectXML("./fault.xml"); 
         printf("FAULT_ID:%s\n",FAULT_ID);
         int id = atoi(FAULT_ID)-1;
         port_alias(&fault_target,&port_list);
@@ -626,7 +629,6 @@ void vcdCompareCall( )
         printStringList(&functional_list);
         printf("nostop strobe list:\n");
         printStringList(&nostop_list);
-        FaultData *faults = random_process(FS_PATH);
         if(FAULT_LOCATION==NULL||strlen(FAULT_LOCATION) == 0 ){
             strcpy(FAULT_LOCATION, faults[id].location);
             fault.fault_node_name = FAULT_LOCATION;
@@ -649,7 +651,13 @@ void vcdCompareCall( )
             int i;
             for(i=0;i<CON_NUM+1;i++){
                 fault_array[i].fault_node_name = strdup(faults[id + i].location);
+                //strcpy(fault_array[i].fault_node_name, faults[id + i].location);
                 fault_array[i].injection_time = atoi(faults[id+i].time);
+                //int a = atoi(faults[id+i].time);
+                //printf("++++DEBUG::fault_array[i].injection_time=%d++++\n",fault_array[i].injection_time);
+                //fault_array[i].injection_time = 5;
+                //printf("++++DEBUG::fault_array[i].injection_time=%d++++\n",fault_array[i].injection_time);
+                //printf("++++DEBUG::faults[id+i]=%d++++\n", a);
                 if(strcmp("SEU", faults[id+i].type) == 0)
                     fault_array[i].fault_type = SEU_FAULT;
                 else if(strcmp("SA0", faults[id+i].type) == 0)
@@ -852,13 +860,15 @@ void parseXML(const char* filename) {
         if (xmlStrcmp(node->name, (const xmlChar*)"CON") == 0){
             xmlChar* content = xmlNodeGetContent(node);
             CON_NUM = atoi(content);
+            if(1+CON_NUM+atoi(FAULT_ID)>num_lines) CON_NUM= num_lines-atoi(FAULT_ID)-1;
             printf("Concurrent num is :%d\n",CON_NUM);
-            status_checker    = (char (*))malloc((CON_NUM+1) * sizeof(char[10]));
-            status_functional = (char (*))malloc((CON_NUM+1) * sizeof(char[10]));
+            status_checker    = (char (*)[10])malloc((CON_NUM+1) * sizeof(char[10]));
+            status_functional = (char (*)[10])malloc((CON_NUM+1) * sizeof(char[10]));
             fault_array = (struct Fault *)malloc((CON_NUM+1) * sizeof(struct Fault));
             int i;
             for (i = 0; i < CON_NUM+1; i++) {
-                fault_array[i].fault_node_name = NULL;  
+                fault_array[i].fault_node_name = (PLI_INT32 *)malloc(100 * sizeof(PLI_INT32));
+                //fault_array[i].fault_node_name = NULL;  
                 fault_array[i].fault_type = i;         
                 fault_array[i].fault_value = i;   
                 fault_array[i].injection_time = i;
@@ -959,7 +969,7 @@ void parse_injectXML(const char* filename) {
             } else if (xmlStrcmp(node->name, (const xmlChar *)"TIME") == 0) {
                 strcpy(FAULT_TIME, (char *)xmlNodeGetContent(node));
                 fault.injection_time = atoi(FAULT_TIME);
-                printf("______DEBUG:TIME::%d_______\n",fault_array[1].injection_time );
+                //printf("______DEBUG:TIME::%d_______\n",fault_array[1].injection_time );
             }
         }
     xmlFreeDoc(doc);
@@ -989,6 +999,10 @@ static int fault_classification( p_cb_data cb_data_p )
     for (i = 0; i < CON_NUM + 1; i++) {
         free(result[i]);
     }
+    free(status_functional);
+    free(status_checker);
+    free(fault_array);
+    //free(result);
 }
 
 static void FaultClassEosHandler( p_cb_data data )

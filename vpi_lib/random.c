@@ -1,9 +1,9 @@
 #include "random.h"
-
+int num_lines = 0;
 FaultData *random_process(const char* filename) {
     FILE *fp;
     char line[256];
-    int num_lines = 0;
+    
 
     fp = fopen(filename, "r");
     if (fp == NULL) {

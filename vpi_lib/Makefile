@@ -14,10 +14,10 @@ SHARE_OBJS = vpiDebug.o dumpHier.o dumpUpstream.o causalTree.o sharevcd.o extrac
 all:		libvpiDebug.so libsharefusa.so
 share:      libvpiDebug.so
 libvpiDebug.so: 	${OBJS} 
-		$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+		$(CC) $(CFLAGS) $(LDFLAGS) -g -o $@ $^
 
 libsharefusa.so: ${SHARE_OBJS}
-		$(CC) $(CFLAGS) $(LDFLAGS) -D SHARE_LIB -o $@ $^
+		$(CC) $(CFLAGS) $(LDFLAGS) -D SHARE_LIB -g -o $@ $^
 
 #libvpiDebug.a:	${OBJS} Makefile
 #		ar r $@ $^
