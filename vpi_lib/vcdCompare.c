@@ -1036,7 +1036,7 @@ void generateXML(const char* idValue, const char* locationValue, const char** st
     fprintf(fp, "</RESULT>\n");
     }
     fclose(fp);
-    free(statusValue);
+    //free(statusValue);
     free(type);
     printf("XML file generated successfully.\n");
 }
