@@ -23,8 +23,10 @@ static int  CON_NUM = 1;  // default==1
 //static char status_functional[10] = "Undetect";
 //static char status_checker[10][CON_NUM] = "Undetect";
 static struct Fault *fault_array = NULL;
-char (*status_checker)[10] = NULL;
-char (*status_functional)[10] = NULL;
+//char (*status_checker)[10] = NULL;
+//char (*status_functional)[10] = NULL;
+char **status_checker=NULL;
+char **status_functional=NULL;
 static char strobe_mode[10] = "Dual";
 static char FAULT_ID[100];
 static char FAULT_LOCATION[200];
@@ -862,8 +864,10 @@ void parseXML(const char* filename) {
             CON_NUM = atoi(content);
             if(1+CON_NUM+atoi(FAULT_ID)>num_lines) CON_NUM= num_lines-atoi(FAULT_ID)-1;
             printf("Concurrent num is :%d\n",CON_NUM);
-            status_checker    = (char (*)[10])malloc((CON_NUM+1) * sizeof(char[10]));
-            status_functional = (char (*)[10])malloc((CON_NUM+1) * sizeof(char[10]));
+            //status_checker    = (char (*)[10])malloc((CON_NUM+1) * sizeof(char[10]));
+            //status_functional = (char (*)[10])malloc((CON_NUM+1) * sizeof(char[10]));
+            status_checker    = (char **)malloc((CON_NUM+1) * sizeof(char*));
+            status_functional = (char **)malloc((CON_NUM+1) * sizeof(char*));
             fault_array = (struct Fault *)malloc((CON_NUM+1) * sizeof(struct Fault));
             int i;
             for (i = 0; i < CON_NUM+1; i++) {
@@ -875,6 +879,8 @@ void parseXML(const char* filename) {
                 //printf("______DEBUG:TIME::%d_______\n",fault_array[i].injection_time );
             }
             for (i = 0; i < CON_NUM+1; i++) {
+                status_checker[i] = (char *)malloc(9*sizeof(char));
+                status_functional[i] = (char *)malloc(9*sizeof(char));
                 strcpy(status_checker[i], "Undetect");
                 strcpy(status_functional[i], "Undetect");
             }
@@ -989,15 +995,17 @@ static int fault_classification( p_cb_data cb_data_p )
     }
     printf("Strobe Mode is %s\n",strobe_mode);
     if (strcmp(strobe_mode, "Single") == 0){
-        printf("the classificaiton of the inject fault is :%s\n",status_checker);
+        printf("the classificaiton of the inject fault is :%s\n",status_checker[0]);
         generateXML("NULL","NULL",status_checker,FAULT_TYPE,CON_NUM);
     }
     else { 
-        printf("the classificaiton of the inject fault is :\nFunctional:%s,\nChecker:%s\n",status_functional,status_checker);
+        printf("the classificaiton of the inject fault is :\nFunctional:%s,\nChecker:%s\n",status_functional[0],status_checker[0]);
         generateXML(FAULT_ID,FAULT_LOCATION,result,FAULT_TYPE,CON_NUM); 
     }
     for (i = 0; i < CON_NUM + 1; i++) {
         free(result[i]);
+        free(status_functional[i]);
+        free(status_checker[i]);
     }
     free(status_functional);
     free(status_checker);
@@ -1037,6 +1045,7 @@ void generateXML(const char* idValue, const char* locationValue, const char** st
     }
     fclose(fp);
     //free(statusValue);
+
     free(type);
     printf("XML file generated successfully.\n");
 }
