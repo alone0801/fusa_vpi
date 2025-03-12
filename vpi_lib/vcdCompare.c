@@ -95,7 +95,7 @@ static struct event* createNewEvent( char* mark, char* vexp, char* vact, int vac
         ptr->vact[i] = (char*)0;
     }
     //printf("\nDEBUG::CON_NUM==%d,i==%d in createNewEvent\n",CON_NUM,vact_count);
-    if (vact != NULL)ptr->vact[vact_count] = strdup(vact);
+    if (vact != NULL)ptr->vact[vact_count] = vact;
     else ptr->vact[vact_count] = vact;
     return( top = ptr );
 }
@@ -149,11 +149,11 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
     int flag_stop=0; 
     int i;
     /*flag control if drop this simulation at the end of time step*/
-    static s_vpi_time time_s = { vpiScaledRealTime };
-    static s_vpi_time time_int = { vpiSimTime };
+    static s_vpi_time time_s = { vpiScaledRealTime,{0} };
+    static s_vpi_time time_int = { vpiSimTime ,{0}};
     vpi_get_time( 0, &time_int );
     vpi_get_time( 0, &time_s );
- /*   printf("Compare at%ld:%ld:\n", time_s.high, time_s.low );
+/*    printf("Compare at%ld:%ld:\n", time_s.high, time_s.low );
     printEventList(top);
     DBG_VDIFF(( "Compare at %ld:%ld:\n", time_s.high, time_s.low ));
 */
@@ -169,10 +169,10 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
                 if(ptr->vact[i] != 0){
                     p_vdiff_node node = ( p_vdiff_node )lookup( ptr->mark, &vcdHash );
                     char* name = node ? FullName( node->refn->refn ) : "<noname>";
-                    if(i==0) vpi_printf( "*** DUT:: Unexpected <%s> event on <%s(%s)> at %ld:%ld\n",
-                         ptr->vact[i], name, ptr->mark, time_int.high, time_int.low );
-                    else vpi_printf( "*** CON_%d:: Unexpected <%s> event on <%s(%s)> at %ld:%ld\n",
-                         i, ptr->vact[i], name, ptr->mark, time_int.high, time_int.low );
+                    if(i==0) vpi_printf( "*** DUT:: Unexpected <%s> event on <%s(%s)> at %lf\n",
+                         ptr->vact[i], name, ptr->mark,  time_s.real );
+                    else vpi_printf( "*** CON_%d:: Unexpected <%s> event on <%s(%s)> at %lf\n",
+                         i, ptr->vact[i], name, ptr->mark, time_s.real );
                     if(!checkStringList(&nostop_list,name))flag_stop=1;
                     if(checkStringList(&checker_list,name)) {
                         if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
