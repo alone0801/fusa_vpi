@@ -656,6 +656,7 @@ void vcdCompareCall( )
                 //strcpy(fault_array[i].fault_node_name, faults[id + i].location);
                 fault_array[i].injection_time = atoi(faults[id+i].time);
                 //int a = atoi(faults[id+i].time);
+                //printf("++++DEBUG::fault_array[i].name=%s++++\n",fault_array[i].fault_node_name);
                 //printf("++++DEBUG::fault_array[i].injection_time=%d++++\n",fault_array[i].injection_time);
                 //fault_array[i].injection_time = 5;
                 //printf("++++DEBUG::fault_array[i].injection_time=%d++++\n",fault_array[i].injection_time);
@@ -674,6 +675,12 @@ void vcdCompareCall( )
                     }
             }
         }
+    else {
+        CON_NUM=0;
+        fault_array[0].fault_node_name =FAULT_LOCATION;
+        fault_array[0].injection_time = atoi(FAULT_TIME);
+
+    }
     if (strcmp(step, "good_sim") == 0) {
         addEosCallback( timeRecordEosHandler );
         //iso_gen("test_new.test_ins.sub_inst.a",&iso_inst_list);
@@ -701,7 +708,6 @@ void vcdCompareCall( )
 
     //fault_injector_check(&fault);
     int i;
-
     for(i=0;i<CON_NUM+1;i++) fault_injector_check(&fault_array[i],i+1);
     /*
     double time_d = 22644900000.00000;

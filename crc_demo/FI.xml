@@ -4,6 +4,7 @@
     <!--<FAULT_TARGET>test.dut_inst.mem2_i</FAULT_TARGET>-->
     <FAULT_EXCLUDE></FAULT_EXCLUDE>
     <TESTBENCH_NAME>test</TESTBENCH_NAME>
+    <DUT_NAME>test.dut_inst</DUT_NAME>
     <FAULT_TW_START>100</FAULT_TW_START>
     <FAULT_TW_END>200</FAULT_TW_END>
     <OBSERVATION_POINTS>
@@ -19,5 +20,6 @@
     <!--<NOSTOP_STROBE>test.dut_inst.mem2_data_out</NOSTOP_STROBE>-->
     </OBSERVATION_POINTS>
     <ISO_MODE>DISENA</ISO_MODE>
+    <CON>3</CON>
 </FI_CONFIG>
 

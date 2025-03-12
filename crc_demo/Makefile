@@ -1,4 +1,4 @@
-export fusa_lib=~/fusa_vpi/vpi_lib
+export fusa_lib=../vpi_lib
 run:
 	iverilog -f rtl.f -g2005-sv -D COUNT_MEM1
 	vvp -n a.out

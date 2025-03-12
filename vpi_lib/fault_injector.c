@@ -101,6 +101,10 @@ vpiHandle cur_replace(vpiHandle obj, int vact_num)
     if(vact_num==1) con_obj=obj;
     else {
         origin_name = vpi_get_str(vpiFullName,obj);
+        if(origin_name==NULL) {
+            printf("ERROR get handle in concurrent mode , disable\n");
+            return 0;
+        }
         dut_h = vpi_handle_by_name(DUT_NAME,0);
         tb_h = vpi_handle(vpiScope,dut_h);
         //printf("=====origin_name==%s=======\n",origin_name);
@@ -118,7 +122,7 @@ vpiHandle cur_replace(vpiHandle obj, int vact_num)
         con_obj = vpi_handle_by_name(replace_name,0);
         //printf("+++++++DEBUG::replace_name:%s+++++++++",replace_name);
         if(con_obj==NULL) {
-            printf("ERROR:concurrent tb generate fail, please check the 'DUT_NAME' and 'TB_NAME' defined in FI.xml");
+            printf("ERROR:concurrent tb generate fail, please check the 'DUT_NAME' and 'TB_NAME' defined in FI.xml\n");
             return(0);
         }
     }
