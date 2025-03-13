@@ -40,10 +40,12 @@ for ((i = 0; i < num_faults; i=i+step)); do
     # 返回上一级目录
     cd .. || exit
 done
-
+cd .. || exit
 # 记录脚本结束时间
 end_time=$(date +%s)
 
 # 计算并输出执行时间
 execution_time=$((end_time - start_time))
-echo "Total execution time: $execution_time seconds"
+logfile_name="$step.log"
+touch "$logfile_name"
+echo "Total execution time: $execution_time seconds" > "$logfile_name"

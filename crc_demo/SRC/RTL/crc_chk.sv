@@ -23,17 +23,17 @@ module crc_chk
         parameter POLYNOMIAL_BITS = 1
     )
     (
-        input  logic clk,
-		input  logic rst_n,
-        input  logic [DATA_WIDTH-1:0] data_in,
-        input  logic [POLYNOMIAL_BITS-1:0] crc_in,
-        output logic [DATA_WIDTH-1:0] data_out,
-        output logic err_detected,
-        output logic err_corrected
+        input  wire clk,
+		input  wire rst_n,
+        input  wire [DATA_WIDTH-1:0] data_in,
+        input  wire [POLYNOMIAL_BITS-1:0] crc_in,
+        output wire [DATA_WIDTH-1:0] data_out,
+        output reg err_detected,
+        output reg err_corrected
     );
 
-    logic [POLYNOMIAL_BITS-1:0] crc_calc;
-    logic err_detected_tmp;
+    wire [POLYNOMIAL_BITS-1:0] crc_calc;
+    reg err_detected_tmp;
 
 
     //----------------------------------------------------------------------

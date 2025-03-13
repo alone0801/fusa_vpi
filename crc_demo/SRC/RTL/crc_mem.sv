@@ -29,24 +29,24 @@ module crc_mem
    input wire 			 mem_wr,
    input wire [ADDR_WIDTH-1:0]  mem_addr,
    input wire [DATA_WIDTH-1:0]  mem_data_in,
-   output logic [DATA_WIDTH-1:0] mem_data_out ,
-   output logic 		 err_detected,
-   output logic 		 err_corrected
+   output wire [DATA_WIDTH-1:0] mem_data_out ,
+   output wire 		 err_detected,
+   output wire 		 err_corrected
    );
 
    //----------------------------------------------------------------------
    // Intermediat signals for calculation
    //----------------------------------------------------------------------
-   logic [POLYNOMIAL_BITS-1:0] crc_wr;
-   logic [DATA_WIDTH-1:0] mem_data_tmp;
-   logic [DATA_WIDTH-1:0] mem_data_ff_tmp;
+   wire [POLYNOMIAL_BITS-1:0] crc_wr;
+   wire [DATA_WIDTH-1:0] mem_data_tmp;
+   reg [DATA_WIDTH-1:0] mem_data_ff_tmp;
 
 
    //----------------------------------------------------------------------
    // Memory model: here just a register
    //----------------------------------------------------------------------
-   logic [DATA_WIDTH-1:0] mem;
-   logic [POLYNOMIAL_BITS-1:0] mem_crc;
+   wire [DATA_WIDTH-1:0] mem;
+   wire [POLYNOMIAL_BITS-1:0] mem_crc;
 
    mem_with_crc
      #(.DATA_WIDTH      (DATA_WIDTH),

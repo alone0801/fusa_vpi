@@ -1,0 +1,12 @@
+./SRC/aes128_rtl/aes_core.v
+./SRC/aes128_rtl/aes_ip.v
+./SRC/aes128_rtl/control_unit.v
+./SRC/aes128_rtl/datapath.v
+./SRC/aes128_rtl/data_swap.v
+./SRC/aes128_rtl/host_interface.v
+./SRC/aes128_rtl/key_expander.v
+./SRC/aes128_rtl/mix_columns.v
+./SRC/aes128_rtl/sBox.v
+./SRC/aes128_rtl/sBox_8.v
+./SRC/aes128_rtl/shift_rows.v
+./SRC/aes128_testbench/tb_aes_ip.v

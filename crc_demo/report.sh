@@ -1,6 +1,8 @@
 #!/bin/bash
 FAULT_DIR=$1
-python3 $fusa_lib/result_merge.py $1 result.xml
+rm result.xml
+rm summary.xml
+python3 ../vpi_lib/result_merge.py $1 result.xml
 echo "UU: $(grep -c "UU" result.xml) ">> summary.xml
 echo "UD: $(grep -c "UD" result.xml) ">> summary.xml
 echo "DU: $(grep -c "DU" result.xml) ">> summary.xml

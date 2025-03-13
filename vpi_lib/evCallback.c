@@ -144,7 +144,7 @@ vpiHandle obj_replace(vpiHandle obj, int vact_num)
         strcpy(replace_name, con_name);
         strcat(replace_name, origin_name + lenB);
         con_obj = vpi_handle_by_name(replace_name,0);
-        //printf("+++++++DEBUG::replace_name:%s+++++++++",replace_name);
+        printf("+++++++DEBUG::replace_name:%s+++++++++",replace_name);
         if(con_obj==NULL) {
             printf("ERROR:concurrent tb generate fail, please check the 'DUT_NAME' and 'TB_NAME' defined in FI.xml");
             return(0);

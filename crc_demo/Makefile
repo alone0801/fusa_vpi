@@ -1,4 +1,3 @@
-export fusa_lib=../vpi_lib
 run:
 	iverilog -f rtl.f -g2005-sv -D COUNT_MEM1
 	vvp -n a.out
@@ -11,7 +10,7 @@ vpi:
 #编译vpi对应的c函数,生成hello.o，hello.vpi
 	iverilog-vpi vpi.c
 #编译tb与dut
-	iverilog -f rtl.f -g2005-sv -D COUNT_MEM1 -o crc_mem.vvp
+	iverilog -f rtl.if -g2005-sv -D COUNT_MEM1 -o crc_mem.vvp
 #-M.指定搜索路径 hello指定对应C的编译结果
 	vvp -M. -m vpi crc_mem.vvp
 	gtkwave wave.vcd
@@ -33,19 +32,17 @@ vcs:
 #	simv -l good_sim.log
 fault_sim:
 	rm -rf csrc simv  simv.daidir
-	vcs -full64 +vpi +define+BYTE_COUNT_MEM1 -P $(fusa_lib)/pli.tab   \
-	-load $(fusa_lib)/libvpiDebug.so  -f demo_rtl.f fi_wrapper.sv -debug_all -sverilog \
-	+define+FAULT_LOCATION=u_tb.dut_inst.mem1_i.mem_data_in[0] \
-	+define+FAULT_VALUE=0 \
-	+define+FAULT_TIME=80 -lxml2 \
+	vcs -full64 +vpi +define+RANDOM -P $(fusa_lib)/pli.tab   \
+	-load $(fusa_lib)/libvpiDebug.so  -f aes128_rtl.f fi_wrapper.sv -debug_all -sverilog \
+	-lxml2 \
 	+lint=TFIPC-L -notice -debug_access+all  -full64  -kdb -lca
 	./simv -l fault_sim.log
 #-ucli -i ../vpi_lib/ucli.tcl
 good_sim:
 	python ../vpi_lib/wrapper_gen.py 
 	rm -rf csrc simv  simv.daidir
-	vcs +vpi +define+BYTE_COUNT_MEM1 -P $(fusa_lib)/pli.tab -full64 \
-	-load $(fusa_lib)/libvpiDebug.so   -f demo_rtl.f +define+good_sim -sverilog fi_wrapper.sv -lxml2 \
+	vcs +vpi +define+RANDOM -P $(fusa_lib)/pli.tab -full64 \
+	-load $(fusa_lib)/libvpiDebug.so   -f aes128_rtl.f +define+good_sim -sverilog fi_wrapper.sv -lxml2 \
 	+lint=TFIPC-L -notice -debug_access+all  -full64  -kdb -lca
 	./simv -l good_sim.log 
 test: 

@@ -18,24 +18,24 @@
 //__CDS_SVN_TAG__
 
 module dut
-  (input logic clk,
-   input logic 	       rst_n,
+  (input wire clk,
+   input wire 	       rst_n,
 
    // MEM1, 128-bit, ASILD,
-   input logic 	       mem1_wr,
-   input logic [7:0]   mem1_addr,
-   input logic [31:0]  mem1_data_in,
-   output logic [31:0] mem1_data_out ,
-   output logic        mem1_err_detected,
-   output logic        mem1_err_corrected,
+   input wire 	       mem1_wr,
+   input wire [7:0]   mem1_addr,
+   input wire [31:0]  mem1_data_in,
+   output wire [31:0] mem1_data_out ,
+   output wire        mem1_err_detected,
+   output wire        mem1_err_corrected,
 
    // MEM2, 64-bit, ASILB,
-   input logic 	       mem2_wr,
-   input logic [7:0]   mem2_addr,
-   input logic [7:0]   mem2_data_in,
-   output logic [7:0]  mem2_data_out ,
-   output logic        mem2_err_detected,
-   output logic        mem2_err_corrected
+   input wire 	       mem2_wr,
+   input wire [7:0]   mem2_addr,
+   input wire [7:0]   mem2_data_in,
+   output wire [7:0]  mem2_data_out ,
+   output wire        mem2_err_detected,
+   output wire        mem2_err_corrected
 
    );
 
@@ -59,22 +59,23 @@ module dut
        );
 
 
-   //----------------------------------------------------------------------
-   // MEM 2
-   //----------------------------------------------------------------------
-    crc_mem
-     #(.DATA_WIDTH      (8),
-       .POLYNOMIAL_BITS (4),
-       .OUTPUT_FF       (0)
-       )
-   mem2_i
-     ( .clk           (clk),
-       .rst_n         (rst_n),
-       .mem_wr        (mem2_wr),
-       .mem_addr      (mem2_addr),
-       .mem_data_in   (mem2_data_in),
-       .mem_data_out  (mem2_data_out),
-       .err_detected  (mem2_err_detected),
-       .err_corrected (mem2_err_corrected)
-       );
+  //----------------------------------------------------------------------
+  // MEM 2
+  //----------------------------------------------------------------------
+  crc_mem
+    #(.DATA_WIDTH      (8),
+      .POLYNOMIAL_BITS (4),
+      .OUTPUT_FF       (0)
+      )
+  mem2_i
+    ( .clk           (clk),
+      .rst_n         (rst_n),
+      .mem_wr        (mem2_wr),
+      .mem_addr      (mem2_addr),
+      .mem_data_in   (mem2_data_in),
+      .mem_data_out  (mem2_data_out),
+      .err_detected  (mem2_err_detected),
+      .err_corrected (mem2_err_corrected)
+      );
+
 endmodule // dut

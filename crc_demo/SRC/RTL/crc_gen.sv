@@ -22,15 +22,15 @@ module crc_gen
     parameter POLYNOMIAL_BITS = 1
     )
 
-   (input logic clk,
-    input logic 		 rst_n,
-    input logic [DATA_WIDTH-1:0] data_in,
-    output logic [POLYNOMIAL_BITS-1:0] crc_val
+   (input wire clk,
+    input wire 		 rst_n,
+    input wire [DATA_WIDTH-1:0] data_in,
+    output wire [POLYNOMIAL_BITS-1:0] crc_val
    );
 
-   logic 			       d;
+   reg 			       d;
    integer 			       i, j;
-   logic [POLYNOMIAL_BITS-1:0] 	       crc_tmp;
+   reg [POLYNOMIAL_BITS-1:0] 	       crc_tmp;
 
    //----------------------------------------------------------------------
    // Polynomilas
@@ -48,7 +48,7 @@ module crc_gen
    localparam logic [32:0] 	      CRC_24_MODE_S = 33'b000000001111111111111010000001001;
    localparam logic [32:0] 	      CRC_32_IEEE   = 33'b100000100110000010001110110110111;
 
-   logic [POLYNOMIAL_BITS:0] 	      polynomial;
+   reg [POLYNOMIAL_BITS:0] 	      polynomial;
 
    always_comb begin
       case (POLYNOMIAL_BITS)
