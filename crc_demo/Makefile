@@ -6,6 +6,8 @@ var:
 	verilator --sc foo.v --exe adder_tb.cpp 
 clean:
 	rm -rf csrc simv  simv.daidir fi_wrapper.v ucli.key result.xml *.vcd *.log *.out *.o *.dsn *.trn
+	rm -rf fault_pruning_dir
+	mkdir fault_pruning_dir
 vpi:
 #编译vpi对应的c函数,生成hello.o，hello.vpi
 	iverilog-vpi vpi.c
@@ -33,7 +35,7 @@ vcs:
 fault_sim:
 	rm -rf csrc simv  simv.daidir
 	vcs -full64 +vpi +define+RANDOM -P $(fusa_lib)/pli.tab   \
-	-load $(fusa_lib)/libvpiDebug.so  -f aes128_rtl.f fi_wrapper.sv -debug_all -sverilog \
+	-load $(fusa_lib)/libvpiDebug.so  -f rtl.f fi_wrapper.sv -debug_all -sverilog \
 	-lxml2 \
 	+lint=TFIPC-L -notice -debug_access+all  -full64  -kdb -lca
 	./simv -l fault_sim.log
@@ -42,13 +44,13 @@ good_sim:
 	python ../vpi_lib/wrapper_gen.py 
 	rm -rf csrc simv  simv.daidir
 	vcs +vpi +define+RANDOM -P $(fusa_lib)/pli.tab -full64 \
-	-load $(fusa_lib)/libvpiDebug.so   -f aes128_rtl.f +define+good_sim -sverilog fi_wrapper.sv -lxml2 \
+	-load $(fusa_lib)/libvpiDebug.so   -f rtl.f +define+good_sim -sverilog fi_wrapper.sv -lxml2 \
 	+lint=TFIPC-L -notice -debug_access+all  -full64  -kdb -lca
 	./simv -l good_sim.log 
 test: 
 	rm -rf csrc simv  simv.daidir
 	vcs  +vpi +define+BYTE_COUNT_MEM1 -P ../vpi_lib/pli.tab -full64\
-	-load ../vpi_lib/libvpiDebug.so -f demo_rtl.f fi_wrapper.v -debug_all -sverilog \
+	-load ../vpi_lib/libvpiDebug.so -f rtl.f fi_wrapper.v -debug_all -sverilog \
 	+define+FAULT_LOCATION=u_tb.dut_inst.mem1_i.mem_data_in[0] \
 	+define+FAULT_VALUE=0 \
 	+define+FAULT_TIME=80 -lxml2 
@@ -63,4 +65,16 @@ irun:
 	-loadvpi /usr/local/lib64/python3.6/site-packages/cocotb/libs/libcocotbvpi_ius.so:vlog_startup_routines_bootstrap +access+rwc
 verdi:
 	verdi -ssf test.fsdb  &
-#-sswr ./signal.rc 
+#-sswr ./signal.rc
+
+fault_pruning:
+	rm -rf csrc simv simv.daidair fault_pruning.log fault_pruning_dir
+	python $(fusa_lib)/wrapper_gen.py
+	vcs -full64 +vpi +define+fault_pruning -P $(fusa_lib)/VRM_vpi.tab   \
+	$(fusa_lib)/VRM_vpi.c  -f rtl.f fi_wrapper.sv -debug_all -sverilog \
+	-lxml2 \
+	+lint=TFIPC-L -notice -debug_access+all  -full64  -kdb -lca
+	./simv -l fault_pruning.log
+	mkdir fault_pruning_dir
+fault_gene:
+	python $(fusa_lib)/vpi_process.py

@@ -143,11 +143,11 @@ aes_ip AES_IP
   .PCLK       ( PCLK       ),      
   .PRESETn    ( PRESETn    )
 );
-initial
- begin
-    $dumpfile("tb_aes_ip.vcd");
-    $dumpvars(0,tb_aes_ip);
- end
+//initial
+ //begin
+    //$dumpfile("tb_aes_ip.vcd");
+    //$dumpvars(0,tb_aes_ip);
+// end
 task reset;
 	begin
 		PCLK = 0;

@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <FI_CONFIG>
-    <FAULT_TARGET>tb_aes_ip.AES_IP.PADDR</FAULT_TARGET>
+    <FAULT_TARGET>test.dut_inst.mem1_i.mem_with_crc_i</FAULT_TARGET>
     <!--<FAULT_TARGET>test.dut_inst.mem2_i</FAULT_TARGET>-->
     <FAULT_EXCLUDE></FAULT_EXCLUDE>
-    <TESTBENCH_NAME>tb_aes_ip</TESTBENCH_NAME>
-    <TB_NAME>tb_aes_ip</TB_NAME>
-    <DUT_NAME>tb_aes_ip.AES_IP</DUT_NAME>
+    <TESTBENCH_NAME>test</TESTBENCH_NAME>
+    <DUT_NAME>test.dut_inst</DUT_NAME>
     <FAULT_TW_START>100</FAULT_TW_START>
     <FAULT_TW_END>200</FAULT_TW_END>
     <OBSERVATION_POINTS>
-    <CHECKER_STROBE>tb_aes_ip.AES_IP.int_err</CHECKER_STROBE>
-    <FUNCTIONAL_STROBE>tb_aes_ip.AES_IP.PRDATA</FUNCTIONAL_STROBE>
+    <CHECKER_STROBE>test.dut_inst.mem1_err_detected</CHECKER_STROBE>
+    <CHECKER_STROBE>test.dut_inst.mem2_err_detected</CHECKER_STROBE>
+    <FUNCTIONAL_STROBE>test.dut_inst.mem1_data_out</FUNCTIONAL_STROBE>
+    <FUNCTIONAL_STROBE>test.dut_inst.mem2_data_out</FUNCTIONAL_STROBE>
     <!--<FUNCTIONAL_STROBE>test.dut_inst.mem2_i.crc_gen_wr_i.d</FUNCTIONAL_STROBE>-->
     <!--<FUNCTIONAL_STROBE>test.dut_inst.mem2_i.crc_chk_i.rst_n</FUNCTIONAL_STROBE>-->
-    <NOSTOP_STROBE>tb_aes_ip.AES_IP.PRDATA</NOSTOP_STROBE>
+    <NOSTOP_STROBE>test.dut_inst.mem1_data_out</NOSTOP_STROBE>
+    <NOSTOP_STROBE>test.dut_inst.mem2_data_out</NOSTOP_STROBE>
     <!--<NOSTOP_STROBE>test.dut_inst.mem2_i.crc_gen_wr_i.d</NOSTOP_STROBE>-->
     <!--<NOSTOP_STROBE>test.dut_inst.mem2_data_out</NOSTOP_STROBE>-->
     </OBSERVATION_POINTS>
-    <ISO_MODE>DISENA</ISO_MODE>
-    <CON>31</CON>
+    <ISO_MODE>ENA</ISO_MODE>
+    <CON>0</CON>
 </FI_CONFIG>
-

@@ -134,17 +134,27 @@ vpiHandle obj_replace(vpiHandle obj, int vact_num)
         //printf("=====origin_name==%s=======\n",origin_name);
         tb_name = vpi_get_str(vpiFullName,tb_h);
         //printf("=====tb_name==%d=======\n",vact_num-1);
-        char *con_name = malloc(strlen(tb_name)+30* sizeof(char));
-        sprintf(con_name,"%s.concur_%d",tb_name,vact_num-1); 
         size_t lenA = strlen(con_name);
         size_t lenB = strlen(DUT_NAME);  
-        size_t lenC = strlen(origin_name); 
-        size_t new_len = lenA + lenC - lenB;
-        char* replace_name = (char*)malloc(new_len + 1);
-        strcpy(replace_name, con_name);
-        strcat(replace_name, origin_name + lenB);
+        size_t lenC = strlen(origin_name);
+        size_t lenD = strlen(tb_name);
+        //printf("origin_name[lenB]==%c\n", origin_name[lenB]);
+        char* replace_name;
+        size_t new_len;
+        if(origin_name[lenB] == '.'){
+            new_len = lenA + lenC - lenB;
+            replace_name = (char*)malloc(new_len + 1);
+            strcpy(replace_name, con_name);
+            strcat(replace_name, origin_name + lenB);
+        }
+        else {
+            new_len = lenA + lenC - lenD;
+            replace_name = (char*)malloc(new_len + 1);
+            strcpy(replace_name, con_name);
+            strcat(replace_name, origin_name + lenD);
+        }
         con_obj = vpi_handle_by_name(replace_name,0);
-        printf("+++++++DEBUG::replace_name:%s+++++++++",replace_name);
+        //printf("+++++++DEBUG::replace_name:%s+++++++++",replace_name);
         if(con_obj==NULL) {
             printf("ERROR:concurrent tb generate fail, please check the 'DUT_NAME' and 'TB_NAME' defined in FI.xml");
             return(0);

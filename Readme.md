@@ -59,44 +59,68 @@ Run the following commands to begin the simulation:
 
 ```bash
 source setup.sh
+cd vpi_lib
+make all
+cd ..
 cd crc_demo  
 make good_sim 
 make fault_sim
-sh fault.csh
+sh fault.csh <CON>
+make merge
 ```
+the result and summary are showed in result.xml and summary.xml
+
 ### Step 2: Build Your Own Fault Injection Campaign
 1. Configure your fault injection campaign in `FI.xml`:
 
 ```xml
 <FI_CONFIG>
-    <FAULT_TARGET>test.dut_inst.mem1_i</FAULT_TARGET>
+    <FAULT_TARGET>test.dut_inst.mem1_i.mem_with_crc_i</FAULT_TARGET>
     <!--<FAULT_TARGET>test.dut_inst.mem2_i</FAULT_TARGET>-->
+    <FAULT_EXCLUDE></FAULT_EXCLUDE>
     <TESTBENCH_NAME>test</TESTBENCH_NAME>
+    <DUT_NAME>test.dut_inst</DUT_NAME>
+    <FAULT_TW_START>100</FAULT_TW_START>
+    <FAULT_TW_END>200</FAULT_TW_END>
     <OBSERVATION_POINTS>
-        <CHECKER_STROBE>test.dut_inst.mem1_err_detected</CHECKER_STROBE>
-        <CHECKER_STROBE>test.dut_inst.mem2_err_detected</CHECKER_STROBE>
-        <FUNCTIONAL_STROBE>test.dut_inst.mem1_data_out</FUNCTIONAL_STROBE>
-        <FUNCTIONAL_STROBE>test.dut_inst.mem2_data_out</FUNCTIONAL_STROBE>
-        <!--<FUNCTIONAL_STROBE>test.dut_inst.mem2_i.crc_gen_wr_i.d</FUNCTIONAL_STROBE>-->
-        <!--<FUNCTIONAL_STROBE>test.dut_inst.mem2_i.crc_chk_i.rst_n</FUNCTIONAL_STROBE>-->
-        <NOSTOP_STROBE>test.dut_inst.mem1_data_out</NOSTOP_STROBE>
-        <NOSTOP_STROBE>test.dut_inst.mem2_data_out</NOSTOP_STROBE>
-        <!--<NOSTOP_STROBE>test.dut_inst.mem2_i.crc_gen_wr_i.d</NOSTOP_STROBE>-->
-        <!--<NOSTOP_STROBE>test.dut_inst.mem2_data_out</NOSTOP_STROBE>-->
+    <CHECKER_STROBE>test.dut_inst.mem1_err_detected</CHECKER_STROBE>
+    <CHECKER_STROBE>test.dut_inst.mem2_err_detected</CHECKER_STROBE>
+    <FUNCTIONAL_STROBE>test.dut_inst.mem1_data_out</FUNCTIONAL_STROBE>
+    <FUNCTIONAL_STROBE>test.dut_inst.mem2_data_out</FUNCTIONAL_STROBE>
+    <NOSTOP_STROBE>test.dut_inst.mem1_data_out</NOSTOP_STROBE>
+    <NOSTOP_STROBE>test.dut_inst.mem2_data_out</NOSTOP_STROBE>
     </OBSERVATION_POINTS>
     <ISO_MODE>ENA</ISO_MODE>
+    <CON>0</CON>
 </FI_CONFIG>
 ```
-2.choose your fault inject node and fault type in fault.xml:
-
-```xml
-<INJECT>
-    <ID>1</ID>
-    <LOCATION>test.dut_inst.mem2_i.crc_chk_i.crc_gen_i.d</LOCATION>
-    <TYPE>SA1</TYPE>
-    <TIME>0</TIME>
-</INJECT>
+2.choose your fault inject node and fault type in fault.set:
+2.1 you can choose by yourself in fault.set
+```fault.set
+<LOCATION> <TYPE> <TIME> <RESULT>
+test.dut_inst.mem1_i.mem_data_tmp[0]  SA0  0  UU
+.......
 ```
+2.2 you also can generate fault.set by fault pruning
+the fault pruning can reduce the fault space according to the FUNCTIONAL STROBE based on the signal dependencies
+```bash
+cd crc_men
+make good_sim
+make fault_pruning
+make fault_gene
+```
+
+3. run the fault inject simulation
+```bash
+make fault_sim
+sh fault.csh <CON>
+make merge
+```
+the result and summary are showed in result.xml and summary.xml
+
+4. you can replace source code with your design in SRC and run your fault inject simulation
+according to the step 1 to 3
+
 ### Step 3: Explore More Complex Demos
 For more advanced usage, refer to the AutoSoc directory to explore more complex fault injection demos
 

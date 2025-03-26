@@ -1,7 +1,5 @@
 #!/bin/bash
 FAULT_DIR=$1
-rm result.xml
-rm summary.xml
 python3 ../vpi_lib/result_merge.py $1 result.xml
 echo "UU: $(grep -c "UU" result.xml) ">> summary.xml
 echo "UD: $(grep -c "UD" result.xml) ">> summary.xml

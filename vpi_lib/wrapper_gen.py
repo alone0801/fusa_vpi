@@ -34,6 +34,8 @@ module fi_wrapper();
         $dumpfile("{current_path}/golden.vcd");
 {dumpvars_checker}
 {dumpvars_functional}
+    `elsif fault_pruning
+	  $traverse({test_name});
     `else
         $vcdCompare("{current_path}","fault_sim");
     `endif

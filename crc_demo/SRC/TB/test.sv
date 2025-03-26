@@ -322,11 +322,7 @@ module test;
         c=5;
         d=7;
         end
-    initial begin
-      $fsdbDumpfile("test.fsdb");
-      $fsdbDumpvars(0,test);
-      $fsdbDumpMDA();
-    end
+
 endmodule // test
 
 interface intf;

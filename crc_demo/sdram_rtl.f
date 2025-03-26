@@ -1,0 +1,16 @@
++define+S50 
++define+SDR_32BIT 
++incdir+./SRC/sdram_controller/rtl/core 
+./SRC/sdram_controller/verif/tb/tb_top.sv 
+./SRC/sdram_controller/verif/model/IS42VM16400K.V
+./SRC/sdram_controller/verif/model/mt48lc2m32b2.v 
+./SRC/sdram_controller/verif/model/mt48lc8m8a2.v  
+./SRC/sdram_controller/rtl/top/sdrc_top.v 
+./SRC/sdram_controller/rtl/wb2sdrc/wb2sdrc.v 
+./SRC/sdram_controller/rtl/lib/async_fifo.v  
+./SRC/sdram_controller/rtl/core/sdrc_core.v 
+./SRC/sdram_controller/rtl/core/sdrc_bank_ctl.v 
+./SRC/sdram_controller/rtl/core/sdrc_bank_fsm.v 
+./SRC/sdram_controller/rtl/core/sdrc_bs_convert.v 
+./SRC/sdram_controller/rtl/core/sdrc_req_gen.v 
+./SRC/sdram_controller/rtl/core/sdrc_xfr_ctl.v
