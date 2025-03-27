@@ -281,13 +281,14 @@ def CFG_trace_back(var_checked, CF_checked, target_related, CFG, stmt_info_set, 
         node = node.father[0]
 def port_checked_gene(stmt_info_set):#生成列表，里面为因为端口映射多余的端口模块
     port_checked = []
+    len_dut = len(DUT_NAME)
     for stmt_name in stmt_info_set:
         if(stmt_info_set[stmt_name][0] == 'PA'):
             lhs = stmt_info_set[stmt_name][1]
             rhs = stmt_info_set[stmt_name][2]
             if(stmt_info_set[stmt_name][3] == 'input'):
                 if(lhs not in port_checked):
-                    port_checked.append(lhs)
+                        port_checked.append(lhs)
             else:
                 for var in rhs:
                     if(var not in port_checked):
@@ -296,17 +297,20 @@ def port_checked_gene(stmt_info_set):#生成列表，里面为因为端口映射
 #port_checked标记PAS的rhs变量，无需将其送入result,以防端口映射中两个实际上相同的变量重复输出
 # 但由于目前信号粒度害没有到位bit,因此存在某个信号的某一比特用于端口例化时但其他位与target有关联时
 # 会将整个信号进行限制，无法输出
-def var_depend_search(target, stmt_info_set, CFG_dag_set, depend_dic, always_dic, port_checked):
+def var_depend_search(target, stmt_info_set, CFG_dag_set, depend_dic, always_dic, port_checked, DUT_NAME):
     target_related = copy.deepcopy(target)#与target相关的变量    
     result = []#输出
     var_checked = copy.deepcopy(target)#标记已经寻找到的变量
     CF_checked = []#标记已经寻找到的控制语句
     #target_related.append(target)
     stmt_set = []#debug用，记录所有相关变量所在的语句名
+    len_dut = len(DUT_NAME)#exclude all signal in tb level
     while(len(target_related) != 0):
         var = copy.deepcopy(target_related[0])
         if((var not in port_checked) and (var not in target)):
-            result.append(var)
+            if(len(var) >= len_dut):
+                if(var[len_dut] == '.'):
+                    result.append(var)
         target_related.pop(0)
         if(var in depend_dic):
             for stmt_name in depend_dic[var]:
@@ -352,8 +356,8 @@ def fault_list_gene(top_module, signal_set, signal_info_set):
     with open(fault_list_name, 'w') as file:
         file.write('<LOCATION> <TYPE> <TIME> <RESULT>\n')
         for signal_name in signal_set:
-#            if(signal_name[-3:] == 'mem'):
-#               continue
+            if(signal_name[-3:] == 'mem'):
+               continue
             signal_info = signal_info_set[signal_name]
             array_size = int(signal_info[0])
             size = int(signal_info[1])
@@ -376,7 +380,7 @@ def fault_list_gene(top_module, signal_set, signal_info_set):
                     file.write('{0}  SA1  0  UU\n'.format(signal_name))
 current_path =  os.getcwd()
 print("PWD", current_path)
-external_vars = ['TESTBENCH_NAME', 'INJECT_TIME', 'FAULT_TYPE', 'FAULT_LOCATION', 'CHECKER_STROBE', 'FUNCTIONAL_STROBE']
+external_vars = ['TESTBENCH_NAME', 'DUT_NAME', 'INJECT_TIME', 'FAULT_TYPE', 'FAULT_LOCATION', 'CHECKER_STROBE', 'FUNCTIONAL_STROBE']
 def extract_params(element, params):
     if element.tag in external_vars:
         if element.tag in params:
@@ -461,6 +465,6 @@ else:
     with open(port_name, 'wb') as file:
         pickle.dump(port_checked,file)
 
-outcome = var_depend_search(target_name, stmt_info_set, CFG_dag_set, depend_dic, always_dic, port_checked)
+outcome = var_depend_search(target_name, stmt_info_set, CFG_dag_set, depend_dic, always_dic, port_checked, external_params['DUT_NAME'])
 signal = list(signal_info_set.keys())
 fault_list_gene(top_module,outcome,signal_info_set)
