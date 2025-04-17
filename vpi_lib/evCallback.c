@@ -20,7 +20,7 @@ p_cback_data getLastEvent( ) { return( lastEvent ); }
 /*
  *  Create a user_data structure for the new callback
  */
-static p_cback_data newCallbackData( vpiHandle obj ,int vact_num )
+static p_cback_data newCallbackData( vpiHandle obj ,int vact_num)
 {
     p_cback_data this = ( p_cback_data )malloc( sizeof( s_cback_data ) );
 
@@ -126,14 +126,17 @@ vpiHandle obj_replace(vpiHandle obj, int vact_num)
     char* origin_name ;
     char* tb_name ;
     char* con_name;
-    if(vact_num==1) con_obj=obj;
+    if(vact_num==0) con_obj=obj;
     else {
-        origin_name = vpi_get_str(vpiFullName,obj);
+        origin_name = strdup(vpi_get_str(vpiFullName,obj));
+        //printf("DUT_NAME:%s\n",DUT_NAME);
         dut_h = vpi_handle_by_name(DUT_NAME,0);
         tb_h = vpi_handle(vpiScope,dut_h);
         //printf("=====origin_name==%s=======\n",origin_name);
-        tb_name = vpi_get_str(vpiFullName,tb_h);
+        tb_name = strdup(vpi_get_str(vpiFullName,tb_h));
         //printf("=====tb_name==%d=======\n",vact_num-1);
+        char *con_name = malloc(strlen(tb_name)+30* sizeof(char));
+        sprintf(con_name,"%s.concur_%d",tb_name,vact_num);
         size_t lenA = strlen(con_name);
         size_t lenB = strlen(DUT_NAME);  
         size_t lenC = strlen(origin_name);
@@ -153,7 +156,24 @@ vpiHandle obj_replace(vpiHandle obj, int vact_num)
             strcpy(replace_name, con_name);
             strcat(replace_name, origin_name + lenD);
         }
-        con_obj = vpi_handle_by_name(replace_name,0);
+        //printf("%s,%zu\n",replace_name,new_len);
+        if(replace_name[new_len-1] == ']')
+        {
+            const char* last_bracket = strrchr(replace_name, '[');
+            size_t sublen = new_len - strlen(last_bracket);
+            //printf("%zu\n", sublen);
+            char* parent_name = (char*)malloc(sublen + 1);
+            strncpy(parent_name, replace_name, sublen);
+            parent_name[sublen] = '\0';
+            //printf("%s\n", parent_name);
+            int index = atoi(last_bracket + 1);
+            //printf("+++++++DEBUG::parent_name:%s index:%d+++++++++\n", parent_name, index);
+            vpiHandle parent_h = vpi_handle_by_name(parent_name,0);
+            con_obj = vpi_handle_by_index(parent_h, index);
+        }
+        else
+            con_obj = vpi_handle_by_name(replace_name,0);
+
         //printf("+++++++DEBUG::replace_name:%s+++++++++",replace_name);
         if(con_obj==NULL) {
             printf("ERROR:concurrent tb generate fail, please check the 'DUT_NAME' and 'TB_NAME' defined in FI.xml");

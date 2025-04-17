@@ -1,0 +1,22 @@
+//
+// File created by:  irun
+// Do not modify this file
+//
+-clean
+-sv
+-f
+rtl.f
+fi_wrapper.sv
++define+COUNT_MEM1
+-64bit
+-afile
+/home/ICer/fusa_vpi/vpi_lib/vcdCompare.tab
+-loadvpi
+/home/ICer/fusa_vpi/vpi_lib/libvpiDebug_irun.so:vpit_RegisterTfs
+-access
++rwc
+-messages
+-l
+fault_sim_irun.log
+-snapshot
+my_snapshot

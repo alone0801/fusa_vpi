@@ -69,6 +69,7 @@ typedef struct t_causalTree_arg
 /*
  *  PLI check function for $causalTree
  */
+
 void causalTreeCheck( int data, int reason )
 {
     int index, err = 0;
@@ -78,31 +79,42 @@ void causalTreeCheck( int data, int reason )
     this->sigList = ( p_object_list )0;
 
     this->myDummy = 0;
+    
+    vpiHandle systf = vpi_handle(vpiSysTfCall, NULL);
+    vpiHandle args = vpi_iterate(vpiArgument, systf);
+    vpiHandle arg;
 
-    for ( index = 1; index <= tf_nump( ); index++ )
+    if(args != NULL)
     {
-        if ( tf_typep( index ) == tf_string )
+        while((arg = vpi_scan(args)) != NULL)
         {
-            char* str = tf_getcstringp( index );
+            s_vpi_value val;
+            val.format = vpiStringVal;
+            vpi_get_value(arg, &val);
 
-            if ( strcmp( str, "myDummy" ) == 0 ) this->myDummy = 1;
+            if(val.value.str == NULL)
+            {
+                vpi_printf("causalTree: Non-string parameter at %d\n", index);
+                ++err;
+            }
             else
             {
-                vpiHandle obj = vpi_handle_by_name( str, 0 );
-
-                if ( obj )
-                {
-                    addNewObject( &( this->sigList ), obj, str );
-                }
+                char* str = val.value.str;
+                if(strcmp(str, "myDummy") == 0)
+                    this->myDummy = 1;
                 else
                 {
-                    tf_text( "causalTree: Unable to find object <%s>\n", str ); ++err;
+                    vpiHandle obj = vpi_handle_by_name( str, 0 );
+
+                    if ( obj )
+                        addNewObject( &( this->sigList ), obj, str );
+                    else
+                    {
+                        vpi_printf( "causalTree: Unable to find object <%s>\n", str ); 
+                        ++err;
+                    }
                 }
             }
-        }
-        else
-        {
-            tf_text( "causalTree: Non-string parameter at %d\n", index ); ++err;
         }
     }
 
@@ -111,17 +123,15 @@ void causalTreeCheck( int data, int reason )
      */
     if ( this->sigList == ( p_object_list )0 )
     {
-        tf_text( "causalTree: No signals specified\n" ); ++err;
+        vpi_printf( "causalTree: No signals specified\n" ); ++err;
     }
  
     if ( err )
     {
-        tf_text( "causalTree: Usage: $causalTree( <signal> [, ... ])\n" );
- 
-        tf_message( ERR_ERROR, "User", "TFARG", "" );
+        vpi_printf( "causalTree: Usage: $causalTree( <signal> [, ... ])\n" );
     }
-
-    tf_setworkarea( ( char* )this ); /* save flags */
+    vpi_free_object(args); 
+    vpi_put_userdata(systf, (PLI_BYTE8*)this);/* save flags */
 }
 
 /*
@@ -129,7 +139,8 @@ void causalTreeCheck( int data, int reason )
  */
 void causalTreeCall( int data, int reason )
 {
-    p_causalTree_arg work = ( p_causalTree_arg )tf_getworkarea( );
+    vpiHandle systf = vpi_handle(vpiSysTfCall, NULL);
+    p_causalTree_arg work = ( p_causalTree_arg )vpi_get_userdata(systf);
 
     p_object_list this = work->sigList;
 

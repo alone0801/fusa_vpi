@@ -39,56 +39,67 @@ void dumpHierCheck( int data, int reason )
 
     work->myDummy = 0;
 
-    for ( index = 1; index <= tf_nump( ); index++ )
-    {
-        if ( tf_typep( index ) == tf_string )
-        {
-            char* str = tf_getcstringp( index );
+    vpiHandle systf = vpi_handle(vpiSysTfCall, NULL);
+    vpiHandle args = vpi_iterate(vpiArgument, systf);
+    vpiHandle arg;
 
-            if ( strcmp( str, "myDummy"  ) == 0 ) work->myDummy = 1;
+    if(args != NULL)
+    {
+        while((arg = vpi_scan(args)) != NULL)
+        {
+            s_vpi_value val;
+            val.format = vpiStringVal;
+            vpi_get_value(arg, &val);
+
+            if(val.value.str == NULL)
+            {
+                vpi_printf("dumpHier: Non-string parameter at %d\n", index);
+                ++err;
+            }
             else
             {
-                vpiHandle obj = vpi_handle_by_name( str, 0 );
-
-                if ( obj )
+                char* str = val.value.str;
+                if(strcmp(str, "myDummy") == 0)
+                    work->myDummy = 1;
+                else
                 {
-                    if ( vpi_get( vpiType, obj ) == vpiModule )
+                    vpiHandle obj = vpi_handle_by_name( str, 0 );
+
+                    if ( obj )
                     {
-                        addNewObject( &( work->modList ), obj, str );
+                        if(vpi_get(vpiType, obj) == vpiModule)
+                            addNewObject( &( work->modList ), obj, str );
+                        else
+                        {
+                            vpi_printf("dumpHier: Object <%s> is not a module\n", str);
+                            ++err;
+                        }
                     }
                     else
                     {
-                        tf_text( "dumpHier: Object <%s> is not a module\n", str ); ++err;
+                        vpi_printf("dumpHier: Unable to find object <%s>\n", str ); 
+                        ++err;
                     }
                 }
-                else
-                {
-                    tf_text( "dumpHier: Unable to find object <%s>\n", str ); ++err;
-                }
             }
-        }
-        else
-        {
-            tf_text( "dumpHier: Non-string parameter at %d\n", index ); ++err;
         }
     }
 
     if ( err )
     {
-        tf_text( "dumpHier: Usage: $dumpHier( [ <module> [, ... ] ])\n" );
- 
-        tf_message( ERR_ERROR, "User", "TFARG", "" );
+        vpi_printf( "dumpHier: Usage: $dumpHier( [ <module> [, ... ] ])\n" );
     }
- 
-    tf_setworkarea( ( char* )work ); /* save flags */
-}
 
+    vpi_free_object(args); 
+    vpi_put_userdata(systf, (PLI_BYTE8*)work);/* save flags */
+}
 /*
  *  PLI call function for $dumpHier
  */
 void dumpHierCall( int data, int reason )
 {
-    p_dumpHier_arg work = ( p_dumpHier_arg )tf_getworkarea( );
+    vpiHandle systf = vpi_handle(vpiSysTfCall, NULL);
+    p_dumpHier_arg work = ( p_dumpHier_arg )vpi_get_userdata(systf);
 
     if ( work->modList )
     {
@@ -117,5 +128,6 @@ void dumpHierCall( int data, int reason )
              */
             hierTrace( 0, ptr, 0, 0 );
         }
+        vpi_free_object(itr);
     }
 }

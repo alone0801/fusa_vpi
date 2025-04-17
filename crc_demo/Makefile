@@ -1,73 +1,35 @@
-run:
-	iverilog -f rtl.f -g2005-sv -D COUNT_MEM1
-	vvp -n a.out
-	gtkwave wave.vcd
-var:
-	verilator --sc foo.v --exe adder_tb.cpp 
+export fusa_vpi = ${PWD}/../vpi_lib
 clean:
-	rm -rf csrc simv  simv.daidir fi_wrapper.v ucli.key result.xml *.vcd *.log *.out *.o *.dsn *.trn
+	rm -rf csrc simv  simv.daidir fi_wrapper.v ucli.key result.xml *.vcd *.log *.out *.o *.dsn *.trn *.history
 	rm -rf fault_pruning_dir
 	mkdir fault_pruning_dir
-vpi:
-#编译vpi对应的c函数,生成hello.o，hello.vpi
-	iverilog-vpi vpi.c
-#编译tb与dut
-	iverilog -f rtl.if -g2005-sv -D COUNT_MEM1 -o crc_mem.vvp
-#-M.指定搜索路径 hello指定对应C的编译结果
-	vvp -M. -m vpi crc_mem.vvp
-	gtkwave wave.vcd
 list:
 	find SRC/ -name "*.sv" -or -name "*.v" >rtl.f
-vsim:
-	gcc -c -g -m64 -Wall -ansi -pedantic -I. -I /home/mentor/questasim/include/ vpi_vsim.c -fPIC -o vpi.o
-	ld -G -o vpi.sl vpi.o 
-	vlib work
-	vlog -f rtl.f 
-	vsim -c -pli vpi.sl test_new -do "run -all;exit" +TESTNAME=COUNT_MEM1
-vcs:
-	vcs -f rtl.f -P vpi.tab +vpi -sverilog vpi.c -debug_access
-	./simv
 #good_sim:
 #	rm -rf csrc simv  simv.daidir
 #	vcs +vpi +define+TESTNAME=COUNT_MEM1 -P ../vpi_lib/vcdCompare.tab \
 #	../vpi_lib/*.c  -f demo_rtl.f +define+good_sim -sverilog
 #	simv -l good_sim.log
-fault_sim:
+fault_sim_vcs: restore
 	rm -rf csrc simv  simv.daidir
-	vcs -full64 +vpi +define+RANDOM -P $(fusa_lib)/pli.tab   \
+	vcs -full64 +vpi +define+COUNT_MEM1 -P $(fusa_lib)/pli.tab   \
 	-load $(fusa_lib)/libvpiDebug.so  -f rtl.f fi_wrapper.sv -debug_all -sverilog \
 	-lxml2 \
 	+lint=TFIPC-L -notice -debug_access+all  -full64  -kdb -lca
 	./simv -l fault_sim.log
 #-ucli -i ../vpi_lib/ucli.tcl
-good_sim:
+good_sim_vcs: restore
 	python ../vpi_lib/wrapper_gen.py 
 	rm -rf csrc simv  simv.daidir
-	vcs +vpi +define+RANDOM -P $(fusa_lib)/pli.tab -full64 \
+	vcs +vpi +define+COUNT_MEM1 -P $(fusa_lib)/pli.tab -full64 \
 	-load $(fusa_lib)/libvpiDebug.so   -f rtl.f +define+good_sim -sverilog fi_wrapper.sv -lxml2 \
 	+lint=TFIPC-L -notice -debug_access+all  -full64  -kdb -lca
 	./simv -l good_sim.log 
-test: 
-	rm -rf csrc simv  simv.daidir
-	vcs  +vpi +define+BYTE_COUNT_MEM1 -P ../vpi_lib/pli.tab -full64\
-	-load ../vpi_lib/libvpiDebug.so -f rtl.f fi_wrapper.v -debug_all -sverilog \
-	+define+FAULT_LOCATION=u_tb.dut_inst.mem1_i.mem_data_in[0] \
-	+define+FAULT_VALUE=0 \
-	+define+FAULT_TIME=80 -lxml2 
-	./simv -l fault_sim.log
-fault_test:
-	cd fault_sim_0;pwd;../simv -l fault_sim.log -ucli -i ../../vpi_lib/ucli.tcl
 merge:
-#python3 ../vpi_lib/result_merge.py
 	rm -rf summary.xml
 	sh report.sh ./fault_dir
-irun:
-	-loadvpi /usr/local/lib64/python3.6/site-packages/cocotb/libs/libcocotbvpi_ius.so:vlog_startup_routines_bootstrap +access+rwc
-verdi:
-	verdi -ssf test.fsdb  &
-#-sswr ./signal.rc
 
-fault_pruning:
+fault_pruning_vcs: restore
 	rm -rf csrc simv simv.daidair fault_pruning.log fault_pruning_dir
 	python $(fusa_lib)/wrapper_gen.py
 	vcs -full64 +vpi +define+fault_pruning -P $(fusa_lib)/VRM_vpi.tab   \
@@ -76,5 +38,51 @@ fault_pruning:
 	+lint=TFIPC-L -notice -debug_access+all  -full64  -kdb -lca
 	./simv -l fault_pruning.log
 	mkdir fault_pruning_dir
+
 fault_gene:
 	python $(fusa_lib)/vpi_process.py
+
+good_sim_irun: restore
+	python ../vpi_lib/wrapper_gen.py 
+	#rm -rf INCA_libs
+	#ncvlog -sv -f rtl.f fi_wrapper.sv +define+good_sim +define+COUNT_MEM1 -64bit -messages
+	#ncelab test fi_wrapper -afile $(fusa_lib)/vcdCompare.tab -loadvpi $(fusa_lib)/libvpiDebug.so:vpit_RegisterTfs -64bit -access +rwc -messages
+	#ncsim -update test -64bit -l good_sim_irun.log
+	irun -clean -sv -f rtl.f fi_wrapper.sv +define+good_sim +define+COUNT_MEM1 -64bit -afile $(fusa_lib)/vcdCompare.tab -loadvpi $(fusa_lib)/libvpiDebug_irun.so:vpit_RegisterTfs -access +rwc -messages -l good_sim_irun.log
+fault_sim_irun: restore replace
+	#rm -rf INCA_libs
+	#ncvlog -sv -f rtl.f fi_wrapper.sv +define+COUNT_MEM1 -64bit -messages
+	#ncelab test fi_wrapper -afile $(fusa_lib)/vcdCompare.tab -loadvpi $(fusa_lib)/libvpiDebug.so:vpit_RegisterTfs -64bit -access +rwc -messages
+	#ncsim -update test -64bit
+	#ncsim -update test -64bit -l
+	irun -clean -sv -f rtl.f fi_wrapper.sv +define+COUNT_MEM1 -64bit -afile $(fusa_lib)/vcdCompare.tab -loadvpi $(fusa_lib)/libvpiDebug_irun.so:vpit_RegisterTfs -access +rwc -messages -l fault_sim_irun.log -snapshot my_snapshot
+	make restore
+FILE_LIST = rtl.f
+FILES = $(shell cat $(FILE_LIST))
+replace: backup replace_wire
+
+replace_wire:
+	@for file in $(FILES); do \
+		echo "Replacing in $$file..."; \
+		sed -i '/wire[[:space:]]*\[[^]]\+\]/s/\<wire\>/wire scalared/g' $$file; \
+	done
+
+backup:
+	@for file in $(FILES); do \
+		if [ -f $$file.back ]; then \
+			echo "$$file.back is exist"; \
+		else \
+			cp $$file $$file.back; \
+		fi \
+	done
+
+restore:
+	@for file in $(FILES); do \
+		if [ -f $$file.back ]; then \
+			echo "Restoring $$file..."; \
+			mv $$file.back $$file; \
+		else \
+			echo "No backup for $$file"; \
+		fi \
+	done
+

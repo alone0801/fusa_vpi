@@ -113,7 +113,7 @@ void oscDetectEventHandler( p_oscil_node this, p_cb_data cb_data_p )
             /*
              *  Trigger trace output and, if requested, terminate on initial detection...
              */
-            triggerOnLoop( this->refn ); if ( data->stop ) tf_dofinish( );
+            triggerOnLoop( this->refn ); if ( data->stop ) vpi_control(vpiFinish,1);
 
             /*
              *  ...else, set callback to alert us when time finally becomes un-stuck
@@ -209,53 +209,64 @@ void oscDetectCheck( int data, int reason )
     work->stop = 0;
     work->maxt = 100;
 
-    for ( index = 1; index <= tf_nump( ); index++ )
+    vpiHandle systf = vpi_handle(vpiSysTfCall, NULL);
+    vpiHandle args = vpi_iterate(vpiArgument, systf);
+    vpiHandle arg;
+
+    if(args != NULL)
     {
-        static char* thresh = "thresh=";
-
-        if ( tf_typep( index ) == tf_string )
+        while((arg = vpi_scan(args)) != NULL)
         {
-            char* str = tf_getcstringp( index );
-
-                 if ( strcmp(  str, "stopOnDetect"           ) == 0 ) work->stop = 1;
-            else if ( strncmp( str, thresh, strlen( thresh ) ) == 0 ) work->maxt = atol( str + strlen( thresh ) );
+            s_vpi_value val;
+            val.format = vpiStringVal;
+            vpi_get_value(arg, &val);
+            static char* thresh = "thresh=";
+            if(val.value.str == NULL)
+            {
+                vpi_printf("oscDetect: Non-string parameter at %d\n", index);
+                ++err;
+            }
             else
             {
-                vpiHandle obj = vpi_handle_by_name( str, 0 );
-
-                if ( obj )
+                char* str = val.value.str;
+                if(strcmp(str, "stopOnDetect") == 0)
+                    work->stop = 1;
+                else if(strncmp(str, thresh, strlen(thresh)) == 0)
+                    work->maxt = atol(str + strlen(thresh));
+                else
                 {
-                    if ( vpi_get( vpiType, obj ) == vpiModule )
+                    vpiHandle obj = vpi_handle_by_name( str, 0 );
+
+                    if ( obj )
                     {
-                        addNewObject( &( work->list ), obj, str );
+                        if ( vpi_get( vpiType, obj ) == vpiModule )
+                        {
+                            addNewObject( &( work->list ), obj, str );
+                        }
+                        else
+                        {
+                            vpi_printf( "oscDetect: Object <%s> is not a module\n", str ); 
+                            ++err;
+                        }
                     }
                     else
                     {
-                        tf_text( "oscDetect: Object <%s> is not a module\n", str ); ++err;
+                        vpi_printf( "oscDetect: Unable to find object <%s>\n", str ); 
+                        ++err;
                     }
                 }
-                else
-                {
-                    tf_text( "oscDetect: Unable to find object <%s>\n", str ); ++err;
-                }
             }
-        }
-        else
-        {
-            tf_text( "oscDetect: Non-string parameter at %d\n", index ); ++err;
         }
     }
 
     if ( err )
     {
-        tf_text( "oscDetect: Usage: $oscDetect( [ <module-or-option> [, ... ] ])\n" );
-        tf_text( "oscDetect:            stopOnDetect = enter CLI on detection\n" );
-        tf_text( "oscDetect:            thresh=<n>   = set detection event threshold\n" );
- 
-        tf_message( ERR_ERROR, "User", "TFARG", "" );
+        vpi_printf( "oscDetect: Usage: $oscDetect( [ <module-or-option> [, ... ] ])\n" );
+        vpi_printf( "oscDetect:            stopOnDetect = enter CLI on detection\n" );
+        vpi_printf( "oscDetect:            thresh=<n>   = set detection event threshold\n" );
     }
-
-    tf_setworkarea( ( char* )work ); /* save flags */
+    vpi_free_object(args);
+    vpi_put_userdata(systf, (PLI_BYTE8*)work ); /* save flags */
 }
 
 /*
@@ -263,7 +274,8 @@ void oscDetectCheck( int data, int reason )
  */
 void oscDetectCall( int data, int reason )
 {
-    p_oscDetect_arg work = ( p_oscDetect_arg )tf_getworkarea( );
+    vpiHandle systf = vpi_handle(vpiSysTfCall, NULL);
+    p_oscDetect_arg work = ( p_oscDetect_arg )vpi_get_userdata(systf);
 
     p_oscil_data userData = ( p_oscil_data )malloc( sizeof( s_oscil_data ) );
 

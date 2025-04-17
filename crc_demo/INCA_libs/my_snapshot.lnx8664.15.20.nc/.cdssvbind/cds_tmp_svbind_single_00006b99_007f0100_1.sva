@@ -1,0 +1,15 @@
+vunit cds_psl1 (test) {
+(*cds_generated_bind_instance*)
+`line 20 "./fi_wrapper.sv" 0
+dut concur_1 (.clk(clk), .rst_n(rst_n), .mem1_wr(mem1_wr), .mem1_addr(mem1_addr), .mem1_data_in(mem1_data_in), .mem1_data_out(), .mem1_err_detected(), .mem1_err_corrected(), .mem2_wr(mem2_wr), .mem2_addr(mem2_addr), .mem2_data_in(mem2_data_in), .mem2_data_out(), .mem2_err_detected(), .mem2_err_corrected());
+
+(*cds_generated_bind_instance*)
+`line 21 "./fi_wrapper.sv" 0
+dut concur_2 (.clk(clk), .rst_n(rst_n), .mem1_wr(mem1_wr), .mem1_addr(mem1_addr), .mem1_data_in(mem1_data_in), .mem1_data_out(), .mem1_err_detected(), .mem1_err_corrected(), .mem2_wr(mem2_wr), .mem2_addr(mem2_addr), .mem2_data_in(mem2_data_in), .mem2_data_out(), .mem2_err_detected(), .mem2_err_corrected());
+
+(*cds_generated_bind_instance*)
+`line 22 "./fi_wrapper.sv" 0
+dut concur_3 (.clk(clk), .rst_n(rst_n), .mem1_wr(mem1_wr), .mem1_addr(mem1_addr), .mem1_data_in(mem1_data_in), .mem1_data_out(), .mem1_err_detected(), .mem1_err_corrected(), .mem2_wr(mem2_wr), .mem2_addr(mem2_addr), .mem2_data_in(mem2_data_in), .mem2_data_out(), .mem2_err_detected(), .mem2_err_corrected());
+
+}
+

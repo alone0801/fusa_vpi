@@ -1,4 +1,5 @@
-#include "vcsuser.h"
+#include "veriuser.h"
+#include "vxl_veriuser.h"
 #include "vpi_user.h"
 #include <strings.h>
 #include <libxml/parser.h>
@@ -15,12 +16,13 @@ static int fault_tw[2];
 static int flag_continue=0;
 static int flag_checker=0;
 static int flag_functional=0;
+static int last_time = 0;
 //static char fault_target[100];
 static char iso_mode[20];
 char DUT_NAME[100];
 static int  CON_NUM = 1;  // default==1 
 //static char status_checker[10] = "Undetect";
-//static char status_functional[10] = "Undetect";
+//static char status_functimefonal[10] = "Undetect";
 //static char status_checker[10][CON_NUM] = "Undetect";
 static struct Fault *fault_array = NULL;
 //char (*status_checker)[10] = NULL;
@@ -41,7 +43,7 @@ void parse_injectXML(const char* filename);
 void SAInject(const char* fault_location, const char* fault_time, const char* fault_typeo);
 void generateXML(const char* idValue, const char* locationValue, const char** statusValue,const char* typeValue, int vact_num);
 void fault_injector_check(struct Fault *fault_p,int vact_num);
-void fault_modeling_check(StringList* fault_target,StringList* fault_exclude, int fault_tw[]);
+void _check(StringList* fault_target,StringList* fault_exclude, int fault_tw[]);
 void value_get(const char* fault_location);
 static int timeoutHandler( p_cb_data cb_data_p );
 void freeStringList(StringList *list);
@@ -128,12 +130,13 @@ static struct event* actualEvent( char* mark, char* valu , int vact_count)
             if ( ptr->vact[vact_count] ) free( ptr->vact[vact_count] );
 
             ptr->vact[vact_count] =  strdup(valu) ;
+            //printf("Value of valu: %s\n", valu);
             return( ptr );
         }
         ptr = ptr->next;
     }
-  /*  printf("Value of valu: %s\n", mark);
-    printf("Value of valu: %s\n", valu); */
+    //printf("Value of valu: %s\n", mark);
+    //printf("Value of valu: %s\n", valu);
     return( createNewEvent( strdup( mark ), ( char* )0, strdup( valu ), vact_count) );
 }
 
@@ -149,10 +152,11 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
     int flag_stop=0; 
     int i;
     /*flag control if drop this simulation at the end of time step*/
+    vpiHandle systf = vpi_handle(vpiSysTfCall, NULL);
     static s_vpi_time time_s = { vpiScaledRealTime,{0} };
     static s_vpi_time time_int = { vpiSimTime ,{0}};
-    vpi_get_time( 0, &time_int );
-    vpi_get_time( 0, &time_s );
+    vpi_get_time(systf, &time_int );
+    vpi_get_time(systf, &time_s );
 /*    printf("Compare at%ld:%ld:\n", time_s.high, time_s.low );
     printEventList(top);
     DBG_VDIFF(( "Compare at %ld:%ld:\n", time_s.high, time_s.low ));
@@ -213,6 +217,7 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
 //            }
         }
         else {
+            //vpi_printf("compare%s, %s\n",ptr->vexp,ptr->vact[0]);
             for(i=0;i<CON_NUM+1 ;i++){
                 if ( ptr->vact[i] == 0 ){
                     p_vdiff_node node = ( p_vdiff_node )lookup( ptr->mark, &vcdHash );
@@ -235,22 +240,25 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
                         strcpy(status_functional[i], "Detect");
                     }
                 }
-                else if(strcmp( ptr->vexp, ptr->vact[i] )){
+                else if(atoi(ptr->vexp) != atoi(ptr->vact[i])){
                     p_vdiff_node node = ( p_vdiff_node )lookup( ptr->mark, &vcdHash );
-                    char* name = node ? FullName( node->refn->refn ) : "<noname>";
+                    char* name = node ? FullName(node->refn->refn) : "<noname>";
                     if(i==0) vpi_printf( "*** DUT:: Mismatch on <%s(%s)>: exp=<%s>, act=<%s> at %lf\n",
                                   name, ptr->mark, ptr->vexp, ptr->vact[i], time_s.real );
                     else vpi_printf( "*** CON_%d:: Mismatch on <%s(%s)>: exp=<%s>, act=<%s> at %lf\n",
                                  i, name, ptr->mark, ptr->vexp, ptr->vact[i], time_s.real );
+                    //printf("%s\n",name);
                     if(checkStringList(&checker_list,name)) {
                         if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
                         flag_checker=1;
                         strcpy(status_checker[i], "Detect");
-                                            }
+                        //printf("%s\n",status_checker[i]);
+                        }
                     if(checkStringList(&functional_list,name)) {
                         if(!flag_functional) sprintf(FUNCTIONAL_TIME, "%lf", time_s.real);
                         flag_functional=1;
                         strcpy(status_functional[i], "Detect");
+                        //printf("%s\n",status_functional[i]);
                     }
                 }
             }//for end
@@ -358,7 +366,7 @@ static int timeHandler( p_cb_data cb_data_p )
     processVcd( ( void* )cb_data_p->user_data );
 }
 
-static void setTimeCallback( double time, void* ptr )
+static void setTimeCallback( int time, void* ptr )
 {   
     uint64_t time_64 = (uint64_t) time;
     uint32_t high = (uint32_t)(time_64 >> 32)&(0xFFFFFFFFFFFFFFFF);
@@ -372,7 +380,7 @@ static void setTimeCallback( double time, void* ptr )
     callbackData.time->high = high;
     callbackData.time->low  = low;
   //  callbackData.time->real  = time;
-    //printf("++++++DEBUG:TIMEHANDLER_TIME:%d:%d++++++++++++++",callbackData.time->high,callbackData.time->low);
+    //vpi_printf("++++++DEBUG:TIMEHANDLER_TIME:%d:%d++++++++++++++\n",callbackData.time->high,callbackData.time->low);
     callbackData.user_data = ( char* )ptr; /* VCD handle */
 
     //DBG_VDIFF(( "Next wakeup call at %lf\n", callbackData.time->real));
@@ -391,7 +399,7 @@ int vcdCompareEventHandler( p_vdiff_node this, p_cb_data cb_data_p ,int vact_cou
     //for(i=0;i<CON_NUM;i++)setCompareCallback( actualEvent( this->mark, cb_data_p->value->value.str, i ) );
     
     //printf("\nDEBUG::CON_NUM==%d,i==%d in vcdCompareEventHandler\n",CON_NUM,vact_count);
-    setCompareCallback( actualEvent( this->mark, cb_data_p->value->value.str,  vact_count-1 ) );
+    setCompareCallback( actualEvent( this->mark, cb_data_p->value->value.str,  vact_count ) );
 }
 
 /*
@@ -409,7 +417,7 @@ void foundSignal( char* name, char* type, long size, char* mark )
     int i;
     //printf("&&&&&&CON_NUM==%d,name==%s&&&&&&&&&&&",CON_NUM,name);
     vpiHandle obj = vpi_handle_by_name( name, scope );
-    p_cback_data node = setEventCallback( obj, 1 );
+    p_cback_data node = setEventCallback( obj, 0 );
 
     node->dnod = newVdiffNode( node, mark );
 
@@ -447,10 +455,11 @@ void foundSignal( char* name, char* type, long size, char* mark )
 static void processVcd( void* ptr )
 {
     int i;
+   
     while ( ptr )
     {
         char* str = readVcdLine( ptr );
-
+        //printf("%s\n", str); 
         if ( str == 0 ) break; /* no more VCD file */
 
         if ( strcmp( str, "$dumpvars" ) == 0 )
@@ -465,6 +474,7 @@ static void processVcd( void* ptr )
            printf("\n 0ns bgein here to read vcd\n");
             readVcdLine( ptr );
             while ( strcmp( str, "$end" ) ){
+                //printf("%s\n",str);
                 char *valu = (char *)malloc(strlen(str) + 1);
                 char *spacePos = strchr(str, ' ');
                 if (spacePos != NULL) {
@@ -480,8 +490,8 @@ static void processVcd( void* ptr )
                     //printf("EXPECTEVENT: <%s> = %s\n", str, valu );
                     setCompareCallback(expectedEvent(str+1, valu));
                     for(i=0;i<CON_NUM+1;i++) setCompareCallback(actualEvent(str+1, valu, i));
-            }
-            readVcdLine( ptr );
+                }
+                readVcdLine( ptr );
             }
         } 
         else if ( *str == '#' )
@@ -492,7 +502,14 @@ static void processVcd( void* ptr )
              *  happen before this time must be mismatches.
              */
            /*  printEventList(top);*/
-            if ( atol( str + 1 ) ) { setTimeCallback( atof( ++str ), ptr ); return; }
+            if ( atol( str + 1 ) )
+            {
+                str = str + 1;
+                //vpi_printf("%d - %d \n",atoi(str),last_time);
+                setTimeCallback(atoi(str), ptr );
+                //vpi_printf("2:%d\n",last_time);
+                return; 
+            }
         }
         else /* assume single-bit change record */
         {
@@ -532,33 +549,36 @@ static void vcdCompareEosHandler( p_cb_data data )
  */
 void vcdCompareCheck( )
 {
-    char* path = tf_getcstringp( 1 );
-    char* step = tf_getcstringp( 2 );
+    //char* path = tf_getcstringp( 1 ); //irun doesn't support this function
+    //char* step = tf_getcstringp( 2 );
     vpiHandle systf_h, arg_itr, arg_h;
     s_vpi_value value_s;
+    char FI_PATH[100];
+    char FS_PATH[100];
     systf_h = vpi_handle(vpiSysTfCall, NULL);
     arg_itr = vpi_iterate(vpiArgument, systf_h);
     arg_h = vpi_scan(arg_itr);
     value_s.format = vpiStringVal;
     vpi_get_value(arg_h, &value_s);
+    strcpy(FI_PATH, value_s.value.str);
+    strcpy(FS_PATH, value_s.value.str);
     arg_h = vpi_scan(arg_itr);
     vpi_get_value(arg_h, &value_s);
-    vpi_free_object(arg_itr); /* free iterator -- did not scan to null */
-    char  FI_PATH[100];
-
-    strcpy(FI_PATH, path);
     strcat(FI_PATH,"/FI.xml");
+    strcat(FS_PATH,"/fault.set");
+    vpi_free_object(arg_itr); /* free iterator -- did not scan to null */
     initializeStringList(&fault_target);
     initializeStringList(&fault_exclude);
     initializeStringList(&fault_tw_str);
     initializeStringList(&checker_list);
     initializeStringList(&functional_list);
     initializeStringList(&nostop_list);
+    FaultData *faults = random_process(FS_PATH);
     parseXML(FI_PATH);
     fault_tw[0] = atoi(fault_tw_str.strings[0]);
     fault_tw[1] = atoi(fault_tw_str.strings[1]);
-    if (strcmp(step, "good_sim") == 0) 
-        fault_modeling_check(&fault_target,&fault_exclude,&fault_tw);
+//    if (strcmp(value_s.value.str, "good_sim") == 0) 
+//        fault_modeling_check(&fault_target,&fault_exclude,&fault_tw);
 //    if ( tf_nump( ) == 1 )
 //    {
 //        if ( tf_typep( 1 ) == tf_string ) return;
@@ -576,13 +596,27 @@ void vcdCompareCheck( )
  */
 void vcdCompareCall( )
 {
-    char* path = tf_getcstringp( 1 );
-    char* step = tf_getcstringp( 2 );
-    char  filename[100];
-    char  FI_PATH[100];
-    char  FS_PATH[100];
-    char  TIME_PATH[100];
-    if (strcmp(path, "good_sim") == 0) {
+    //char* path = tf_getcstringp( 1 );//xrun doesn't support this function
+    //char* step = tf_getcstringp( 2 );
+    vpiHandle systf_h, arg_itr, arg_h;
+    s_vpi_value value_h;
+    char str_fir[100]; 
+    char str_sec[100];
+    char filename[100];
+    char FI_PATH[100];
+    char FS_PATH[100];
+    char TIME_PATH[100];
+    systf_h = vpi_handle(vpiSysTfCall, NULL);
+    arg_itr = vpi_iterate(vpiArgument, systf_h);
+    arg_h = vpi_scan(arg_itr);
+    value_h.format = vpiStringVal;
+    vpi_get_value(arg_h, &value_h);
+    strcpy(str_fir, value_h.value.str);
+    arg_h = vpi_scan(arg_itr);
+    vpi_get_value(arg_h, &value_h);
+    strcpy(str_sec, value_h.value.str);
+    vpi_free_object(arg_itr); /* free iterator -- did not scan to null */
+    if (strcmp(str_sec, "good_sim") == 0) {
         addEosCallback( timeRecordEosHandler );
         //timeCheck("/home/ICer/fusa_vpi/autosoc-development/Simulation/fault.time");
     }
@@ -604,14 +638,14 @@ void vcdCompareCall( )
         //        vpi_put_value(signal_handle, &fault_value, &time_s, flag);
         //    }
         //////
-        vpi_printf("path = %s\n",path);
-        strcpy(FS_PATH, path);
+        vpi_printf("path = %s\n",str_fir);
+        strcpy(FS_PATH, str_fir);
         strcat(FS_PATH,"/fault.set");
-        strcpy(FI_PATH, path);
+        strcpy(FI_PATH, str_fir);
         strcat(FI_PATH,"/FI.xml");
-        strcpy(filename, path);
+        strcpy(filename, str_fir);
         strcat(filename,"/golden.vcd");
-        strcpy(TIME_PATH, path);
+        strcpy(TIME_PATH, str_fir);
         strcat(TIME_PATH,"/golden.time");
         vpi_printf( "vcdCompare: reading <%s>\n", filename );
         initializeStringList(&checker_list);
@@ -631,7 +665,8 @@ void vcdCompareCall( )
         printStringList(&functional_list);
         printf("nostop strobe list:\n");
         printStringList(&nostop_list);
-        if(FAULT_LOCATION==NULL||strlen(FAULT_LOCATION) == 0 ){
+        if(FAULT_LOCATION==NULL||strlen(FAULT_LOCATION) == 0 )
+        {
             strcpy(FAULT_LOCATION, faults[id].location);
             fault.fault_node_name = FAULT_LOCATION;
             fault.injection_time = atoi(faults[id].time);
@@ -649,11 +684,11 @@ void vcdCompareCall( )
                     fault.fault_type = SA_FAULT;
                     fault.fault_value = 1;
                 }
-            //printf("**********DEBUG%s",faults[id].fault_location);
+            //printf("**********DEBUG%s\n%d\n",faults[id].location,CON_NUM);
             int i;
             for(i=0;i<CON_NUM+1;i++){
                 fault_array[i].fault_node_name = strdup(faults[id + i].location);
-                //strcpy(fault_array[i].fault_node_name, faults[id + i].location);
+                strcpy(fault_array[i].fault_node_name, faults[id + i].location);
                 fault_array[i].injection_time = atoi(faults[id+i].time);
                 //int a = atoi(faults[id+i].time);
                 //printf("++++DEBUG::fault_array[i].name=%s++++\n",fault_array[i].fault_node_name);
@@ -675,18 +710,20 @@ void vcdCompareCall( )
                     }
             }
         }
-    else {
-        CON_NUM=0;
-        fault_array[0].fault_node_name =FAULT_LOCATION;
-        fault_array[0].injection_time = atoi(FAULT_TIME);
-
+        else {
+            CON_NUM=0;
+            fault_array[0].fault_node_name =FAULT_LOCATION;
+            fault_array[0].injection_time = atoi(FAULT_TIME);
+            //printf("++++DEBUG::fault_array[i].name=%s++++\n",fault_array[0].fault_node_name);
+        }
     }
-    if (strcmp(step, "good_sim") == 0) {
+    if (strcmp(str_sec, "good_sim") == 0) {
         addEosCallback( timeRecordEosHandler );
         //iso_gen("test_new.test_ins.sub_inst.a",&iso_inst_list);
         
         //printList(&port_list);
         iso_itr(&port_list,&iso_inst_list);
+        //vpi_printf("CON_NUM in good_sim is %d\n", CON_NUM);
         concur_gen(CON_NUM,DUT_NAME);
         vpi_printf("\n****instrumenting the isolation in DUT****\n");
         //timeCheck("/home/ICer/fusa_vpi/autosoc-development/Simulation/fault.time");
@@ -708,7 +745,8 @@ void vcdCompareCall( )
 
     //fault_injector_check(&fault);
     int i;
-    for(i=0;i<CON_NUM+1;i++) fault_injector_check(&fault_array[i],i+1);
+    //printf("***********DEBUG: CON_NUM:%d*************\n",CON_NUM);
+    for(i=0;i<CON_NUM+1;i++) fault_injector_check(&fault_array[i],i);
     /*
     double time_d = 22644900000.00000;
     uint64_t time_64 = (uint64_t)time_d;
@@ -722,7 +760,6 @@ void vcdCompareCall( )
 //    freeStringList(&functional_list);
 //    freeStringList(&nostop_list);
     //time_test
-    }
 }
 
 /*
@@ -754,7 +791,7 @@ static void setTimeoutCallback(double time) {
     callbackData.time->low  = (uint32_t)(time_int & 0xFFFFFFFF); // 低32位
     //printf("++++++++++DEBUG%lf++++++++++++",callbackData.time->real);
     callbackData.time->real =  time;
-    printf("++++++++++DEBUG_add_time_out_cb%lf++++++++++++",callbackData.time->real);
+    //printf("++++++++++DEBUG_add_time_out_cb%lf++++++++++++",callbackData.time->real);
     vpi_register_cb(&callbackData);
 }
 static int timeoutHandler(p_cb_data cb_data_p)
@@ -868,7 +905,8 @@ void parseXML(const char* filename) {
         if (xmlStrcmp(node->name, (const xmlChar*)"CON") == 0){
             xmlChar* content = xmlNodeGetContent(node);
             CON_NUM = atoi(content);
-            if(1+CON_NUM+atoi(FAULT_ID)>num_lines) CON_NUM= num_lines-atoi(FAULT_ID)-1;
+            //printf("%d %d %d\n",CON_NUM,atoi(FAULT_ID),num_lines);
+            if(CON_NUM+atoi(FAULT_ID)>num_lines) CON_NUM= num_lines-atoi(FAULT_ID);
             printf("Concurrent num is :%d\n",CON_NUM);
             //status_checker    = (char (*)[10])malloc((CON_NUM+1) * sizeof(char[10]));
             //status_functional = (char (*)[10])malloc((CON_NUM+1) * sizeof(char[10]));
@@ -997,7 +1035,7 @@ static int fault_classification( p_cb_data cb_data_p )
         result[i] = (char *)malloc(3 * sizeof(char));
         result[i][0] = status_functional[i][0];
         result[i][1] = status_checker[i][0];
-        result[i][2] = '\0'; 
+        result[i][2] = '\0';
     }
     printf("Strobe Mode is %s\n",strobe_mode);
     if (strcmp(strobe_mode, "Single") == 0){
@@ -1068,14 +1106,8 @@ void SAInject(const char* fault_location, const char* fault_time, const char* fa
     printf("Inject Fault at:%s ,Fault type is %s\n",vpi_get_str(vpiFullName,location_handle),fault_type);
     vpi_put_value(location_handle,&value_s,NULL,vpiForceFlag);
 }
-void value_get(const char* fault_location){
-    vpiHandle location_handle;
-    s_vpi_value value_s;
-    value_s.format = vpiBinStrVal;
-    location_handle = vpi_handle_by_name(fault_location,0);
-    vpi_get_value(location_handle, &value_s);
-    vpi_printf("DEBUG:%s value is %s\n",fault_location,value_s.value.str);
-}
+
+/*
 void vcd_vpi_register(){
     s_vpi_systf_data tf_data;
     tf_data.type=vpiSysTask;
@@ -1086,11 +1118,31 @@ void vcd_vpi_register(){
     tf_data.user_data=0;
     vpi_register_systf(&tf_data);
 }
+*/
+
+extern void vpit_RegisterTfs( void )
+{
+    s_vpi_systf_data systf_data;
+    vpiHandle        systf_handle;
+
+    systf_data.type        = vpiSysTask;
+    systf_data.sysfunctype = 0;
+    systf_data.tfname      = "$vcdCompare";
+    systf_data.calltf      = vcdCompareCall;
+    systf_data.compiletf   = vcdCompareCheck;
+    systf_data.sizetf      = 0;
+    systf_data.user_data   = 0;
+    systf_handle = vpi_register_systf( &systf_data );
+    vpi_free_object( systf_handle );
+}
 #ifdef SHARE_LIB
 
 #else
 void(*vlog_startup_routines[])()={
-    vcd_vpi_register,
-    NULL
+    vpit_RegisterTfs,
+    0
 };
+
 #endif
+
+

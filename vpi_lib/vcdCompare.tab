@@ -1,1 +1,1 @@
-$vcdCompare   check=vcdCompareCheck   call=vcdCompareCall   misc=vcdCompareMisc  acc=r,cbk:*
+$vcdCompare check=vcdCompareCheck call=vcdCompareCall

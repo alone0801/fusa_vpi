@@ -104,63 +104,78 @@ void extractModCheck( int data, int reason )
 
     work->outFile = 1; /* use stdout by default */
 
-    for ( index = 1; index <= tf_nump( ); index++ )
+    vpiHandle systf = vpi_handle(vpiSysTfCall, NULL);
+    vpiHandle args = vpi_iterate(vpiArgument, systf);
+    vpiHandle arg;
+  
+    if(args != NULL)
     {
-        static char* fname = "outfile=";
-
-        if ( tf_typep( index ) == tf_string )
+        while((arg = vpi_scan(args)) != NULL)
         {
-            char* str = tf_getcstringp( index );
+            static char* fname = "outfile=";
+            s_vpi_value val;
+            val.format = vpiStringVal;
+            vpi_get_value(arg, &val);
 
-            if ( strncmp( str, fname, strlen( fname ) ) == 0 )
+            if(val.value.str == NULL)
             {
-                if ( work->outName )
-                {
-                    tf_text( "extractMod: Multiple 'outfile=', <%s> ignored\n", str ); ++err;
-                }
-                else
-                {
-                    work->outName = strdup( str + strlen( fname ) );
-
-                    work->outFile = vpi_mcd_open( work->outName );
-
-                    if ( work->outFile == 0 )
-                    {
-                        tf_text( "extractMod: Cannot open <%s> for writing\n", work->outName ); ++err;
-                    }
-                }
+                vpi_printf("extractMod: Non-string parameter at %d\n", index);
+                ++err;
             }
             else
             {
-                vpiHandle obj = vpi_handle_by_name( str, 0 );
-
-                if ( obj )
+                char* str = val.value.str;
+                if(strncmp(str, fname, strlen(fname)) == 0)
                 {
-                    if ( vpi_get( vpiType, obj ) == vpiModule )
+                    if(work->outName)
                     {
-                        if ( work->modList )
+                        vpi_printf("extractMod: Multiple 'outfile=', <%s> ignored\n", str);
+                        ++err;
+                    }
+                    else
+                    {
+                        work->outName = strdup( str + strlen( fname ) );
+
+                        work->outFile = vpi_mcd_open( work->outName );
+
+                        if ( work->outFile == 0 )
                         {
-                            tf_text( "extractMod: Multiple modules, <%s> ignored\n", str ); ++err;
+                            vpi_printf( "extractMod: Cannot open <%s> for writing\n", work->outName ); 
+                            ++err;
+                        }
+                    }
+                }
+                else
+                {
+                    vpiHandle obj = vpi_handle_by_name( str, 0 );
+
+                    if ( obj )
+                    {
+                        if ( vpi_get( vpiType, obj ) == vpiModule )
+                        {
+                            if ( work->modList )
+                            {
+                                vpi_printf( "extractMod: Multiple modules, <%s> ignored\n", str ); 
+                                ++err;
+                            }
+                            else
+                            {
+                                addNewObject( &( work->modList ), obj, str );
+                            }
                         }
                         else
                         {
-                            addNewObject( &( work->modList ), obj, str );
+                            vpi_printf( "extractMod: Object <%s> is not a module\n", str ); 
+                            ++err;
                         }
                     }
                     else
                     {
-                        tf_text( "extractMod: Object <%s> is not a module\n", str ); ++err;
+                        vpi_printf( "extractMod: Unable to find object <%s>\n", str ); 
+                        ++err;
                     }
                 }
-                else
-                {
-                    tf_text( "extractMod: Unable to find object <%s>\n", str ); ++err;
-                }
             }
-        }
-        else
-        {
-            tf_text( "extractMod: Non-string parameter at %d\n", index ); ++err;
         }
     }
 
@@ -169,18 +184,17 @@ void extractModCheck( int data, int reason )
      */
     if ( work->modList == 0 )
     {
-        tf_error( "extractMod: No module specified\n" ); ++err;
+        vpi_printf( "extractMod: No module specified\n" ); ++err;
     }
 
     if ( err )
     {
-        tf_text( "extractMod: Usage: $extractMod( [ <module-or-option> [, ... ] ])\n" );
-        tf_text( "extractMod:            outfile=<file> = specify output file\n" );
- 
-        tf_message( ERR_ERROR, "User", "TFARG", "" );
+        vpi_printf( "extractMod: Usage: $extractMod( [ <module-or-option> [, ... ] ])\n" );
+        vpi_printf( "extractMod:            outfile=<file> = specify output file\n" );
     }
- 
-    tf_setworkarea( ( char* )work ); /* save flags */
+
+    vpi_free_object(args);
+    vpi_put_userdata(systf, (PLI_BYTE8*)work);/* save flags */
 }
 
 /*
@@ -188,8 +202,8 @@ void extractModCheck( int data, int reason )
  */
 void extractModCall( int data, int reason )
 {
-    p_extractMod_arg work = ( p_extractMod_arg )tf_getworkarea( );
-
+    vpiHandle systf = vpi_handle(vpiSysTfCall, NULL);
+    p_extractMod_arg work = ( p_extractMod_arg )vpi_get_userdata(systf);
     vpiHandle itr, ptr, mod = work->modList->refn;
 
     int modNameLen = 0; /* formatting flag */

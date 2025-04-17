@@ -65,49 +65,58 @@ void dumpUpstreamCheck( int data, int reason )
 
     this->myDummy = 0;
 
-    for ( index = 1; index <= tf_nump( ); index++ )
-    {
-        if ( tf_typep( index ) == tf_string )
-        {
-            char* str = tf_getcstringp( index );
+    vpiHandle systf = vpi_handle(vpiSysTfCall, NULL);
+    vpiHandle args = vpi_iterate(vpiArgument, systf);
+    vpiHandle arg;
 
-            if ( strcmp( str, "myDummy" ) == 0 ) this->myDummy = 1;
+    if(args != NULL)
+    {
+        while((arg = vpi_scan(args)) != NULL)
+        {
+            s_vpi_value val;
+            val.format = vpiStringVal;
+            vpi_get_value(arg, &val);
+
+            if(val.value.str == NULL)
+            {
+                vpi_printf("dumpUpstream: Non-string parameter at %d\n", index);
+                ++err;
+            }
             else
             {
-                vpiHandle obj = vpi_handle_by_name( str, 0 );
-
-                if ( obj )
-                {
-                    addNewObject( &( this->sigList ), obj, str );
-                }
+                char* str = val.value.str;
+                if(strcmp(str, "myDummy") == 0)
+                    this->myDummy = 1;
                 else
                 {
-                    tf_text( "dumpUpstream: Unable to find object <%s>\n", str ); ++err;
+                    vpiHandle obj = vpi_handle_by_name( str, 0 );
+
+                    if ( obj )
+                        addNewObject( &( this->sigList ), obj, str );
+                    else
+                    {
+                        vpi_printf("dumpUpstream: Unable to find object <%s>\n", str); 
+                        ++err;
+                    }
                 }
             }
         }
-        else
-        {
-            tf_text( "dumpUpstream: Non-string parameter at %d\n", index ); ++err;
-        }
     }
-
     /*
      *  We need to see at least one signal
      */
     if ( this->sigList == ( p_object_list )0 )
     {
-        tf_text( "dumpUpstream: No signals specified\n" ); ++err;
+        vpi_printf( "dumpUpstream: No signals specified\n" ); ++err;
     }
  
     if ( err )
     {
-        tf_text( "dumpUpstream: Usage: $dumpUpstream( <signal> [, ... ])\n" );
- 
-        tf_message( ERR_ERROR, "User", "TFARG", "" );
+        vpi_printf( "dumpUpstream: Usage: $dumpUpstream( <signal> [, ... ])\n" ); 
     }
-
-    tf_setworkarea( ( char* )this ); /* save flags */
+    
+    vpi_free_object(args); 
+    vpi_put_userdata(systf, (PLI_BYTE8*)this);/* save flags */
 }
 
 /*
@@ -115,7 +124,8 @@ void dumpUpstreamCheck( int data, int reason )
  */
 void dumpUpstreamCall( int data, int reason )
 {
-    p_dumpUpstream_arg work = ( p_dumpUpstream_arg )tf_getworkarea( );
+    vpiHandle systf = vpi_handle(vpiSysTfCall, NULL);
+    p_dumpUpstream_arg work = ( p_dumpUpstream_arg )vpi_get_userdata(systf);
 
     p_object_list this = work->sigList;
 

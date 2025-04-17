@@ -1,4 +1,4 @@
-#include "vcsuser.h"
+#include "veriuser.h"
 #include "vpi_user.h"
 
 #define SA_FAULT 0
@@ -11,4 +11,9 @@ struct Fault{
     int injection_time;
 }fault,*fault_p;
 
+struct cb_Userdata{
+    vpiHandle module_handle;
+    PLI_INT32 vact_num;
+    struct Fault *fault_p;
+}cb_userdata,*cb_userdata_p;
 char TESTBENCH_NAME[100];

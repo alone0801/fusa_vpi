@@ -177,57 +177,66 @@ void traceSignalCheck( int data, int reason )
     this->onOscil = 0;
     this->onFinal = 0;
 
-    for ( index = 1; index <= tf_nump( ); index++ )
-    {
-        if ( tf_typep( index ) == tf_string )
-        {
-            char* str = tf_getcstringp( index );
+    vpiHandle systf = vpi_handle(vpiSysTfCall, NULL);
+    vpiHandle args = vpi_iterate(vpiArgument, systf);
+    vpiHandle arg;
 
-                 if ( strcmp( str, "onEvent"  ) == 0 ) this->onEvent = 1;
-            else if ( strcmp( str, "onDiff"   ) == 0 ) this->onVdiff = 1;
-            else if ( strcmp( str, "onLoop"   ) == 0 ) this->onOscil = 1;
-            else if ( strcmp( str, "onOsc"    ) == 0 ) this->onOscil = 1;
-            else if ( strcmp( str, "onFinish" ) == 0 ) this->onFinal = 1;
+    if(args != NULL)
+    {
+        while((arg = vpi_scan(args)) != NULL)
+        {
+            s_vpi_value val;
+            val.format = vpiStringVal;
+            vpi_get_value(arg, &val);
+
+            if(val.value.str == NULL)
+            {
+                vpi_printf("traceSignal: Non-string parameter at %d\n", index);
+                ++err;
+            }
             else
             {
-                vpiHandle obj = vpi_handle_by_name( str, 0 );
-
-                if ( obj )
-                {
-                    addNewObject( &( this->sigList ), obj, str );
-                }
+                char* str = val.value.str;
+                if ( strcmp( str, "onEvent"  ) == 0 ) this->onEvent = 1;
+                else if ( strcmp( str, "onDiff"   ) == 0 ) this->onVdiff = 1;
+                else if ( strcmp( str, "onLoop"   ) == 0 ) this->onOscil = 1;
+                else if ( strcmp( str, "onOsc"    ) == 0 ) this->onOscil = 1;
+                else if ( strcmp( str, "onFinish" ) == 0 ) this->onFinal = 1;
                 else
                 {
-                    tf_text( "traceSignal: Unable to find object <%s>\n", str ); ++err;
+                    vpiHandle obj = vpi_handle_by_name( str, 0 );
+                    if ( obj )
+                    {
+                        addNewObject( &( this->sigList ), obj, str );
+                    }
+                    else
+                    {
+                        vpi_printf( "traceSignal: Unable to find object <%s>\n", str ); 
+                        ++err;
+                    }
                 }
             }
         }
-        else
-        {
-            tf_text( "traceSignal: Non-string parameter at %d\n", index ); ++err;
-        }
     }
-
     /*
      *  We need to see at least one signal
      */
     if ( this->sigList == ( p_object_list )0 )
     {
-        tf_text( "traceSignal: No signals specified\n" ); ++err;
+        vpi_printf( "traceSignal: No signals specified\n" ); 
+        ++err;
     }
 
     if ( err )
     {
-        tf_text( "traceSignal: Usage: $traceSignal( <signal-or-option> [, ... ])\n" );
-        tf_text( "traceSignal:            onEvent = display trace on every transition\n" );
-        tf_text( "traceSignal:            onVdiff = display trace on VCD mismatch ($vcdCompare)\n" );
-        tf_text( "traceSignal:            onOscil = display trace on oscullation ($oscDetect)\n" );
-        tf_text( "traceSignal:            onFinal = display trace at end-of-simulation (obsolete)\n" );
-
-        tf_message( ERR_ERROR, "User", "TFARG", "" );
+        vpi_printf( "traceSignal: Usage: $traceSignal( <signal-or-option> [, ... ])\n" );
+        vpi_printf( "traceSignal:            onEvent = display trace on every transition\n" );
+        vpi_printf( "traceSignal:            onVdiff = display trace on VCD mismatch ($vcdCompare)\n" );
+        vpi_printf( "traceSignal:            onOscil = display trace on oscullation ($oscDetect)\n" );
+        vpi_printf( "traceSignal:            onFinal = display trace at end-of-simulation (obsolete)\n" );
     }
-
-    tf_setworkarea( ( char* )this ); /* save flags */
+    vpi_free_object(args);
+    vpi_put_userdata(systf, (PLI_BYTE8*)this ); /* save flags */
 }
 
 /*
@@ -235,7 +244,8 @@ void traceSignalCheck( int data, int reason )
  */
 void traceSignalCall( int data, int reason )
 {
-    p_traceSignal_arg work = ( p_traceSignal_arg )tf_getworkarea( );
+    vpiHandle systf = vpi_handle(vpiSysTfCall, NULL);
+    p_traceSignal_arg work = ( p_traceSignal_arg )vpi_get_userdata(systf);
 
     p_object_list this;
 

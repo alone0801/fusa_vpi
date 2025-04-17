@@ -1,0 +1,24 @@
+//
+// File created by:  irun
+// Do not modify this file
+//
++define+COUNT_MEM1
+-MESSAGES
++EMGRLOG
+fault_sim_irun.log
+-XLSTIME
+1744878512
+-XLKEEP
+-XLMODE
+./INCA_libs/my_snapshot.lnx8664.15.20.nc
+-RUNMODE
+-CDSLIB
+./INCA_libs/my_snapshot.lnx8664.15.20.nc/cds.lib
+-HDLVAR
+./INCA_libs/my_snapshot.lnx8664.15.20.nc/hdl.var
+-XLNAME
+irun
+-XLVERSION
+"TOOL:	irun(64)	15.20-p001"
+-XLNAME
+./INCA_libs/my_snapshot.lnx8664.15.20.nc/IC_EDA_27541

@@ -1,0 +1,9 @@
+//
+// File created by:  irun
+// Do not modify this file
+//
+-sv
+-DEFINE
+COUNT_MEM1
+-SNAPSHOT
+my_snapshot

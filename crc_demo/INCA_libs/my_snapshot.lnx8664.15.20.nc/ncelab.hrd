@@ -1,0 +1,10 @@
+//
+// File created by:  irun
+// Do not modify this file
+//
+-AFILE
+/home/ICer/fusa_vpi/vpi_lib/vcdCompare.tab
+-LOADVPI
+/home/ICer/fusa_vpi/vpi_lib/libvpiDebug_irun.so:vpit_RegisterTfs
+-ACCESS
++rwc

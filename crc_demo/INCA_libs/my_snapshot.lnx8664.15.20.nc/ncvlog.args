@@ -1,0 +1,28 @@
+//
+// File created by:  irun
+// Do not modify this file
+//
+-XLMODE
+./INCA_libs/my_snapshot.lnx8664.15.20.nc
+-RUNMODE
+-sv
+./SRC/TB/test.sv
+./SRC/RTL/crc_gen.sv
+./SRC/RTL/crc_mem.sv
+./SRC/RTL/dut.sv
+./SRC/RTL/mem_with_crc.sv
+./SRC/RTL/crc_chk.sv
+fi_wrapper.sv
+-DEFINE
+COUNT_MEM1
+-SNAPSHOT
+my_snapshot
+-CDSLIB
+./INCA_libs/my_snapshot.lnx8664.15.20.nc/cdsrun.lib
+-HDLVAR
+./INCA_libs/my_snapshot.lnx8664.15.20.nc/hdlrun.var
+-MESSAGES
+-UPDATE
+-XLLIBSTORE
+./INCA_libs/my_snapshot.lnx8664.15.20.nc/xllibs
+-ALLOWUNBOUND

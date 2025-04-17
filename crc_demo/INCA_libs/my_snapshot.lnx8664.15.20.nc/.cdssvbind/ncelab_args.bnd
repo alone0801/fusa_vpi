@@ -1,0 +1,1 @@
+-f /home/ICer/fusa_vpi/crc_demo/INCA_libs/my_snapshot.lnx8664.15.20.nc/ncelab.args -CHECK_VERSION "TOOL:	irun(64)	15.20-p001" -LOG_FD 4 -reinvoke ./INCA_libs/my_snapshot.lnx8664.15.20.nc/.cdssvbind/stf_00006b99_007f0100.txt -symreinvoke extbind_reinvoke -nocopyright -append_log 

@@ -3,8 +3,8 @@ test.dut_inst.mem1_i.mem_data_tmp[0]  SA0  0  UU
 test.dut_inst.mem1_i.mem_data_tmp[0]  SA1  0  UU
 test.dut_inst.mem1_i.mem_data_tmp[1]  SA0  0  UU
 test.dut_inst.mem1_i.mem_data_tmp[1]  SA1  0  UU
-test.dut_inst.mem1_i.mem_data_tmp[2]  SA0  0  UU
-test.dut_inst.mem1_i.mem_data_tmp[2]  SA1  0  UU
+test.dut_inst.mem1_i.mem_data_tmp[2]  SA0  700  UU
+test.dut_inst.mem1_i.mem_data_tmp[2]  SA1  100  UU
 test.dut_inst.mem1_i.mem_data_tmp[3]  SA0  0  UU
 test.dut_inst.mem1_i.mem_data_tmp[3]  SA1  0  UU
 test.dut_inst.mem1_i.mem_data_tmp[4]  SA0  0  UU

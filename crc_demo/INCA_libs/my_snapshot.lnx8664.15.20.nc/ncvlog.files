@@ -1,0 +1,11 @@
+//
+// File created by:  irun
+// Do not modify this file
+//
+/home/ICer/fusa_vpi/crc_demo/SRC/TB/test.sv
+/home/ICer/fusa_vpi/crc_demo/SRC/RTL/crc_gen.sv
+/home/ICer/fusa_vpi/crc_demo/SRC/RTL/crc_mem.sv
+/home/ICer/fusa_vpi/crc_demo/SRC/RTL/dut.sv
+/home/ICer/fusa_vpi/crc_demo/SRC/RTL/mem_with_crc.sv
+/home/ICer/fusa_vpi/crc_demo/SRC/RTL/crc_chk.sv
+/home/ICer/fusa_vpi/crc_demo/fi_wrapper.sv

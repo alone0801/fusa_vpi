@@ -15,6 +15,7 @@ FaultData *random_process(const char* filename) {
         num_lines++;
     }
     num_lines = num_lines-1;
+    //print("num_lines:%d\n", num_lines);
     fclose(fp);
 
     FaultData *faults = malloc(num_lines * sizeof(FaultData));

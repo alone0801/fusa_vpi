@@ -153,40 +153,52 @@ void vpiDebugCheck( int data, int reason )
     this->dbgVdiff = 0;
     this->dbgOscil = 0;
 
-    for ( index = 1; index <= tf_nump( ); index++ )
-    {
-        if ( tf_typep( index ) == tf_string )
-        {
-            char* str = tf_getcstringp( index );
+    vpiHandle systf = vpi_handle(vpiSysTfCall, NULL);
+    vpiHandle args = vpi_iterate(vpiArgument, systf);
+    vpiHandle arg;
 
-                 if ( strcmp( str, "callback"    ) == 0 ) this->dbgCback = 1;
-            else if ( strcmp( str, "event"       ) == 0 ) this->dbgEvent = 1;
-            else if ( strcmp( str, "trace"       ) == 0 ) this->dbgTrace = 1;
-            else if ( strcmp( str, "vcdiff"      ) == 0 ) this->dbgVdiff = 1;
-            else if ( strcmp( str, "oscillation" ) == 0 ) this->dbgOscil = 1;
+    if(args != NULL)
+    {
+        while((arg = vpi_scan(args)) != NULL)
+        {
+            s_vpi_value val;
+            val.format = vpiStringVal;
+            vpi_get_value(arg, &val);
+
+            if(val.value.str == NULL)
+            {
+                vpi_printf("vpiDebug: Non-string parameter at %d\n", index);
+                ++err;
+            }
             else
             {
-                tf_text( "vpiDebug: Unrecognized debug option <%s>\n", str ); ++err;
+                char* str = val.value.str;
+                if ( strcmp( str, "callback"    ) == 0 ) this->dbgCback = 1;
+                else if ( strcmp( str, "event"       ) == 0 ) this->dbgEvent = 1;
+                else if ( strcmp( str, "trace"       ) == 0 ) this->dbgTrace = 1;
+                else if ( strcmp( str, "vcdiff"      ) == 0 ) this->dbgVdiff = 1;
+                else if ( strcmp( str, "oscillation" ) == 0 ) this->dbgOscil = 1;
+                else
+                {
+                    vpi_printf( "vpiDebug: Unrecognized debug option <%s>\n", str ); 
+                    ++err;
+                }
             }
-        }
-        else
-        {
-            tf_text( "vpiDebug: Non-string parameter at %d\n", index ); ++err;
         }
     }
 
     if ( err )
     {
-        tf_text( "vpiDebug: Usage: $vpiDebug( <option> [, ... ])\n" );
-        tf_text( "vpiDebug:            callback    = enable debug for callback installation\n" );
-        tf_text( "vpiDebug:            event       = enable debug for event callback triggers\n" );
-        tf_text( "vpiDebug:            trace       = enable debug for back/hier tracing\n" );
-        tf_text( "vpiDebug:            vcdiff      = enable debug for $vcdCompare\n" );
-        tf_text( "vpiDebug:            oscillation = enable debug for $oscDetect\n" );
+        vpi_printf( "vpiDebug: Usage: $vpiDebug( <option> [, ... ])\n" );
+        vpi_printf( "vpiDebug:            callback    = enable debug for callback installation\n" );
+        vpi_printf( "vpiDebug:            event       = enable debug for event callback triggers\n" );
+        vpi_printf( "vpiDebug:            trace       = enable debug for back/hier tracing\n" );
+        vpi_printf( "vpiDebug:            vcdiff      = enable debug for $vcdCompare\n" );
+        vpi_printf( "vpiDebug:            oscillation = enable debug for $oscDetect\n" );
  
-        tf_message( ERR_ERROR, "User", "TFARG", "" );
     }
-    tf_setworkarea( ( char* )this ); /* save flags */
+    vpi_free_object(args);
+    vpi_put_userdata(systf, (PLI_BYTE8*)this); /* save flags */
 }
 
 /*
@@ -194,7 +206,8 @@ void vpiDebugCheck( int data, int reason )
  */
 void vpiDebugCall( int data, int reason )
 {
-    p_vpiDebug_data this = ( p_vpiDebug_data )tf_getworkarea( );
+    vpiHandle systf = vpi_handle(vpiSysTfCall, NULL);
+    p_vpiDebug_data this = ( p_vpiDebug_data )vpi_get_userdata(systf);
 
     DbgCback = this->dbgCback;
     DbgEvent = this->dbgEvent;

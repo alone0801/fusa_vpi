@@ -1,0 +1,9 @@
+//
+// File created by:  irun
+// Do not modify this file
+//
+-64bit
+-LOADVPI
+/home/ICer/fusa_vpi/vpi_lib/libvpiDebug_irun.so:vpit_RegisterTfs
+-messages
+-MESSAGES

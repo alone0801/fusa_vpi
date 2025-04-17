@@ -2,7 +2,7 @@
 # Makefile for vpiDebug PLI functions
 #
 
-CFLAGS = -g  -I /home/synopsys/vcs/O-2018.09-SP2/include -m64 -lxml2
+CFLAGS = -g  -I /home/cadence/INCISIVE152/tools.lnx86/inca/include -m64 -lxml2
 LDFLAGS = -shared  -fPIC -m64
 CC = gcc
 OBJS   = vpiDebug.o dumpHier.o dumpUpstream.o causalTree.o vcdCompare.o extractMod.o \
@@ -11,12 +11,24 @@ OBJS   = vpiDebug.o dumpHier.o dumpUpstream.o causalTree.o vcdCompare.o extractM
 SHARE_OBJS = vpiDebug.o dumpHier.o dumpUpstream.o causalTree.o sharevcd.o extractMod.o \
          traceSignal.o oscDetect.o eventTree.o hierTrace.o backTrace.o evCallback.o  \
          eosCallback.o vcdReader.o hash.o util.o  StringList.o fault_modeling.o fault_injector.o port_alias.o random.o timeRecord.o iso.o 
-all:		libvpiDebug.so libsharefusa.so
-share:      libvpiDebug.so
+all:		libvpiDebug.so libsharefusa.so libvpiDebug_irun.so libsharefusa_irun.so
+share:      libvpiDebug.so libvpiDebug_irun.so
 libvpiDebug.so: 	${OBJS} 
 		$(CC) $(CFLAGS) $(LDFLAGS) -g -o $@ $^
 
 libsharefusa.so: ${SHARE_OBJS}
+		$(CC) $(CFLAGS) $(LDFLAGS) -D SHARE_LIB -g -o $@ $^
+
+OBJS_IRUN   = vpiDebug.o dumpHier.o dumpUpstream.o causalTree.o vcdCompare_irun.o extractMod.o \
+         traceSignal.o oscDetect.o eventTree.o hierTrace.o backTrace.o evCallback.o  \
+         eosCallback.o vcdReader.o hash.o util.o  StringList.o fault_modeling.o fault_injector.o port_alias.o random.o  timeRecord.o iso.o
+SHARE_OBJS_IRUN = vpiDebug.o dumpHier.o dumpUpstream.o causalTree.o sharevcd_irun.o extractMod.o \
+         traceSignal.o oscDetect.o eventTree.o hierTrace.o backTrace.o evCallback.o  \
+         eosCallback.o vcdReader.o hash.o util.o  StringList.o fault_modeling.o fault_injector.o port_alias.o random.o timeRecord.o iso.o 
+libvpiDebug_irun.so: 	${OBJS_IRUN} 
+		$(CC) $(CFLAGS) $(LDFLAGS) -g -o $@ $^
+
+libsharefusa_irun.so: ${SHARE_OBJS_IRUN}
 		$(CC) $(CFLAGS) $(LDFLAGS) -D SHARE_LIB -g -o $@ $^
 
 #libvpiDebug.a:	${OBJS} Makefile
@@ -36,6 +48,7 @@ oscDetect.o:	vpiDebug.h oscDetect.c
 traceSignal.o:	vpiDebug.h traceSignal.c
 util.o:                    util.c
 vcdCompare.o:	vpiDebug.h vcdCompare.c StringList.h StringList.c
+vcdCompare_irun.o:	vpiDebug.h vcdCompare_irun.c StringList.h StringList.c
 timeRecord.o:   vpiDebug.h timeRecord.c
 vcdReader.o:               vcdReader.c
 vpiDebug.o:	vpiDebug.h vpiDebug.c
@@ -46,6 +59,8 @@ port_alias.o: port_alias.c
 iso.o : iso.c iso.h
 random.o: random.c random.h
 sharevcd.o:  vcdCompare.c vpiDebug.h
+	$(CC) $(CFLAGS) -D SHARE_LIB -c -fPIC $< -o $@
+sharevcd_irun.o:  vcdCompare_irun.c vpiDebug.h
 	$(CC) $(CFLAGS) -D SHARE_LIB -c -fPIC $< -o $@
 
 %.o: %.c

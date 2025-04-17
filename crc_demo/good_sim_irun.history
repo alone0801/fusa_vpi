@@ -1,0 +1,1 @@
+s1(17Apr2025:16:28:23):  irun -clean -sv -f rtl.f fi_wrapper.sv +define+good_sim +define+COUNT_MEM1 -64bit -afile /home/ICer/fusa_vpi/vpi_lib/vcdCompare.tab -loadvpi /home/ICer/fusa_vpi/vpi_lib/libvpiDebug_irun.so:vpit_RegisterTfs -access +rwc -messages -l good_sim_irun.log 

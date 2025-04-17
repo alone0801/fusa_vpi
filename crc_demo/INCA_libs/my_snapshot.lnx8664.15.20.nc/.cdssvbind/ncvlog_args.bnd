@@ -1,0 +1,23 @@
+-MSS\ 
+-dumpxst\ 
+test_0x1ff8d83a\ 
+-LOG_FD\ 
+4\ 
+-neverwarn\ 
+-reduce_messages\ 
+-nocopyright\ 
+-specificunit\ 
+worklib.test:sv\ 
+-SV\ 
+-DEFINE\ 
+COUNT_MEM1\ 
+-INCDIR\ 
+.\ 
+-cdslib\ 
+./INCA_libs/my_snapshot.lnx8664.15.20.nc/cds.lib\ 
+-hdlvar\ 
+./INCA_libs/my_snapshot.lnx8664.15.20.nc/hdl.var\ 
+-runmode\ 
+-propfile ./INCA_libs/my_snapshot.lnx8664.15.20.nc/.cdssvbind/cds_tmp_svbind_single_00006b99_007f0100_1.sva \ 
+/home/ICer/fusa_vpi/crc_demo/SRC/TB/test.sv \ 
+/home/ICer/fusa_vpi/crc_demo/fi_wrapper.sv \ 
