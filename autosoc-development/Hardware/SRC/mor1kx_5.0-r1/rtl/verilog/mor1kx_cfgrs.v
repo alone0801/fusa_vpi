@@ -63,17 +63,17 @@ module mor1kx_cfgrs
     parameter FEATURE_AECSR              = "NONE"
     )
    (
-    output [31:0] spr_vr,
-    output [31:0] spr_vr2,
-    output [31:0] spr_upr,
-    output [31:0] spr_cpucfgr,
-    output [31:0] spr_dmmucfgr,
-    output [31:0] spr_immucfgr,
-    output [31:0] spr_dccfgr,
-    output [31:0] spr_iccfgr,
-    output [31:0] spr_dcfgr,
-    output [31:0] spr_pccfgr,
-    output [31:0] spr_avr
+    output wire scalared [31:0] spr_vr,
+    output wire scalared [31:0] spr_vr2,
+    output wire scalared [31:0] spr_upr,
+    output wire scalared [31:0] spr_cpucfgr,
+    output wire scalared [31:0] spr_dmmucfgr,
+    output wire scalared [31:0] spr_immucfgr,
+    output wire scalared [31:0] spr_dccfgr,
+    output wire scalared [31:0] spr_iccfgr,
+    output wire scalared [31:0] spr_dcfgr,
+    output wire scalared [31:0] spr_pccfgr,
+    output wire scalared [31:0] spr_avr
     );
 
    assign spr_vr[`OR1K_SPR_VR_REV] = 0;

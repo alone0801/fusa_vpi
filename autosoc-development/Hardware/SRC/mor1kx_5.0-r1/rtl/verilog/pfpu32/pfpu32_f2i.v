@@ -64,16 +64,16 @@ module pfpu32_f2i
 
   // exponent after moving binary point at the end of mantissa
   // bias is also removed
-  wire [9:0] s1t_exp10m = exp10a_i - 10'd150; // (- 127 - 23)
+  wire scalared [9:0] s1t_exp10m = exp10a_i - 10'd150; // (- 127 - 23)
 
   // detect if now shift right is required
-  wire [9:0] s1t_shr_t = {10{s1t_exp10m[9]}} & (10'd150 - exp10a_i);
+  wire scalared [9:0] s1t_shr_t = {10{s1t_exp10m[9]}} & (10'd150 - exp10a_i);
   // limit right shift by 31
-  wire [4:0] s1t_shr = s1t_shr_t[4:0] | {5{|s1t_shr_t[9:5]}};
+  wire scalared [4:0] s1t_shr = s1t_shr_t[4:0] | {5{|s1t_shr_t[9:5]}};
 
   // detect if left shift required for mantissa
   // (limited by 15)
-  wire [3:0] s1t_shl = {4{~s1t_exp10m[9]}} & (s1t_exp10m[3:0] | {4{|s1t_exp10m[9:4]}});
+  wire scalared [3:0] s1t_shl = {4{~s1t_exp10m[9]}} & (s1t_exp10m[3:0] | {4{|s1t_exp10m[9:4]}});
   // check overflow
   wire s1t_is_shl_gt8 = s1t_shl[3] & (|s1t_shl[2:0]);
   wire s1t_is_shl_eq8 = s1t_shl[3] & (~(|s1t_shl[2:0]));

@@ -290,14 +290,14 @@ module mor1kx_monitor #(parameter LOG_DIR= "../out") ();
 
    task mor1kx_insn_info;
       input [31:0] insn;
-      output [4:0] rA_num;
-      output [4:0] rB_num;
-      output [4:0] rD_num;
+      output wire scalared [4:0] rA_num;
+      output wire scalared [4:0] rB_num;
+      output wire scalared [4:0] rD_num;
       output 	   rD_used;
-      output [15:0] imm_16bit;
-      output [25:0] imm_26bit;
+      output wire scalared [15:0] imm_16bit;
+      output wire scalared [25:0] imm_26bit;
       
-      output [7:0]  num_chars;
+      output wire scalared [7:0]  num_chars;
 
       // To count how long disassembled immediates/regs
       // are - what a pain!
@@ -586,7 +586,7 @@ module mor1kx_monitor #(parameter LOG_DIR= "../out") ();
 
    task mor1k_insn_to_string;
       input [31:0] insn;
-      output [80*8:1] insnstring;
+      output wire scalared [80*8:1] insnstring;
 
       reg [5:0]    opcode;
       

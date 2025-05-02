@@ -129,14 +129,14 @@ module pfpu32_rnd
   /* Stage #1: common align */
 
   wire        s1t_sign;
-  wire [34:0] s1t_fract35;
+  wire scalared [34:0] s1t_fract35;
   wire        s1t_inv;
   wire        s1t_inf;
   wire        s1t_snan;
   wire        s1t_qnan;
   wire        s1t_anan_sign;
-  wire  [4:0] s1t_shr;
-  wire  [4:0] s1t_shl;
+  wire scalared  [4:0] s1t_shr;
+  wire scalared  [4:0] s1t_shl;
 
   // multiplexer for signums and flags
   wire s1t_add_sign = add_sub_0_i ? rm_to_infm : add_sign_i;
@@ -159,7 +159,7 @@ module pfpu32_rnd
                           (mul_rdy_i & mul_fract28_i[27]);
 
   // multiplexer for shift values
-  wire [4:0] s1t_shr_t;
+  wire scalared [4:0] s1t_shr_t;
   assign {s1t_shr_t, s1t_shl} =
     ({10{add_rdy_i}} & {5'd0, add_shl_i}) |
     ({10{mul_rdy_i}} & {mul_shr_i, {4'd0,mul_shl_i}}) |
@@ -169,7 +169,7 @@ module pfpu32_rnd
   assign s1t_shr = (|s1t_shr_t) ? s1t_shr_t : {4'd0,s1t_addmul_carry};
  
   // align
-  wire [34:0] s1t_fract35sh =
+  wire scalared [34:0] s1t_fract35sh =
     (|s1t_shr) ? (s1t_fract35 >> s1t_shr) :
                  (s1t_fract35 << s1t_shl);
 
@@ -223,16 +223,16 @@ module pfpu32_rnd
   wire s1t_sticky = (|s1t_shr) ? s1r_sticky : s1l_sticky;
 
   // two stage multiplexer for exponents
-  wire [9:0] s1t_exp10shr;
-  wire [9:0] s1t_exp10shl;
-  wire [9:0] s1t_exp10sh0;
+  wire scalared [9:0] s1t_exp10shr;
+  wire scalared [9:0] s1t_exp10shl;
+  wire scalared [9:0] s1t_exp10sh0;
   assign {s1t_exp10shr, s1t_exp10shl, s1t_exp10sh0} =
     ({30{add_rdy_i}} & {add_exp10sh0_i, add_exp10shl_i, add_exp10sh0_i}) |
     ({30{mul_rdy_i}} & {mul_exp10shr_i, mul_exp10shl_i, mul_exp10sh0_i}) |
     ({30{f2i_rdy_i}} & {10'd0, 10'd0, 10'd0}) |
     ({30{i2f_rdy_i}} & {{2'd0,i2f_exp8shr_i},{2'd0,i2f_exp8shl_i},{2'd0,i2f_exp8sh0_i}});
 
-  wire [9:0] s1t_exp10 =
+  wire scalared [9:0] s1t_exp10 =
     (|s1t_shr_t)  ? s1t_exp10shr :
     (~(|s1t_shl)) ? (s1t_exp10sh0 + {9'd0,s1t_addmul_carry}) :
                     s1t_exp10shl;
@@ -317,19 +317,19 @@ module pfpu32_rnd
   wire s2t_set_rnd_dn = s2t_rnd_n_qtnt ? s2t_div_rnd_dn : 1'b0;
 
   // define value for rounding adder
-  wire [31:0] s2t_rnd_v32 =
+  wire scalared [31:0] s2t_rnd_v32 =
     s2t_set_rnd_up ? 32'd1        : // +1
     s2t_set_rnd_dn ? 32'hFFFFFFFF : // -1
                      32'd0;         // no rounding
   // rounded fractional
-  wire [31:0] s2t_fract32_rnd = s1o_fract32 + s2t_rnd_v32;
+  wire scalared [31:0] s2t_fract32_rnd = s1o_fract32 + s2t_rnd_v32;
 
 
   // floating point output
   wire s2t_f32_shr = s2t_fract32_rnd[24];
   // update exponent and fraction
-  wire [9:0]  s2t_f32_exp10   = s1o_exp10 + {9'd0,s2t_f32_shr};
-  wire [23:0] s2t_f32_fract24 = s2t_f32_shr ? s2t_fract32_rnd[24:1] :
+  wire scalared [9:0]  s2t_f32_exp10   = s1o_exp10 + {9'd0,s2t_f32_shr};
+  wire scalared [23:0] s2t_f32_fract24 = s2t_f32_shr ? s2t_fract32_rnd[24:1] :
                                               s2t_fract32_rnd[23:0];
    // denormalized or zero
   wire s2t_f32_fract24_dn = ~s2t_f32_fract24[23];
@@ -339,18 +339,18 @@ module pfpu32_rnd
   wire s2t_i32_carry_rnd = s2t_fract32_rnd[31];
   wire s2t_i32_inv = ((~s1o_sign) & s2t_i32_carry_rnd) | s1o_f2i_ovf;
   // two's complement for negative number
-  wire [31:0] s2t_i32_int32 = (s2t_fract32_rnd ^ {32{s1o_sign}}) + {31'd0,s1o_sign};
+  wire scalared [31:0] s2t_i32_int32 = (s2t_fract32_rnd ^ {32{s1o_sign}}) + {31'd0,s1o_sign};
   // zero
   wire s2t_i32_int32_00 = (~s2t_i32_inv) & (~(|s2t_i32_int32));
   // int32 output
-  wire [31:0] s2t_i32_opc;
+  wire scalared [31:0] s2t_i32_opc;
   assign s2t_i32_opc =
     s2t_i32_inv ? (32'h7fffffff ^ {32{s1o_sign}}) : s2t_i32_int32;
 
 
    // Generate result and flags
   wire s2t_ine, s2t_ovf, s2t_inf, s2t_unf, s2t_zer;
-  wire [31:0] s2t_opc;
+  wire scalared [31:0] s2t_opc;
   assign {s2t_opc,s2t_ine,s2t_ovf,s2t_inf,s2t_unf,s2t_zer} =
     // f2i
     s1o_f2i ?       //  ine  ovf  inf  unf              zer

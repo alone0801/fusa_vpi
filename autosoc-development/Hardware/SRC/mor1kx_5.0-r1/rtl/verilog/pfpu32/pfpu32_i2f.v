@@ -62,7 +62,7 @@ module pfpu32_i2f
   // signum of input
   wire s1t_signa = opa_i[31];
   // magnitude (tow's complement for negative input)
-  wire [31:0] s1t_fract32 =
+  wire scalared [31:0] s1t_fract32 =
       (opa_i ^ {32{s1t_signa}}) + {31'd0,s1t_signa};
   // normalization shifts
   reg [3:0] s1t_shrx;

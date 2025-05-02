@@ -18,12 +18,43 @@ module wb_ram_generic
       if (we[3]) mem[waddr][31:24] <= din[31:24];
       dout <= mem[raddr];
    end
+/*
+    //load elf//
+    localparam MEM_SIZE = 32'h02000000;
+    integer mem_words;
+    integer i;
+    reg [1023:0] elf_file;
 
+    initial begin
+      if ($test$plusargs("clear_ram")) begin
+    $display("%m Clearing RAM");
+        for(i=0; i < MEM_SIZE; i = i+1) begin
+            // Zeroize Memory
+        mem[i] = 32'h00000000;
+        end
+      end
+        
+      if($value$plusargs("elf_load=%s", elf_file)) begin
+     $display("%m elf_load=%s", elf_file);
+     $elf_load_file(elf_file);
+     $display("%m elf_load_file done");
+     mem_words = $elf_get_size/4;
+     $display("%m Loading %d words", mem_words);
+
+        for(i=0; i < mem_words; i = i+1) begin
+        mem[i] = $elf_read_32(i*4);
+        end
+        $display("%m loading is done");
+      end else
+    $display("No ELF file specified");
+
+    end
+*/
    generate
       initial
 	if(memfile != "") begin
 	   $display("Preloading %m from %s", memfile);
-	   $readmemh(memfile, mem);
+	   $readmemb(memfile, mem);
 	end
    endgenerate
 

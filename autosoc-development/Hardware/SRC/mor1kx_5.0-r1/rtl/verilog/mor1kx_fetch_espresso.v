@@ -43,7 +43,7 @@ module mor1kx_fetch_espresso
    input clk, rst;
 
    // interface to ibus
-   output [OPTION_OPERAND_WIDTH-1:0] ibus_adr_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] ibus_adr_o;
    output 			      ibus_req_o;
    output 			      ibus_burst_o;
    input 			      ibus_err_i;
@@ -58,12 +58,12 @@ module mor1kx_fetch_espresso
    // Indication to pipeline control that the fetch is valid
    output  				 next_fetch_done_o;
 
-   output [OPTION_RF_ADDR_WIDTH-1:0] 	 fetch_rfa_adr_o;
-   output [OPTION_RF_ADDR_WIDTH-1:0] 	 fetch_rfb_adr_o;
+   output wire scalared [OPTION_RF_ADDR_WIDTH-1:0] 	 fetch_rfa_adr_o;
+   output wire scalared [OPTION_RF_ADDR_WIDTH-1:0] 	 fetch_rfb_adr_o;
 
    // Signal back to the control
-   output [OPTION_OPERAND_WIDTH-1:0] 	 pc_fetch_o;
-   output [OPTION_OPERAND_WIDTH-1:0] 	 pc_fetch_next_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] 	 pc_fetch_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] 	 pc_fetch_next_o;
 
 
    // branch/jump indication
@@ -101,7 +101,7 @@ module mor1kx_fetch_espresso
    reg 					  bus_access_done_r;
    reg 					  wait_for_exception_after_ibus_err;
 
-   wire [OPTION_OPERAND_WIDTH-1:0] 	  pc_fetch_next;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] 	  pc_fetch_next;
    wire 				  bus_access_done;
    wire 				  bus_access_done_fe;
    wire 				  branch_occur_re;

@@ -1,0 +1,35 @@
+//
+// File created by:  irun
+// Do not modify this file
+//
++elf_load=/home/ICer/fusa_vpi/autosoc-development/Software/Baremetal/sample_apps/hello.elf
++clear_ram
++incdir+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/wb_bus/
++incdir+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/
++incdir+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/uart16550_1.5.4/rtl/verilog/
++incdir+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/can_master/
++incdir+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/wb_bus/wb_common_1.0.1/
++incdir+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/utils/verilog_utils_0/
++incdir+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/ecc_bch_dec/src/rtl/univ/
++incdir+/home/ICer/fusa_vpi/autosoc-development/Hardware/TB/include
++incdir+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/adv_debug_sys_3.1.0/Hardware/adv_dbg_if/rtl/verilog/
++define+LOCKSTEP
+-INPUT
+/home/ICer/fusa_vpi/vpi_lib/ucli.tcl
+-MESSAGES
++EMGRLOG
+fault_sim_irun.log
+-XLSTIME
+1746167989
+-XLKEEP
+-XLMODE
+./INCA_libs/my_snapshot.lnx8664.15.20.nc
+-RUNMODE
+-CDSLIB
+./INCA_libs/my_snapshot.lnx8664.15.20.nc/cds.lib
+-HDLVAR
+./INCA_libs/my_snapshot.lnx8664.15.20.nc/hdl.var
+-XLNAME
+irun
+-XLVERSION
+"TOOL:	irun(64)	15.20-p001"

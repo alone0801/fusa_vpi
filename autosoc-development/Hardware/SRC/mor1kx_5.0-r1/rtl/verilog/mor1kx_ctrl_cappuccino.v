@@ -146,14 +146,14 @@ module mor1kx_ctrl_cappuccino
 
     // Exception PC output, used in the lsu to properly signal dbus errors that
     // has went through the store buffer
-    output [OPTION_OPERAND_WIDTH-1:0] ctrl_epcr_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] ctrl_epcr_o,
     // Exception PC input coming from the store buffer
     input [OPTION_OPERAND_WIDTH-1:0]  store_buffer_epcr_i,
 
     input 			      store_buffer_err_i,
 
     // SPR data out
-    output [OPTION_OPERAND_WIDTH-1:0] mfspr_dat_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] mfspr_dat_o,
 
     // WE to RF for l.mfspr
     output 			      ctrl_mfspr_ack_o,
@@ -170,14 +170,14 @@ module mor1kx_ctrl_cappuccino
     input 			      ctrl_overflow_clear_i,
 
     // FPU Status flags to and from ALU
-    output [`OR1K_FPCSR_RM_SIZE-1:0]  ctrl_fpu_round_mode_o,
+    output wire scalared [`OR1K_FPCSR_RM_SIZE-1:0]  ctrl_fpu_round_mode_o,
     input  [`OR1K_FPCSR_WIDTH-1:0]    ctrl_fpcsr_i,
     input                             ctrl_fpcsr_set_i,
 
     // Branch indicator from control unit (l.rfe/exception)
     output 			      ctrl_branch_exception_o,
     // PC out to fetch stage for l.rfe, exceptions
-    output [OPTION_OPERAND_WIDTH-1:0] ctrl_branch_except_pc_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] ctrl_branch_except_pc_o,
 
     // Clear instructions from decode and fetch stage
     output 			      pipeline_flush_o,
@@ -195,19 +195,19 @@ module mor1kx_ctrl_cappuccino
     input 			      du_stb_i,
     input [OPTION_OPERAND_WIDTH-1:0]  du_dat_i,
     input 			      du_we_i,
-    output [OPTION_OPERAND_WIDTH-1:0] du_dat_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] du_dat_o,
     output 			      du_ack_o,
     // Stall control from debug interface
     input 			      du_stall_i,
     output 			      du_stall_o,
-    output [OPTION_OPERAND_WIDTH-1:0] du_restart_pc_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] du_restart_pc_o,
     output 			      du_restart_o,
 
     // SPR accesses to external units (cache, mmu, etc.)
-    output [15:0] 		      spr_bus_addr_o,
+    output wire scalared [15:0] 		      spr_bus_addr_o,
     output 			      spr_bus_we_o,
     output 			      spr_bus_stb_o,
-    output [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_o,
     input [OPTION_OPERAND_WIDTH-1:0]  spr_bus_dat_dc_i,
     input 			      spr_bus_ack_dc_i,
     input [OPTION_OPERAND_WIDTH-1:0]  spr_bus_dat_ic_i,
@@ -226,7 +226,7 @@ module mor1kx_ctrl_cappuccino
     input 			      spr_bus_ack_fpu_i,
     input [OPTION_OPERAND_WIDTH-1:0]  spr_gpr_dat_i,
     input 			      spr_gpr_ack_i,
-    output [15:0] 		      spr_sr_o,
+    output wire scalared [15:0] 		      spr_sr_o,
 
     output reg 			      ctrl_bubble_o,
 
@@ -242,12 +242,12 @@ module mor1kx_ctrl_cappuccino
    reg [OPTION_OPERAND_WIDTH-1:0]    spr_evbar;
 
    // Programmable Interrupt Control SPRs
-   wire [31:0] 			     spr_picmr;
-   wire [31:0] 			     spr_picsr;
+   wire scalared [31:0] 			     spr_picmr;
+   wire scalared [31:0] 			     spr_picsr;
 
    // Tick Timer SPRs
-   wire [31:0] 			     spr_ttmr;
-   wire [31:0] 			     spr_ttcr;
+   wire scalared [31:0] 			     spr_ttmr;
+   wire scalared [31:0] 			     spr_ttcr;
 
    // FPU Control & Status Register
    // and related exeption signals
@@ -291,9 +291,9 @@ module mor1kx_ctrl_cappuccino
 
    wire 			     except_range;
 
-   wire [15:0] 			     spr_addr;
+   wire scalared [15:0] 			     spr_addr;
 
-   wire [OPTION_OPERAND_WIDTH-1:0]   b;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   b;
 
    wire 			     deassert_decode_execute_halt;
 
@@ -321,29 +321,29 @@ module mor1kx_ctrl_cappuccino
    wire 			     spr_we;
    wire                              spr_read;
    wire                              spr_ack;
-   wire [OPTION_OPERAND_WIDTH-1:0]   spr_write_dat;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   spr_write_dat;
    reg [11:0]                        spr_access;
-   wire [11:0] 			     spr_access_ack;
-   wire [31:0] 			     spr_internal_read_dat [0:11];
+   wire scalared [11:0] 			     spr_access_ack;
+   wire scalared [31:0] 			     spr_internal_read_dat [0:11];
    wire 			     spr_read_access;
    wire 			     spr_write_access;
    wire 			     spr_bus_access;
    reg [OPTION_OPERAND_WIDTH-1:0]    spr_sys_group_read;
-   wire [3:0] 			     spr_group;
+   wire scalared [3:0] 			     spr_group;
 
    /* Wires from mor1kx_cfgrs module */
-   wire [31:0] 			     spr_vr;
-   wire [31:0] 			     spr_vr2;
-   wire [31:0] 			     spr_avr;
-   wire [31:0] 			     spr_upr;
-   wire [31:0] 			     spr_cpucfgr;
-   wire [31:0] 			     spr_dmmucfgr;
-   wire [31:0] 			     spr_immucfgr;
-   wire [31:0] 			     spr_dccfgr;
-   wire [31:0] 			     spr_iccfgr;
-   wire [31:0] 			     spr_dcfgr;
-   wire [31:0] 			     spr_pccfgr;
-   wire [31:0] 			     spr_isr [0:7];
+   wire scalared [31:0] 			     spr_vr;
+   wire scalared [31:0] 			     spr_vr2;
+   wire scalared [31:0] 			     spr_avr;
+   wire scalared [31:0] 			     spr_upr;
+   wire scalared [31:0] 			     spr_cpucfgr;
+   wire scalared [31:0] 			     spr_dmmucfgr;
+   wire scalared [31:0] 			     spr_immucfgr;
+   wire scalared [31:0] 			     spr_dccfgr;
+   wire scalared [31:0] 			     spr_iccfgr;
+   wire scalared [31:0] 			     spr_dcfgr;
+   wire scalared [31:0] 			     spr_pccfgr;
+   wire scalared [31:0] 			     spr_isr [0:7];
 
    assign  b = ctrl_rfb_i;
 
@@ -591,18 +591,18 @@ module mor1kx_ctrl_cappuccino
 
        // select all flags
       `ifdef OR1K_FPCSR_MASK_FLAGS
-       wire [`OR1K_FPCSR_ALLF_SIZE-1:0] masked_fpres_flags =
+       wire scalared [`OR1K_FPCSR_ALLF_SIZE-1:0] masked_fpres_flags =
          ctrl_fpcsr_i[`OR1K_FPCSR_ALLF] & spr_fpcsr_mf;
 
-       wire [`OR1K_FPCSR_ALLF_SIZE-1:0] masked_fpcsr_flags =
+       wire scalared [`OR1K_FPCSR_ALLF_SIZE-1:0] masked_fpcsr_flags =
          spr_fpcsr[`OR1K_FPCSR_ALLF] & spr_fpcsr_mf;
 
 
-       wire [`OR1K_FPCSR_ALLF_SIZE-1:0] fpu_allf =
+       wire scalared [`OR1K_FPCSR_ALLF_SIZE-1:0] fpu_allf =
          ctrl_fpcsr_set_i ? masked_fpres_flags :
                             masked_fpcsr_flags;
       `else
-       wire [`OR1K_FPCSR_ALLF_SIZE-1:0] fpu_allf =
+       wire scalared [`OR1K_FPCSR_ALLF_SIZE-1:0] fpu_allf =
          ctrl_fpcsr_set_i ? ctrl_fpcsr_i[`OR1K_FPCSR_ALLF] :
                             spr_fpcsr[`OR1K_FPCSR_ALLF];
       `endif
@@ -1367,25 +1367,25 @@ module mor1kx_ctrl_cappuccino
 	 assign stepped_into_delay_slot = branch_step[1] & stepping;
 
 	 /* Signals for waveform debuging */
-	 wire [31:0] spr_read_data_group_0;
+	 wire scalared [31:0] spr_read_data_group_0;
 	 assign spr_read_data_group_0 = spr_internal_read_dat[0];
-	 wire [31:0] spr_read_data_group_1;
+	 wire scalared [31:0] spr_read_data_group_1;
 	 assign spr_read_data_group_1 = spr_internal_read_dat[1];
-	 wire [31:0] spr_read_data_group_2;
+	 wire scalared [31:0] spr_read_data_group_2;
 	 assign spr_read_data_group_2 = spr_internal_read_dat[2];
-	 wire [31:0] spr_read_data_group_3;
+	 wire scalared [31:0] spr_read_data_group_3;
 	 assign spr_read_data_group_3 = spr_internal_read_dat[3];
-	 wire [31:0] spr_read_data_group_4;
+	 wire scalared [31:0] spr_read_data_group_4;
 	 assign spr_read_data_group_4 = spr_internal_read_dat[4];
-	 wire [31:0] spr_read_data_group_5;
+	 wire scalared [31:0] spr_read_data_group_5;
 	 assign spr_read_data_group_5 = spr_internal_read_dat[5];
-	 wire [31:0] spr_read_data_group_6;
+	 wire scalared [31:0] spr_read_data_group_6;
 	 assign spr_read_data_group_6 = spr_internal_read_dat[6];
-	 wire [31:0] spr_read_data_group_7;
+	 wire scalared [31:0] spr_read_data_group_7;
 	 assign spr_read_data_group_7 = spr_internal_read_dat[7];
-	 wire [31:0] spr_read_data_group_8;
+	 wire scalared [31:0] spr_read_data_group_8;
 	 assign spr_read_data_group_8 = spr_internal_read_dat[8];
-	 wire [31:0] spr_read_data_group_9;
+	 wire scalared [31:0] spr_read_data_group_9;
 	 assign spr_read_data_group_9 = spr_internal_read_dat[9];
 
 

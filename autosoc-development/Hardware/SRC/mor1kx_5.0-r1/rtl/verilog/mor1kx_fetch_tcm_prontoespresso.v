@@ -57,7 +57,7 @@ module mor1kx_fetch_tcm_prontoespresso
    input clk, rst;
 
    // interface to ibus
-   output [OPTION_OPERAND_WIDTH-1:0] ibus_adr_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] ibus_adr_o;
    output 			     ibus_req_o;
    input 			     ibus_err_i;
    input 			     ibus_ack_i;
@@ -77,13 +77,13 @@ module mor1kx_fetch_tcm_prontoespresso
 
    // Signals going to register file to do the read access as we
    // register the instruction out to the decode stage
-   output [OPTION_RF_ADDR_WIDTH-1:0] 	 fetch_rfa_adr_o;
-   output [OPTION_RF_ADDR_WIDTH-1:0] 	 fetch_rfb_adr_o;
+   output wire scalared [OPTION_RF_ADDR_WIDTH-1:0] 	 fetch_rfa_adr_o;
+   output wire scalared [OPTION_RF_ADDR_WIDTH-1:0] 	 fetch_rfb_adr_o;
    output 				 fetch_rf_re_o;
 
    // Signal back to the control which pc we're goint to
    // deliver next
-   output [OPTION_OPERAND_WIDTH-1:0] 	 pc_fetch_next_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] 	 pc_fetch_next_o;
 
 
    // branch/jump indication
@@ -115,13 +115,13 @@ module mor1kx_fetch_tcm_prontoespresso
 
 
    reg [OPTION_OPERAND_WIDTH-1:0] 	  current_bus_pc;
-   wire [OPTION_OPERAND_WIDTH-1:0] 	  next_bus_pc;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] 	  next_bus_pc;
    reg [OPTION_OPERAND_WIDTH-1:0] 	  insn_buffer;
 
    wire 				  first_bus_req_cycle;
    reg 					  addr_pipelined;
    reg 					  bus_req, bus_req_r;
-   wire [`OR1K_OPCODE_WIDTH-1:0] 	  next_insn_opcode;
+   wire scalared [`OR1K_OPCODE_WIDTH-1:0] 	  next_insn_opcode;
    reg 					  next_insn_will_branch;
    reg 					  jump_insn_in_decode;
    reg 					  just_took_branch_addr;

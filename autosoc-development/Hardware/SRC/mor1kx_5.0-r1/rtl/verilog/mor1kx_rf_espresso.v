@@ -49,15 +49,15 @@ module mor1kx_rf_espresso
    input [OPTION_OPERAND_WIDTH-1:0] 	 result_i;
 
 
-   output [OPTION_OPERAND_WIDTH-1:0] rfa_o;
-   output [OPTION_OPERAND_WIDTH-1:0] rfb_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] rfa_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] rfb_o;
 
-   wire [OPTION_OPERAND_WIDTH-1:0]   rfa_o_mux;
-   wire [OPTION_OPERAND_WIDTH-1:0]   rfb_o_mux;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   rfa_o_mux;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   rfb_o_mux;
 
 
-   wire [OPTION_OPERAND_WIDTH-1:0]   rfa_ram_o;
-   wire [OPTION_OPERAND_WIDTH-1:0]   rfb_ram_o;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   rfa_ram_o;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   rfb_ram_o;
 
    reg [OPTION_OPERAND_WIDTH-1:0]    result_last;
    reg [OPTION_RF_ADDR_WIDTH-1:0]    rfd_last;

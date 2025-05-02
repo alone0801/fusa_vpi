@@ -29,7 +29,7 @@ module mor1kx_pcu
    input [15:0]  spr_addr_i,
    input [31:0]  spr_dat_i,
    output        spr_bus_ack,
-   output [31:0] spr_dat_o,
+   output wire scalared [31:0] spr_dat_o,
 
    // Current cpu mode: user/supervisor
    input         spr_sys_mode_i,
@@ -86,8 +86,8 @@ module mor1kx_pcu
    genvar pcu_num;
    generate
       for(pcu_num = 0; pcu_num < OPTION_PERFCOUNTERS_NUM + 1; pcu_num = pcu_num + 1) begin: pcu_generate
-         wire [`OR1K_PCMR_DDS:`OR1K_PCMR_LA] pcu_events_active;
-         wire [`OR1K_PCMR_DDS:`OR1K_PCMR_LA] pcu_events_hit;
+         wire scalared [`OR1K_PCMR_DDS:`OR1K_PCMR_LA] pcu_events_active;
+         wire scalared [`OR1K_PCMR_DDS:`OR1K_PCMR_LA] pcu_events_hit;
 
          assign pcu_events_active =
             (pcu_event_load_i << `OR1K_PCMR_LA) |

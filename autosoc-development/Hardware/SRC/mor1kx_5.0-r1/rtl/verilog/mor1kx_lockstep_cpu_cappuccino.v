@@ -122,7 +122,7 @@ module mor1kx_lockstep_cappuccino
     input 			      ibus_err_i,
     input 			      ibus_ack_i,
     input [`OR1K_INSN_WIDTH-1:0]      ibus_dat_i,
-    output [OPTION_OPERAND_WIDTH-1:0] ibus_adr_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] ibus_adr_o,
     output 			      ibus_req_o,
     output 			      ibus_burst_o,
 
@@ -130,10 +130,10 @@ module mor1kx_lockstep_cappuccino
     input 			      dbus_err_i,
     input 			      dbus_ack_i,
     input [OPTION_OPERAND_WIDTH-1:0]  dbus_dat_i,
-    output [OPTION_OPERAND_WIDTH-1:0] dbus_adr_o,
-    output [OPTION_OPERAND_WIDTH-1:0] dbus_dat_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] dbus_adr_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] dbus_dat_o,
     output 			      dbus_req_o,
-    output [3:0] 		      dbus_bsel_o,
+    output wire scalared [3:0] 		      dbus_bsel_o,
     output 			      dbus_we_o,
     output 			      dbus_burst_o,
 
@@ -145,28 +145,28 @@ module mor1kx_lockstep_cappuccino
     input 			      du_stb_i,
     input [OPTION_OPERAND_WIDTH-1:0]  du_dat_i,
     input 			      du_we_i,
-    output [OPTION_OPERAND_WIDTH-1:0] du_dat_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] du_dat_o,
     output 			      du_ack_o,
     // Stall control from debug interface
     input 			      du_stall_i,
     output 			      du_stall_o,
 
     output                        traceport_exec_valid_o,
-    output [31:0]                 traceport_exec_pc_o,
+    output wire scalared [31:0]                 traceport_exec_pc_o,
     output                        traceport_exec_jb_o,
     output                        traceport_exec_jal_o,
     output                        traceport_exec_jr_o,
-    output [31:0]                 traceport_exec_jbtarget_o,
-    output [`OR1K_INSN_WIDTH-1:0] traceport_exec_insn_o,
-    output [OPTION_OPERAND_WIDTH-1:0] traceport_exec_wbdata_o,
-    output [OPTION_RF_ADDR_WIDTH-1:0] traceport_exec_wbreg_o,
+    output wire scalared [31:0]                 traceport_exec_jbtarget_o,
+    output wire scalared [`OR1K_INSN_WIDTH-1:0] traceport_exec_insn_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] traceport_exec_wbdata_o,
+    output wire scalared [OPTION_RF_ADDR_WIDTH-1:0] traceport_exec_wbreg_o,
     output                            traceport_exec_wben_o,
    
     // SPR accesses to external units (cache, mmu, etc.)
-    output [15:0] 		      spr_bus_addr_o,
+    output wire scalared [15:0] 		      spr_bus_addr_o,
     output 			      spr_bus_we_o,
     output 			      spr_bus_stb_o,
-    output [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_o,
     input [OPTION_OPERAND_WIDTH-1:0]  spr_bus_dat_mac_i,
     input 			      spr_bus_ack_mac_i,
     input [OPTION_OPERAND_WIDTH-1:0]  spr_bus_dat_pmu_i,
@@ -175,7 +175,7 @@ module mor1kx_lockstep_cappuccino
     input 			      spr_bus_ack_pcu_i,
     input [OPTION_OPERAND_WIDTH-1:0]  spr_bus_dat_fpu_i,
     input 			      spr_bus_ack_fpu_i,
-    output [15:0] 		      spr_sr_o,
+    output wire scalared [15:0] 		      spr_sr_o,
 
     input [OPTION_OPERAND_WIDTH-1:0]  multicore_coreid_i,
     input [OPTION_OPERAND_WIDTH-1:0]  multicore_numcores_i,
@@ -206,19 +206,19 @@ module mor1kx_lockstep_cappuccino
     wire                            spr_bus_ack_pmu_delay;
     wire                            spr_bus_ack_pcu_delay;
     wire                            spr_bus_ack_fpu_delay;
-    wire [31:0]                     irq_delay;
-    wire [15:0]                     du_addr_delay;
-    wire [`OR1K_INSN_WIDTH-1:0]     ibus_dat_delay;
-    wire [OPTION_OPERAND_WIDTH-1:0] dbus_dat_delay;
-    wire [OPTION_OPERAND_WIDTH-1:0] du_dat_delay;
-    wire [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_mac_delay;
-    wire [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_pmu_delay;
-    wire [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_pcu_delay;
-    wire [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_fpu_delay;
-    wire [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_immu_delay;
-    wire [OPTION_OPERAND_WIDTH-1:0] multicore_coreid_delay;
-    wire [OPTION_OPERAND_WIDTH-1:0] multicore_numcores_delay;
-    wire [31:0]                     snoop_adr_delay;
+    wire scalared [31:0]                     irq_delay;
+    wire scalared [15:0]                     du_addr_delay;
+    wire scalared [`OR1K_INSN_WIDTH-1:0]     ibus_dat_delay;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] dbus_dat_delay;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] du_dat_delay;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_mac_delay;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_pmu_delay;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_pcu_delay;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_fpu_delay;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_immu_delay;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] multicore_coreid_delay;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] multicore_numcores_delay;
+    wire scalared [31:0]                     snoop_adr_delay;
     wire                            snoop_en_delay;
 
     // Outputs from Shadow CPU
@@ -231,24 +231,24 @@ module mor1kx_lockstep_cappuccino
     wire                            du_stall_shadow_o;
     wire                            spr_bus_we_shadow_o;
     wire                            spr_bus_stb_shadow_o;
-    wire [3:0]                      dbus_bsel_shadow_o;
-    wire [15:0]                     spr_bus_addr_shadow_o;
-    wire [15:0]                     spr_sr_shadow_o;
-    wire [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_shadow_o;
-    wire [OPTION_OPERAND_WIDTH-1:0] du_dat_shadow_o;
-    wire [OPTION_OPERAND_WIDTH-1:0] dbus_dat_shadow_o;
-    wire [OPTION_OPERAND_WIDTH-1:0] dbus_adr_shadow_o;
-    wire [OPTION_OPERAND_WIDTH-1:0] ibus_adr_shadow_o;
+    wire scalared [3:0]                      dbus_bsel_shadow_o;
+    wire scalared [15:0]                     spr_bus_addr_shadow_o;
+    wire scalared [15:0]                     spr_sr_shadow_o;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_shadow_o;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] du_dat_shadow_o;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] dbus_dat_shadow_o;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] dbus_adr_shadow_o;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] ibus_adr_shadow_o;
     wire                            traceport_exec_wben_shadow_o;
     wire                            traceport_exec_valid_shadow_o;
     wire                            traceport_exec_jb_shadow_o;
     wire                            traceport_exec_jal_shadow_o;
     wire                            traceport_exec_jr_shadow_o;
-    wire [31:0]                     traceport_exec_jbtarget_shadow_o;
-    wire [31:0]                     traceport_exec_pc_shadow_o;
-    wire [`OR1K_INSN_WIDTH-1:0]     traceport_exec_insn_shadow_o;
-    wire [OPTION_OPERAND_WIDTH-1:0] traceport_exec_wbdata_shadow_o;
-    wire [OPTION_OPERAND_WIDTH-1:0] traceport_exec_wbreg_shadow_o;
+    wire scalared [31:0]                     traceport_exec_jbtarget_shadow_o;
+    wire scalared [31:0]                     traceport_exec_pc_shadow_o;
+    wire scalared [`OR1K_INSN_WIDTH-1:0]     traceport_exec_insn_shadow_o;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] traceport_exec_wbdata_shadow_o;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] traceport_exec_wbreg_shadow_o;
 
     // Outputs from Main CPU - Delayed for comparison
     wire                            ibus_req_main_delay_o;
@@ -260,24 +260,24 @@ module mor1kx_lockstep_cappuccino
     wire                            du_stall_main_delay_o;
     wire                            spr_bus_we_main_delay_o;
     wire                            spr_bus_stb_main_delay_o;
-    wire [3:0]                      dbus_bsel_main_delay_o;
-    wire [15:0]                     spr_bus_addr_main_delay_o;
-    wire [15:0]                     spr_sr_main_delay_o;
-    wire [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_main_delay_o;
-    wire [OPTION_OPERAND_WIDTH-1:0] du_dat_main_delay_o;
-    wire [OPTION_OPERAND_WIDTH-1:0] dbus_dat_main_delay_o;
-    wire [OPTION_OPERAND_WIDTH-1:0] dbus_adr_main_delay_o;
-    wire [OPTION_OPERAND_WIDTH-1:0] ibus_adr_main_delay_o;
+    wire scalared [3:0]                      dbus_bsel_main_delay_o;
+    wire scalared [15:0]                     spr_bus_addr_main_delay_o;
+    wire scalared [15:0]                     spr_sr_main_delay_o;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_main_delay_o;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] du_dat_main_delay_o;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] dbus_dat_main_delay_o;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] dbus_adr_main_delay_o;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] ibus_adr_main_delay_o;
     wire                            traceport_exec_wben_main_delay_o;
     wire                            traceport_exec_valid_main_delay_o;
     wire                            traceport_exec_jb_main_delay_o;
     wire                            traceport_exec_jal_main_delay_o;
     wire                            traceport_exec_jr_main_delay_o;
-    wire [31:0]                     traceport_exec_jbtarget_main_delay_o;
-    wire [31:0]                     traceport_exec_pc_main_delay_o;
-    wire [`OR1K_INSN_WIDTH-1:0]     traceport_exec_insn_main_delay_o;
-    wire [OPTION_OPERAND_WIDTH-1:0] traceport_exec_wbdata_main_delay_o;
-    wire [OPTION_RF_ADDR_WIDTH-1:0] traceport_exec_wbreg_main_delay_o;
+    wire scalared [31:0]                     traceport_exec_jbtarget_main_delay_o;
+    wire scalared [31:0]                     traceport_exec_pc_main_delay_o;
+    wire scalared [`OR1K_INSN_WIDTH-1:0]     traceport_exec_insn_main_delay_o;
+    wire scalared [OPTION_OPERAND_WIDTH-1:0] traceport_exec_wbdata_main_delay_o;
+    wire scalared [OPTION_RF_ADDR_WIDTH-1:0] traceport_exec_wbreg_main_delay_o;
 /*=============================================================================*/
 // Delay Shadow CPU Input signals by two clock cycles
 /*=============================================================================*/

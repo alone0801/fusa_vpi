@@ -1,0 +1,10 @@
+//
+// File created by:  irun
+// Do not modify this file
+//
+-AFILE
+/home/ICer/fusa_vpi/autosoc-development/Simulation/autoSOC_fusa/autoSoC.tab
+-LOADVPI
+/home/ICer/fusa_vpi/autosoc-development/Hardware/TB/elf-loader_1.0.2/elf-loader_irun.so:setup_reset_callbacks,setup_endofcompile_callbacks,setup_finish_callbacks,register_check_for_command,register_send_result_to_server,vpit_RegisterTfs,setup_user_functions
+-ACCESS
++rwc

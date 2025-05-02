@@ -135,10 +135,10 @@ uint8_t *load_elf_file(char *elf_file_name, int *size)
 {
 	uint8_t *buf = NULL;
 	char *id;
-
+    //vpi_printf("debug1\n");
 	if (elf_version(EV_CURRENT) == EV_NONE)
 		return NULL;
-
+    //vpi_printf("debug2\n");
 	int fd = open(elf_file_name, O_RDONLY , 0);
 	if (fd < 0) {
 		printf("Can't open %s\n", elf_file_name);
@@ -173,7 +173,6 @@ uint8_t *load_elf_file(char *elf_file_name, int *size)
 		close(fd);
 		return NULL;
 	}
-
 	buf = dump_program_data(elf_object, size);
 
 	if (buf == NULL)

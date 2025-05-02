@@ -30,8 +30,8 @@ module mor1kx_pic
 
    input [31:0] irq_i;
 
-   output [31:0] spr_picmr_o;
-   output [31:0] spr_picsr_o;
+   output wire scalared [31:0] spr_picmr_o;
+   output wire scalared [31:0] spr_picsr_o;
 
    // SPR Bus interface
    input         spr_access_i;
@@ -39,7 +39,7 @@ module mor1kx_pic
    input [15:0]  spr_addr_i;
    input [31:0]  spr_dat_i;
    output        spr_bus_ack;
-   output [31:0] spr_dat_o;
+   output wire scalared [31:0] spr_dat_o;
 
    // Registers
    reg [31:0]    spr_picmr;
@@ -48,7 +48,7 @@ module mor1kx_pic
    wire spr_picmr_access;
    wire spr_picsr_access;
 
-   wire [31:0]   irq_unmasked;
+   wire scalared [31:0]   irq_unmasked;
 
    assign spr_picmr_o = spr_picmr;
    assign spr_picsr_o = spr_picsr;
@@ -73,7 +73,7 @@ module mor1kx_pic
 
       if (OPTION_PIC_TRIGGER=="EDGE") begin : edge_triggered
          reg [31:0] irq_unmasked_r;
-         wire [31:0] irq_unmasked_edge;
+         wire scalared [31:0] irq_unmasked_edge;
 
          always @(posedge clk `OR_ASYNC_RST)
            if (rst)

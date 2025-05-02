@@ -1,0 +1,11 @@
+//
+// File created by:  irun
+// Do not modify this file
+//
+-64bit
+-LOADVPI
+/home/ICer/fusa_vpi/autosoc-development/Hardware/TB/elf-loader_1.0.2/elf-loader_irun.so:setup_reset_callbacks,setup_endofcompile_callbacks,setup_finish_callbacks,register_check_for_command,register_send_result_to_server,vpit_RegisterTfs,setup_user_functions
+-messages
+-INPUT
+/home/ICer/fusa_vpi/vpi_lib/ucli.tcl
+-MESSAGES

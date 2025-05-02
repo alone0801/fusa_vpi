@@ -49,7 +49,7 @@ module autosoc_tb;
    integer i;
    reg [31:0] mem_word;
    reg [1023:0] elf_file;
-
+/*
    initial begin
       if ($test$plusargs("clear_ram")) begin
 	$display("Clearing RAM");
@@ -73,7 +73,7 @@ module autosoc_tb;
 	$display("No ELF file specified");
     
    end
-
+*/
    ////////////////////////////////////////////////////////////////////////
    //
    // Clock and reset generation
@@ -147,8 +147,7 @@ module autosoc_tb;
     );
 
 initial begin
-      $fsdbDumpfile("test.fsdb");
-      $fsdbDumpvars(0,autosoc_tb);
+    //$clear_mem();
 end
 
 

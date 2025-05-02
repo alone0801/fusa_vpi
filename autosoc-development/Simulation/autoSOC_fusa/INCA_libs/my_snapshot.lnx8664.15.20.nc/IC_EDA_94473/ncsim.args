@@ -1,0 +1,29 @@
+//
+// File created by:  irun
+// Do not modify this file
+//
++elf_load=/home/ICer/fusa_vpi/autosoc-development/Software/Baremetal/sample_apps/hello.elf
++clear_ram
++define+LOCKSTEP
+-INPUT
+/home/ICer/fusa_vpi/vpi_lib/ucli.tcl
+-MESSAGES
++EMGRLOG
+fault_sim_irun.log
+-XLSTIME
+1746168023
+-XLKEEP
+-XLMODE
+/home/ICer/fusa_vpi/autosoc-development/Simulation/autoSOC_fusa/INCA_libs/my_snapshot.lnx8664.15.20.nc
+-RUNMODE
+-CDSLIB
+/home/ICer/fusa_vpi/autosoc-development/Simulation/autoSOC_fusa/INCA_libs/my_snapshot.lnx8664.15.20.nc/cds.lib
+-HDLVAR
+/home/ICer/fusa_vpi/autosoc-development/Simulation/autoSOC_fusa/INCA_libs/my_snapshot.lnx8664.15.20.nc/hdl.var
+-XLNAME
+irun
+-XLVERSION
+"TOOL:	irun(64)	15.20-p001"
+-CMDPSIM
+-XLNAME
+/home/ICer/fusa_vpi/autosoc-development/Simulation/autoSOC_fusa/INCA_libs/my_snapshot.lnx8664.15.20.nc/IC_EDA_94473

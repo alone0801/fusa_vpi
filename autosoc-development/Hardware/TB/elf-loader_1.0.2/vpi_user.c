@@ -21,7 +21,7 @@
 #include <vpi_user.h>
 //#include "vpi_user_cds.h"
 #include "elf-loader.h"
-#include<vpiDebug.h>
+#include "vpiDebug.h"
 
 extern void register_check_for_command(void);
 extern void register_send_result_to_server(void);
@@ -58,7 +58,7 @@ void elf_load_file(void) {
 
     while(isspace(*elf_file_name))
       elf_file_name++;
-
+   //vpi_printf("elf_file:%s\n",elf_file_name);
     bin_file = load_elf_file(elf_file_name, &size);
     if(bin_file)
       vpi_printf("elf-loader: %s was loaded\n", elf_file_name);
@@ -85,6 +85,14 @@ void elf_get_size(void) {
   //vpi_printf("elf_get_size done\n");
 }
 
+void uint_to_bin_str(uint32_t num, char *buffer) {
+    buffer[0] = '\0'; // 初始化空字符串
+    int i;
+    for (i = 31; i >= 0; i--) { // 从最高位到最低位
+        strcat(buffer, (num & (1u << i)) ? "1" : "0");
+    }
+}
+
 void elf_read_32(void) {
   vpiHandle func_h, arg_h, args_iter;
   struct t_vpi_value argval;
@@ -105,9 +113,18 @@ void elf_read_32(void) {
   argval.format = vpiIntVal;
   vpi_get_value(arg_h, &argval);
   address = argval.value.integer;
-
   data = read_32(bin_file, address);
-  
+
+  FILE *file;
+  if(address == 0)
+     file = fopen("./../tb.txt", "w");  // 打开文件（写入模式)
+  else
+     file = fopen("./../tb.txt", "a");
+  char *buffer = (char*)malloc(32*sizeof(char)+1);
+  uint_to_bin_str(data, buffer);
+  fprintf(file, "%s\n", buffer);  // 写入文本
+  fclose(file);  // 关闭文件
+  free(buffer);
   argval.value.integer = data;
   vpi_put_value(func_h, &argval, NULL, vpiNoDelay);
   vpi_free_object(args_iter);
@@ -156,6 +173,7 @@ void setup_user_functions(void) {
   vpi_register_systf(task_data_p);
 
   task_data_p->type = vpiSysFunc;
+  task_data_p->sysfunctype = vpiIntFunc;
   task_data_p->tfname = "$elf_get_size";
   task_data_p->calltf = (void *)elf_get_size;
   task_data_p->compiletf = 0;
@@ -292,8 +310,8 @@ void (*vlog_startup_routines[])() =
   setup_endofcompile_callbacks,
   setup_finish_callbacks,
   setup_user_functions,
-	register_check_for_command,
-	register_send_result_to_server,
-    vcd_vpi_register,
+  register_check_for_command,
+  register_send_result_to_server,
+  vpit_RegisterTfs,
   0  // last entry must be 0
 };

@@ -1,0 +1,23 @@
+//
+// File created by:  irun
+// Do not modify this file
+//
+-R
+-64bit
+-access
++rwc
+-messages
+-l
+fault_sim_irun.log
+-nclibdirname
+/home/ICer/fusa_vpi/autosoc-development/Simulation/autoSOC_fusa/INCA_libs
+-snapshot
+my_snapshot
+-input
+/home/ICer/fusa_vpi/vpi_lib/ucli.tcl
++define+LOCKSTEP
++elf_load=/home/ICer/fusa_vpi/autosoc-development/Software/Baremetal/sample_apps/hello.elf
++clear_ram
+-lxm2
+-lelf
+-64bit

@@ -1,0 +1,5 @@
+$vcdCompare check=vcdCompareCheck call=vcdCompareCall
+$clear_mem check=vpi_clear_memory_calltf
+$file_init_mem check=vpi_init_from_file_calltf
+$xml_init_mem check=vpi_init_from_xml_calltf
+$elf_load_file call=elf_load_file

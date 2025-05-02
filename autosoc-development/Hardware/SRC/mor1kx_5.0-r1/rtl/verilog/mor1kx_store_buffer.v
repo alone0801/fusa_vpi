@@ -29,10 +29,10 @@ module mor1kx_store_buffer
     input 				atomic_i,
     input 				write_i,
 
-    output [OPTION_OPERAND_WIDTH-1:0] 	pc_o,
-    output [OPTION_OPERAND_WIDTH-1:0] 	adr_o,
-    output [OPTION_OPERAND_WIDTH-1:0] 	dat_o,
-    output [OPTION_OPERAND_WIDTH/8-1:0] bsel_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] 	pc_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] 	adr_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] 	dat_o,
+    output wire scalared [OPTION_OPERAND_WIDTH/8-1:0] bsel_o,
     output 				atomic_o,
     input 				read_i,
 
@@ -44,8 +44,8 @@ module mor1kx_store_buffer
    localparam FIFO_DATA_WIDTH = OPTION_OPERAND_WIDTH*3 +
 				OPTION_OPERAND_WIDTH/8 + 1;
 
-   wire [FIFO_DATA_WIDTH-1:0] 		fifo_dout;
-   wire [FIFO_DATA_WIDTH-1:0] 		fifo_din;
+   wire scalared [FIFO_DATA_WIDTH-1:0] 		fifo_dout;
+   wire scalared [FIFO_DATA_WIDTH-1:0] 		fifo_din;
 
    reg [DEPTH_WIDTH:0]                  write_pointer;
    reg [DEPTH_WIDTH:0]                  read_pointer;

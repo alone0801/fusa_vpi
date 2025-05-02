@@ -118,29 +118,29 @@ module mor1kx_execute_alu
     output 			      overflow_set_o,
     output 			      overflow_clear_o,
 
-    output [`OR1K_FPCSR_WIDTH-1:0] fpcsr_o,
+    output wire scalared [`OR1K_FPCSR_WIDTH-1:0] fpcsr_o,
     output                         fpcsr_set_o,
 
-    output [OPTION_OPERAND_WIDTH-1:0] alu_result_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] alu_result_o,
     output 			      alu_valid_o,
-    output [OPTION_OPERAND_WIDTH-1:0] mul_result_o,
-    output [OPTION_OPERAND_WIDTH-1:0] adder_result_o
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] mul_result_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] adder_result_o
     );
 
    wire                                   alu_stall;
 
-   wire [OPTION_OPERAND_WIDTH-1:0]        a;
-   wire [OPTION_OPERAND_WIDTH-1:0]        b;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]        a;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]        b;
 
    // Adder & comparator wires
-   wire [OPTION_OPERAND_WIDTH-1:0]        adder_result;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]        adder_result;
    wire                                   adder_carryout;
    wire 				  adder_signed_overflow;
    wire 				  adder_unsigned_overflow;
    wire 				  adder_result_sign;
 
-   wire [OPTION_OPERAND_WIDTH-1:0]        b_neg;
-   wire [OPTION_OPERAND_WIDTH-1:0]        b_mux;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]        b_neg;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]        b_mux;
    wire                                   carry_in;
 
    wire                                   a_eq_b;
@@ -148,8 +148,8 @@ module mor1kx_execute_alu
    wire                                   a_ltu_b;
 
    // Shifter wires
-   wire [`OR1K_ALU_OPC_SECONDARY_WIDTH-1:0] opc_alu_shr;
-   wire [OPTION_OPERAND_WIDTH-1:0]        shift_result;
+   wire scalared [`OR1K_ALU_OPC_SECONDARY_WIDTH-1:0] opc_alu_shr;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]        shift_result;
    wire                                   shift_valid;
 
    // Comparison wires
@@ -160,23 +160,23 @@ module mor1kx_execute_alu
    reg [OPTION_OPERAND_WIDTH-1:0] 	  logic_result;
 
    // Multiplier wires
-   wire [OPTION_OPERAND_WIDTH-1:0]        mul_result;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]        mul_result;
    wire                                   mul_valid;
    wire 				  mul_signed_overflow;
    wire 				  mul_unsigned_overflow;
 
-   wire [OPTION_OPERAND_WIDTH-1:0]        div_result;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]        div_result;
    wire                                   div_valid;
    wire 				  div_by_zero;
 
 
-   wire [OPTION_OPERAND_WIDTH-1:0]        ffl1_result;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]        ffl1_result;
 
    wire 				  op_cmov;
-   wire [OPTION_OPERAND_WIDTH-1:0]        cmov_result;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]        cmov_result;
 
-   wire [OPTION_OPERAND_WIDTH-1:0]        decode_a;
-   wire [OPTION_OPERAND_WIDTH-1:0]        decode_b;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]        decode_a;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]        decode_b;
 generate
 if (CALCULATE_BRANCH_DEST=="TRUE") begin : calculate_branch_dest
    assign a = (op_jbr_i | op_jr_i) ? pc_execute_i : rfa_i;
@@ -284,7 +284,7 @@ endgenerate
          reg [(OPTION_OPERAND_WIDTH*2)-1:0]  mul_prod_r;
          reg [5:0]   serial_mul_cnt;
          reg         mul_done;
-	 wire [OPTION_OPERAND_WIDTH-1:0] mul_a, mul_b;
+	 wire scalared [OPTION_OPERAND_WIDTH-1:0] mul_a, mul_b;
 
 	 // Check if it's a signed multiply and operand b is negative,
 	 // convert to positive
@@ -358,7 +358,7 @@ endgenerate
       end // if (FEATURE_MULTIPLIER=="SERIAL")
       else if (FEATURE_MULTIPLIER=="SIMULATION") begin
          // Simple multiplier result
-	 wire [(OPTION_OPERAND_WIDTH*2)-1:0] mul_full_result;
+	 wire scalared [(OPTION_OPERAND_WIDTH*2)-1:0] mul_full_result;
 	 assign mul_full_result = a * b;
          assign mul_result = mul_full_result[OPTION_OPERAND_WIDTH-1:0];
 
@@ -407,7 +407,7 @@ endgenerate
          reg [OPTION_OPERAND_WIDTH-1:0] div_n;
          reg [OPTION_OPERAND_WIDTH-1:0] div_d;
          reg [OPTION_OPERAND_WIDTH-1:0] div_r;
-         wire [OPTION_OPERAND_WIDTH:0]  div_sub;
+         wire scalared [OPTION_OPERAND_WIDTH:0]  div_sub;
          reg                            div_neg;
          reg                            div_done;
 	 reg 				div_by_zero_r;
@@ -498,7 +498,7 @@ endgenerate
   //  arithmetic part interface
   wire fpu_op_is_arith;
   wire fpu_arith_valid;
-  wire [OPTION_OPERAND_WIDTH-1:0] fpu_result;
+  wire scalared [OPTION_OPERAND_WIDTH-1:0] fpu_result;
   //  comparator part interface
   wire fpu_op_is_cmp;
   wire fpu_cmp_valid;
@@ -551,7 +551,7 @@ endgenerate
    wire ffl1_valid;
    generate
       if (FEATURE_FFL1!="NONE") begin
-	 wire [OPTION_OPERAND_WIDTH-1:0] ffl1_result_wire;
+	 wire scalared [OPTION_OPERAND_WIDTH-1:0] ffl1_result_wire;
 	 assign ffl1_result_wire = (opc_alu_secondary_i[2]) ?
 				   (a[31] ? 32 : a[30] ? 31 : a[29] ? 30 :
 				    a[28] ? 29 : a[27] ? 28 : a[26] ? 27 :
@@ -624,10 +624,10 @@ endgenerate
 	 wire op_ror = (opc_alu_shr==`OR1K_ALU_OPC_SECONDARY_SHRT_ROR) &&
 		       (FEATURE_ROR!="NONE");
 
-	 wire [OPTION_OPERAND_WIDTH-1:0] shift_right;
-	 wire [OPTION_OPERAND_WIDTH-1:0] shift_lsw;
-	 wire [OPTION_OPERAND_WIDTH-1:0] shift_msw;
-	 wire [OPTION_OPERAND_WIDTH*2-1:0] shift_wide;
+	 wire scalared [OPTION_OPERAND_WIDTH-1:0] shift_right;
+	 wire scalared [OPTION_OPERAND_WIDTH-1:0] shift_lsw;
+	 wire scalared [OPTION_OPERAND_WIDTH-1:0] shift_msw;
+	 wire scalared [OPTION_OPERAND_WIDTH*2-1:0] shift_wide;
 
 	 //
 	 // Bit-reverse on left shift, perform right shift,

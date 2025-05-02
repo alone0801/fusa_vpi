@@ -63,7 +63,6 @@ static int eventHandler( p_cb_data cb_data_p )
                                                               cb_data_p->value->value.str,
                                                               cb_data_p->time->high,
                                                               cb_data_p->time->low ));
-
 #ifdef USE_LASTSEEN
 
     /* remove this node from event list... */
@@ -170,10 +169,14 @@ vpiHandle obj_replace(vpiHandle obj, int vact_num)
             //printf("+++++++DEBUG::parent_name:%s index:%d+++++++++\n", parent_name, index);
             vpiHandle parent_h = vpi_handle_by_name(parent_name,0);
             con_obj = vpi_handle_by_index(parent_h, index);
+            free(parent_name);
         }
         else
             con_obj = vpi_handle_by_name(replace_name,0);
-
+        free(origin_name);
+        free(tb_name);
+        free(con_name);
+        free(replace_name);
         //printf("+++++++DEBUG::replace_name:%s+++++++++",replace_name);
         if(con_obj==NULL) {
             printf("ERROR:concurrent tb generate fail, please check the 'DUT_NAME' and 'TB_NAME' defined in FI.xml");
@@ -181,7 +184,6 @@ vpiHandle obj_replace(vpiHandle obj, int vact_num)
         }
     }
     //printf("\n==========%s===========\n",vpi_get_str(vpiFullName,con_obj));
-    return(con_obj);
 
 }
 

@@ -104,20 +104,20 @@ module pfpu32_addsub
   wire s1t_calc_signb = (signb_i ^ is_sub_i);
 
     // not shifted operand and its signum
-  wire [23:0] s1t_fract24_nsh =
+  wire scalared [23:0] s1t_fract24_nsh =
     addsub_agtb_i ? fract24a_i : fract24b_i;
 
     // operand for right shift
-  wire [23:0] s1t_fract24_fsh =
+  wire scalared [23:0] s1t_fract24_fsh =
     addsub_agtb_i ? fract24b_i : fract24a_i;
 
     // shift amount
-  wire [9:0] s1t_exp_diff =
+  wire scalared [9:0] s1t_exp_diff =
     addsub_agtb_i ? (exp10a_i - exp10b_i) :
                     (exp10b_i - exp10a_i);
 
   // limiter by 31
-  wire [4:0] s1t_shr = s1t_exp_diff[4:0] | {5{|s1t_exp_diff[9:5]}};
+  wire scalared [4:0] s1t_shr = s1t_exp_diff[4:0] | {5{|s1t_exp_diff[9:5]}};
 
   // stage #1 outputs
   //  input related
@@ -167,8 +167,8 @@ module pfpu32_addsub
 
 
   // shifter
-  wire [25:0] s2t_fract26_fsh = {s1o_fract24_fsh,2'd0};
-  wire [25:0] s2t_fract26_shr = s2t_fract26_fsh >> s1o_shr;
+  wire scalared [25:0] s2t_fract26_fsh = {s1o_fract24_fsh,2'd0};
+  wire scalared [25:0] s2t_fract26_shr = s2t_fract26_fsh >> s1o_shr;
   
   // sticky
   reg s2t_sticky;
@@ -203,9 +203,9 @@ module pfpu32_addsub
   end
 
     // add/sub of non-shifted and shifted operands
-  wire [27:0] s2t_fract28_shr = {1'b0,s2t_fract26_shr,s2t_sticky};
+  wire scalared [27:0] s2t_fract28_shr = {1'b0,s2t_fract26_shr,s2t_sticky};
   
-  wire [27:0] s2t_fract28_add = {1'b0,s1o_fract24_nsh,3'd0} +
+  wire scalared [27:0] s2t_fract28_add = {1'b0,s1o_fract24_nsh,3'd0} +
                                 (s2t_fract28_shr ^ {28{s1o_op_sub}}) +
                                 {27'd0,s1o_op_sub};
 
@@ -290,11 +290,11 @@ module pfpu32_addsub
   end // always
 
   // left shift amount and corrected exponent
-  wire [4:0] s3t_nlz_m1    = (s3t_nlz - 5'd1);
-  wire [9:0] s3t_exp10c_m1 = s2o_exp10c - 10'd1;
-  wire [9:0] s3t_exp10c_mz = s2o_exp10c - {5'd0,s3t_nlz};
-  wire [4:0] s3t_shl;
-  wire [9:0] s3t_exp10shl;
+  wire scalared [4:0] s3t_nlz_m1    = (s3t_nlz - 5'd1);
+  wire scalared [9:0] s3t_exp10c_m1 = s2o_exp10c - 10'd1;
+  wire scalared [9:0] s3t_exp10c_mz = s2o_exp10c - {5'd0,s3t_nlz};
+  wire scalared [4:0] s3t_shl;
+  wire scalared [9:0] s3t_exp10shl;
   assign {s3t_shl,s3t_exp10shl} =
       // shift isn't needed or impossible
     (~(|s3t_nlz) | (s2o_exp10c == 10'd1)) ?

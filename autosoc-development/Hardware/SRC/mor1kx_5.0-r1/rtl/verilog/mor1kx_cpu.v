@@ -114,7 +114,7 @@ module mor1kx_cpu
     input 			      ibus_err_i,
     input 			      ibus_ack_i,
     input [`OR1K_INSN_WIDTH-1:0]      ibus_dat_i,
-    output [OPTION_OPERAND_WIDTH-1:0] ibus_adr_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] ibus_adr_o,
     output 			      ibus_req_o,
     output 			      ibus_burst_o,
 
@@ -122,10 +122,10 @@ module mor1kx_cpu
     input 			      dbus_err_i,
     input 			      dbus_ack_i,
     input [OPTION_OPERAND_WIDTH-1:0]  dbus_dat_i,
-    output [OPTION_OPERAND_WIDTH-1:0] dbus_adr_o,
-    output [OPTION_OPERAND_WIDTH-1:0] dbus_dat_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] dbus_adr_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] dbus_dat_o,
     output 			      dbus_req_o,
-    output [3:0] 		      dbus_bsel_o,
+    output wire scalared [3:0] 		      dbus_bsel_o,
     output 			      dbus_we_o,
     output 			      dbus_burst_o,
 
@@ -137,28 +137,28 @@ module mor1kx_cpu
     input 			      du_stb_i,
     input [OPTION_OPERAND_WIDTH-1:0]  du_dat_i,
     input 			      du_we_i,
-    output [OPTION_OPERAND_WIDTH-1:0] du_dat_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] du_dat_o,
     output 			      du_ack_o,
     // Stall control from debug interface
     input 			      du_stall_i,
     output 			      du_stall_o,
 
     output                            traceport_exec_valid_o,
-    output [31:0]                     traceport_exec_pc_o,
+    output wire scalared [31:0]                     traceport_exec_pc_o,
     output                            traceport_exec_jb_o,
     output                            traceport_exec_jal_o,
     output                            traceport_exec_jr_o,
-    output [31:0]                     traceport_exec_jbtarget_o,
-    output [`OR1K_INSN_WIDTH-1:0]     traceport_exec_insn_o,
-    output [OPTION_OPERAND_WIDTH-1:0] traceport_exec_wbdata_o,
-    output [OPTION_RF_ADDR_WIDTH-1:0] traceport_exec_wbreg_o,
+    output wire scalared [31:0]                     traceport_exec_jbtarget_o,
+    output wire scalared [`OR1K_INSN_WIDTH-1:0]     traceport_exec_insn_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] traceport_exec_wbdata_o,
+    output wire scalared [OPTION_RF_ADDR_WIDTH-1:0] traceport_exec_wbreg_o,
     output                           traceport_exec_wben_o,
 
     // SPR accesses to external units (cache, mmu, etc.)
-    output [15:0] 		      spr_bus_addr_o,
+    output wire scalared [15:0] 		      spr_bus_addr_o,
     output 			      spr_bus_we_o,
     output 			      spr_bus_stb_o,
-    output [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_o,
     input [OPTION_OPERAND_WIDTH-1:0]  spr_bus_dat_dmmu_i,
     input 			      spr_bus_ack_dmmu_i,
     input [OPTION_OPERAND_WIDTH-1:0]  spr_bus_dat_immu_i,
@@ -171,7 +171,7 @@ module mor1kx_cpu
     input 			      spr_bus_ack_pcu_i,
     input [OPTION_OPERAND_WIDTH-1:0]  spr_bus_dat_fpu_i,
     input 			      spr_bus_ack_fpu_i,
-    output [15:0] 		      spr_sr_o,
+    output wire scalared [15:0] 		      spr_sr_o,
 
     // The multicore core identifier
     input [OPTION_OPERAND_WIDTH-1:0]  multicore_coreid_i,
@@ -185,19 +185,19 @@ module mor1kx_cpu
     output                          lockstep_error_o
     );
 
-   wire [`OR1K_INSN_WIDTH-1:0] 	     monitor_execute_insn/* verilator public */;
+   wire scalared [`OR1K_INSN_WIDTH-1:0] 	     monitor_execute_insn/* verilator public */;
    wire 			     monitor_execute_advance/* verilator public */;
    wire 			     monitor_flag_set/* verilator public */;
    wire 			     monitor_flag_clear/* verilator public */;
    wire 			     monitor_flag_sr/* verilator public */;
    wire 			     monitor_flag/* verilator public */;
-   wire [OPTION_OPERAND_WIDTH-1:0]   monitor_spr_sr/* verilator public */;
-   wire [OPTION_OPERAND_WIDTH-1:0]   monitor_execute_pc/* verilator public */;
-   wire [OPTION_OPERAND_WIDTH-1:0]   monitor_rf_result_in/* verilator public */;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   monitor_spr_sr/* verilator public */;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   monitor_execute_pc/* verilator public */;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   monitor_rf_result_in/* verilator public */;
    wire 			     monitor_clk/* verilator public */;
-   wire [OPTION_OPERAND_WIDTH-1:0]   monitor_spr_epcr/* verilator public */;
-   wire [OPTION_OPERAND_WIDTH-1:0]   monitor_spr_eear/* verilator public */;
-   wire [OPTION_OPERAND_WIDTH-1:0]   monitor_spr_esr/* verilator public */;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   monitor_spr_epcr/* verilator public */;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   monitor_spr_eear/* verilator public */;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   monitor_spr_esr/* verilator public */;
    wire 			     monitor_branch_mispredict/* verilator public */;
 
 

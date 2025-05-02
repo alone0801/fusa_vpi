@@ -36,26 +36,37 @@ void concur_gen(int con_num, char* dut_full_name ){
             if(param_h) fprintf(fp,"#(");
             //printf("----------------DEBUGBBBBB-------------------------\n");
             while(param_h){
-                str_param=0;
-                s_vpi_value val = {vpiDecStrVal};
-                if(vpi_get(vpiConstType,param_h)==vpiStringConst) val.format = vpiStringVal;
-                vpi_get_value(param_h,&val);
-                char* param_char = (char*)malloc(strlen(val.value.str)+3);
-                if(vpi_get(vpiConstType,param_h)!=vpiStringConst&&atoi(val.value.str)==1297108037){
-                    val.format = vpiStringVal;
+                if(vpi_get(vpiLocalParam, param_h) != 1){
+                    str_param=0;
+                    s_vpi_value val = {vpiDecStrVal};
+                    if(vpi_get(vpiConstType,param_h)==vpiStringConst) val.format = vpiStringVal;
                     vpi_get_value(param_h,&val);
-                    blank_cut(val.value.str);
-                    str_param=1;
+                    char* param_char = (char*)malloc(strlen(val.value.str)+3);
+                    if(vpi_get(vpiConstType,param_h)!=vpiStringConst&&atoi(val.value.str)==1297108037){
+                        val.format = vpiStringVal;
+                        vpi_get_value(param_h,&val);
+                        blank_cut(val.value.str);
+                        str_param=1;
+                    }
+                    if(vpi_get(vpiConstType,param_h)==vpiStringConst||str_param) sprintf(param_char,"\"%s\"",val.value.str); 
+                    else sprintf(param_char,val.value.str);
+                    fprintf(fp,".%s(%s)",vpi_get_str(vpiName,param_h),param_char);
+                    //printf(".%s(%s)\n",vpi_get_str(vpiName,param_h),param_char);
+                    free(param_char);
+                    param_h=vpi_scan(param_itr);
+                    if(param_h!=NULL){
+                        if(vpi_get(vpiLocalParam, param_h) != 1)
+                            fprintf(fp,",");
+                    }
+                    else fprintf(fp,")");
                 }
-                if(vpi_get(vpiConstType,param_h)==vpiStringConst||str_param) sprintf(param_char,"\"%s\"",val.value.str); 
-                else param_char = val.value.str;
-                fprintf(fp,".%s(%s)",vpi_get_str(vpiName,param_h),param_char);
-                param_h=vpi_scan(param_itr);
-                if(param_h!=NULL) fprintf(fp,",");
-                else fprintf(fp,")");
+                else{
+                    param_h=vpi_scan(param_itr);
+                    if(param_h==NULL) fprintf(fp,")");
+                }
             }
         }
-        if(param_itr != NULL) vpi_free_object(param_itr);
+        //if(param_itr != NULL) vpi_free_object(param_itr);
         //printf("----------------DEBUGCCCCC-------------------------\n");
         fprintf(fp,"concur_%d( ",j);
         int port_num=0;
@@ -71,19 +82,23 @@ void concur_gen(int con_num, char* dut_full_name ){
             char* bind_port;
             if(HighConn != NULL)
             {
-                //printf("%s\n",vpi_get_str(vpiName,HighConn));
-                parent_h =vpi_handle(vpiParent,HighConn);
-                bind_port = strdup(vpi_get_str(vpiName,HighConn));
-                if(vpi_get(vpiDirection,port_h)==vpiOutput) sprintf(bind_port," ");
-                if(vpi_get(vpiType, HighConn)==vpiConstant) bind_port = strdup(vpi_get_str(vpiDecompile,HighConn));
-                else if(vpi_get(vpiType, HighConn)==vpiPartSelect) sprintf(bind_port,"%s[%d:%d]",vpi_get_str(vpiFullName,parent_h),getExprValue(HighConn,vpiLeftRange),getExprValue(HighConn,vpiRightRange));
+                if(vpi_get(vpiDirection,port_h)==vpiOutput) bind_port = strdup(" ");
+                else if(vpi_get(vpiType, HighConn)==vpiConstant) bind_port = strdup(vpi_get_str(vpiDecompile,HighConn));
+                else if(vpi_get(vpiType, HighConn)==vpiPartSelect){
+                    parent_h =vpi_handle(vpiParent,HighConn);
+                    int size = 3 + sizeof(vpi_get_str(vpiFullName,parent_h)) + 2 + 1;
+                    bind_port = (char*)malloc(size);
+                    sprintf(bind_port, "%s[%d:%d]",vpi_get_str(vpiFullName,parent_h),getExprValue(HighConn,vpiLeftRange),getExprValue(HighConn,vpiRightRange));
+                }
+                else
+                    bind_port = strdup(vpi_get_str(vpiName,HighConn));
             }
             else
-                sprintf(bind_port," ");
+                bind_port = strdup(" ");
             //printf("___%s__DEBUG______%s______\n",vpi_get_str(vpiName,lowConn),bind_port);
             if(i<port_num-1)fprintf(fp,".%s(%s),",vpi_get_str(vpiName,lowConn),bind_port);
             else fprintf(fp,".%s(%s));\n",vpi_get_str(vpiName,lowConn),bind_port);
-            free(bind_port);
+            if(bind_port != NULL) free(bind_port);
             //printf("----------------DEBUGEEEEE-------------------------\n");
         }
         if(port_itr != NULL) vpi_free_object(port_itr);

@@ -7,6 +7,7 @@
 #include "vpiDebug.h"
 #include <stdlib.h>
 #include"fault_injector.h"
+#include"meminit.h"
 extern int num_lines ;
 static hash_table vcdHash;
 static StringList checker_list,functional_list,nostop_list,fault_target,fault_exclude,fault_tw_str;
@@ -144,13 +145,41 @@ static struct event* actualEvent( char* mark, char* valu , int vact_count)
  *  Callback to compare events after each time step
  *   (save/clear callback handle to prevent multiple callbacks)
  */
-static vpiHandle compareCallback = 0;
 
+typedef struct t_BoolArray
+{
+    char *data;
+    size_t capacity;
+} s_BoolArray, *p_BoolArray;
+
+void BoolArray_init(s_BoolArray *arr, size_t initial_capacity) {
+    arr->data = (char *)malloc(initial_capacity * sizeof(char));
+    if (!arr->data) {
+        printf("malloc failed\n");
+        return;
+    }
+
+    arr->capacity = initial_capacity;
+    memset(arr->data, 0, initial_capacity); // 初始化为 0（false）
+}
+
+// 释放内存
+void BoolArray_free(s_BoolArray *arr) {
+    free(arr->data);
+    arr->data = NULL;
+    arr->capacity = 0;
+}
+
+static vpiHandle compareCallback = 0;
+static s_BoolArray con_stop = {NULL, 0};
 static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the end of time step */
 {
     struct event* ptr = top;
-    int flag_stop=0; 
+    int flag_stop=1; 
     int i;
+    if(con_stop.data == NULL){
+        BoolArray_init(&con_stop, CON_NUM+1);
+    }
     /*flag control if drop this simulation at the end of time step*/
     vpiHandle systf = vpi_handle(vpiSysTfCall, NULL);
     static s_vpi_time time_s = { vpiScaledRealTime,{0} };
@@ -170,6 +199,7 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
         if ( ptr->vexp == 0 ) // no expected event at this time step , because or it won't be "0" for char*
         {
             for(i=0 ; i<CON_NUM+1 ; i++){
+                if(con_stop.data[i]) continue;
                 if(ptr->vact[i] != 0){
                     p_vdiff_node node = ( p_vdiff_node )lookup( ptr->mark, &vcdHash );
                     char* name = node ? FullName( node->refn->refn ) : "<noname>";
@@ -177,7 +207,9 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
                          ptr->vact[i], name, ptr->mark,  time_s.real );
                     else vpi_printf( "*** CON_%d:: Unexpected <%s> event on <%s(%s)> at %lf\n",
                          i, ptr->vact[i], name, ptr->mark, time_s.real );
-                    if(!checkStringList(&nostop_list,name))flag_stop=1;
+                    if(!checkStringList(&nostop_list,name)){
+                        con_stop.data[i] = 1;
+                    }
                     if(checkStringList(&checker_list,name)) {
                         if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
                         flag_checker=1;
@@ -219,6 +251,7 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
         else {
             //vpi_printf("compare%s, %s\n",ptr->vexp,ptr->vact[0]);
             for(i=0;i<CON_NUM+1 ;i++){
+                if(con_stop.data[i]) continue;
                 if ( ptr->vact[i] == 0 ){
                     p_vdiff_node node = ( p_vdiff_node )lookup( ptr->mark, &vcdHash );
                     char* name = node ? FullName( node->refn->refn ) : "<noname>";
@@ -228,7 +261,9 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
                     else vpi_printf( "*** CON_%d::Missing <%s> event on <%s(%s)> at %lf\n",
                                  i,ptr->vexp, name, ptr->mark, time_s.real );
                     triggerOnDiff( node->refn );
-                    if(!checkStringList(&nostop_list,name))flag_stop=1;
+                    if(!checkStringList(&nostop_list,name)){
+                        con_stop.data[i]=1;
+                    }
                     if(checkStringList(&checker_list,name)) {
                         if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
                         flag_checker=1;
@@ -248,6 +283,9 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
                     else vpi_printf( "*** CON_%d:: Mismatch on <%s(%s)>: exp=<%s>, act=<%s> at %lf\n",
                                  i, name, ptr->mark, ptr->vexp, ptr->vact[i], time_s.real );
                     //printf("%s\n",name);
+                    if(!checkStringList(&nostop_list,name)){
+                        con_stop.data[i]=1;
+                    }
                     if(checkStringList(&checker_list,name)) {
                         if(!flag_checker) sprintf(CHECKER_TIME, "%lf", time_s.real);
                         flag_checker=1;
@@ -312,7 +350,9 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
     compareCallback = 0; /* clear the callback handle */
 
     top = ( struct event* )0; /* manhole -- fix memory leak */
-    if(flag_stop&&!flag_continue&&(CON_NUM==0)){
+    for(i = 0; i < con_stop.capacity ; i++)
+        if(!con_stop.data[i]) flag_stop = 0;
+    if(flag_stop&&!flag_continue){
         flag_continue = 1;
   /*      printf("Strobe Mode is %s\n",strobe_mode);
         if (strcmp(strobe_mode, "Single") == 0) printf("the classificaiton of the inject fault is :%s\n",status_checker);
@@ -324,6 +364,7 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
         freeStringList(&checker_list);
         freeStringList(&functional_list);
         freeStringList(&nostop_list);
+        BoolArray_free(&con_stop);
         vpi_control(vpiStop,1);
         //vpi_control(vpiFinish,1);
 
@@ -398,7 +439,7 @@ int vcdCompareEventHandler( p_vdiff_node this, p_cb_data cb_data_p ,int vact_cou
     //printf("ACTEVENT: <%s> = %s\n", this->mark, cb_data_p->value->value.str );
     //for(i=0;i<CON_NUM;i++)setCompareCallback( actualEvent( this->mark, cb_data_p->value->value.str, i ) );
     
-    //printf("\nDEBUG::CON_NUM==%d,i==%d in vcdCompareEventHandler\n",CON_NUM,vact_count);
+    //vpi_printf("\nDEBUG::CON_NUM==%d,i==%d in vcdCompareEventHandler, mark:%s, value:%s\n",CON_NUM,vact_count,this->mark,cb_data_p->value->value.str);
     setCompareCallback( actualEvent( this->mark, cb_data_p->value->value.str,  vact_count ) );
 }
 
@@ -415,7 +456,7 @@ void foundScope( char* name, char* type, char* path )
 void foundSignal( char* name, char* type, long size, char* mark )
 {
     int i;
-    //printf("&&&&&&CON_NUM==%d,name==%s&&&&&&&&&&&",CON_NUM,name);
+    //vpi_printf("&&&&&&CON_NUM==%d,name==%s&&&&&&&&&&&\n",CON_NUM,name);
     vpiHandle obj = vpi_handle_by_name( name, scope );
     p_cback_data node = setEventCallback( obj, 0 );
 
@@ -459,7 +500,7 @@ static void processVcd( void* ptr )
     while ( ptr )
     {
         char* str = readVcdLine( ptr );
-        //printf("%s\n", str); 
+        //vpi_printf("%s\n", str); 
         if ( str == 0 ) break; /* no more VCD file */
 
         if ( strcmp( str, "$dumpvars" ) == 0 )
@@ -471,7 +512,7 @@ static void processVcd( void* ptr )
              *  a table of signal tags, this is skipped for now.
              */
            /* while ( strcmp( str, "$end" ) ) str = readVcdLine( ptr );*/
-           printf("\n 0ns bgein here to read vcd\n");
+           vpi_printf("\n 0ns bgein here to read vcd\n");
             readVcdLine( ptr );
             while ( strcmp( str, "$end" ) ){
                 //printf("%s\n",str);
@@ -574,8 +615,8 @@ void vcdCompareCheck( )
     initializeStringList(&checker_list);
     initializeStringList(&functional_list);
     initializeStringList(&nostop_list);
-    FaultData *faults = random_process(FS_PATH);
-    parseXML(FI_PATH);
+    //FaultData *faults = random_process(FS_PATH);
+    //parseXML(FI_PATH);
     fault_tw[0] = atoi(fault_tw_str.strings[0]);
     fault_tw[1] = atoi(fault_tw_str.strings[1]);
 //    if (strcmp(value_s.value.str, "good_sim") == 0) 
@@ -617,7 +658,14 @@ void vcdCompareCall( )
     vpi_get_value(arg_h, &value_h);
     strcpy(str_sec, value_h.value.str);
     vpi_free_object(arg_itr); /* free iterator -- did not scan to null */
+    vpi_printf("path = %s\n",str_fir);
+    strcpy(FS_PATH, str_fir);
+    strcat(FS_PATH,"/fault.set");
+    strcpy(FI_PATH, str_fir);
+    strcat(FI_PATH,"/FI.xml");
     if (strcmp(str_sec, "good_sim") == 0) {
+        random_process(FS_PATH);
+        parseXML(FI_PATH);
         addEosCallback( timeRecordEosHandler );
         //timeCheck("/home/ICer/fusa_vpi/autosoc-development/Simulation/fault.time");
     }
@@ -639,11 +687,6 @@ void vcdCompareCall( )
         //        vpi_put_value(signal_handle, &fault_value, &time_s, flag);
         //    }
         //////
-        vpi_printf("path = %s\n",str_fir);
-        strcpy(FS_PATH, str_fir);
-        strcat(FS_PATH,"/fault.set");
-        strcpy(FI_PATH, str_fir);
-        strcat(FI_PATH,"/FI.xml");
         strcpy(filename, str_fir);
         strcat(filename,"/golden.vcd");
         strcpy(TIME_PATH, str_fir);
@@ -726,6 +769,7 @@ void vcdCompareCall( )
         iso_itr(&port_list,&iso_inst_list);
         //vpi_printf("CON_NUM in good_sim is %d\n", CON_NUM);
         concur_gen(CON_NUM,DUT_NAME);
+        //vpi_printf("debug\n");
         vpi_printf("\n****instrumenting the isolation in DUT****\n");
         //timeCheck("/home/ICer/fusa_vpi/autosoc-development/Simulation/fault.time");
         return;
@@ -781,17 +825,15 @@ void vcdCompareMisc( int data, int reason )
 //    callbackData.time->low  = time;
 //    vpi_register_cb( &callbackData );
 //}
-static void setTimeoutCallback(double time) {
+static void setTimeoutCallback(uint64_t time) {
     //static s_vpi_time time_s = { vpiScaledRealTime };
     static s_vpi_time time_s = { vpiSimTime };
     s_cb_data callbackData = { cbReadOnlySynch, timeoutHandler, 0, &time_s, 0 };
-    uint64_t time_int = (uint64_t) time;
     // 将 double 类型的时间值分解为 high 和 low
     //uint64_t time_ns = (uint64_t)(time * 1e9); // 将时间转换为纳秒（假设 time 是以秒为单位的双精度浮点数）
-    callbackData.time->high = (uint32_t)(time_int >> 32); // 高32位
-    callbackData.time->low  = (uint32_t)(time_int & 0xFFFFFFFF); // 低32位
+    callbackData.time->high = (uint32_t)(time >> 32); // 高32位
+    callbackData.time->low  = (uint32_t)(time & 0xFFFFFFFF); // 低32位
     //printf("++++++++++DEBUG%lf++++++++++++",callbackData.time->real);
-    callbackData.time->real =  time;
     //printf("++++++++++DEBUG_add_time_out_cb%lf++++++++++++",callbackData.time->real);
     vpi_register_cb(&callbackData);
 }
@@ -802,20 +844,21 @@ static int timeoutHandler(p_cb_data cb_data_p)
         return -1; // 或者其他适当的错误处理
     }
 
-    double current = cb_data_p->time->real;
-    double golden = current - tolerant_time;
+    uint64_t current = (cb_data_p->time->high << 32)|cb_data_p->time->low;
+    uint64_t golden = current - tolerant_time;
     //strcpy(status_functional, "Detect");
     printf("****Time out while fault simulation*****\n");
-    printf("golden time is %lf, current time is %lf\n", golden, current);
+    printf("golden time is %llu, current time is %llu\n", golden, current);
 
     //free(cb_data_p);
     cb_data_p = NULL; // 避免重复释放
     freeStringList(&fault_target);
     freeStringList(&fault_exclude);
-    freeStringLIst(&fault_tw_str);
+    freeStringList(&fault_tw_str);
     freeStringList(&checker_list);
     freeStringList(&functional_list);
     freeStringList(&nostop_list);
+    BoolArray_free(&con_stop);
     vpi_control(vpiStop, 1);
     return(0);
 }
@@ -833,8 +876,8 @@ static int timeoutHandler(p_cb_data cb_data_p)
 //    return(vpi_control(vpiFinish,1));
 //}
 void timeCheck(const char* filename){
-    double golden_time;
-    double stop_time;
+    uint64_t golden_time;
+    uint64_t stop_time;
     FILE *file;
 
 
@@ -844,12 +887,13 @@ void timeCheck(const char* filename){
         perror("Error opening file");
         return EXIT_FAILURE;
     }
-    if (fscanf(file, "%lf", &golden_time) != 1) {
+    if (fscanf(file, "%llu", &golden_time) != 1) {
         perror("Error reading integer from file");
         fclose(file);
         return EXIT_FAILURE;
     }
     fclose(file);
+    //vpi_printf("timeis%llu\n",golden_time);
     stop_time=golden_time+tolerant_time;
     setTimeoutCallback(stop_time);
     }
@@ -1123,18 +1167,18 @@ void vcd_vpi_register(){
 
 extern void vpit_RegisterTfs( void )
 {
-    s_vpi_systf_data systf_data;
-    vpiHandle        systf_handle;
+    s_vpi_systf_data systf_data_list[] = {
+        {vpiSysTask, 0, "$vcdCompare", vcdCompareCall, vcdCompareCheck, 0, 0},
+        {vpiSysTask, 0, "$clear_mem", vpi_clear_memory_calltf, 0, 0, 0},
+        {vpiSysTask, 0, "$file_init_mem", vpi_init_from_file_calltf, 0, 0, 0},
+        {vpiSysTask, 0, "$xml_init_mem", vpi_init_from_xml_calltf, 0, 0, 0},
+        {0}
+    };
 
-    systf_data.type        = vpiSysTask;
-    systf_data.sysfunctype = 0;
-    systf_data.tfname      = "$vcdCompare";
-    systf_data.calltf      = vcdCompareCall;
-    systf_data.compiletf   = vcdCompareCheck;
-    systf_data.sizetf      = 0;
-    systf_data.user_data   = 0;
-    systf_handle = vpi_register_systf( &systf_data );
-    vpi_free_object( systf_handle );
+    int i;
+    for (i = 0; systf_data_list[i].type != 0; ++i){
+        vpi_register_systf( &systf_data_list[i] );
+    }
 }
 #ifdef SHARE_LIB
 
