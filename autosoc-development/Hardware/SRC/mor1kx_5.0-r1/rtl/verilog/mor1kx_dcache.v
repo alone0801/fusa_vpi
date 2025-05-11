@@ -67,7 +67,7 @@ module mor1kx_dcache
     input 			      spr_bus_stb_i,
     input [OPTION_OPERAND_WIDTH-1:0]  spr_bus_dat_i,
 
-    output [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_o,
     output 			      spr_bus_ack_o
     );
 
@@ -119,7 +119,7 @@ module mor1kx_dcache
    wire				      refill;
 
    reg [WAY_WIDTH-1:OPTION_DCACHE_BLOCK_WIDTH] invalidate_adr;
-   wire [31:0] 			      next_refill_adr;
+   wire scalared [31:0] 			      next_refill_adr;
    reg [31:0] 			      way_wr_dat;
    wire 			      refill_done;
    wire 			      refill_hit;
@@ -128,16 +128,16 @@ module mor1kx_dcache
    wire				      invalidate;
 
    // The index we read and write from tag memory
-   wire [OPTION_DCACHE_SET_WIDTH-1:0] tag_rindex;
+   wire scalared [OPTION_DCACHE_SET_WIDTH-1:0] tag_rindex;
    reg [OPTION_DCACHE_SET_WIDTH-1:0]  tag_windex;
 
    // The data from the tag memory
-   wire [TAGMEM_WIDTH-1:0] 	      tag_dout;
-   wire [TAG_LRU_WIDTH_BITS-1:0]      tag_lru_out;
-   wire [TAGMEM_WAY_WIDTH-1:0] 	      tag_way_out [OPTION_DCACHE_WAYS-1:0];
+   wire scalared [TAGMEM_WIDTH-1:0] 	      tag_dout;
+   wire scalared [TAG_LRU_WIDTH_BITS-1:0]      tag_lru_out;
+   wire scalared [TAGMEM_WAY_WIDTH-1:0] 	      tag_way_out [OPTION_DCACHE_WAYS-1:0];
 
    // The data to the tag memory
-   wire [TAGMEM_WIDTH-1:0] 	      tag_din;
+   wire scalared [TAGMEM_WIDTH-1:0] 	      tag_din;
    reg [TAG_LRU_WIDTH_BITS-1:0]       tag_lru_in;
    reg [TAGMEM_WAY_WIDTH-1:0] 	      tag_way_in [OPTION_DCACHE_WAYS-1:0];
 
@@ -147,25 +147,25 @@ module mor1kx_dcache
    reg 				      tag_we;
 
    // This is the tag we need to write to the tag memory during refill
-   wire [TAG_WIDTH-1:0] 	      tag_wtag;
+   wire scalared [TAG_WIDTH-1:0] 	      tag_wtag;
 
    // This is the tag we check against
-   wire [TAG_WIDTH-1:0] 	      tag_tag;
+   wire scalared [TAG_WIDTH-1:0] 	      tag_tag;
 
    // Access to the way memories
-   wire [WAY_WIDTH-3:0] 	      way_raddr[OPTION_DCACHE_WAYS-1:0];
-   wire [WAY_WIDTH-3:0] 	      way_waddr[OPTION_DCACHE_WAYS-1:0];
-   wire [OPTION_OPERAND_WIDTH-1:0]    way_din[OPTION_DCACHE_WAYS-1:0];
-   wire [OPTION_OPERAND_WIDTH-1:0]    way_dout[OPTION_DCACHE_WAYS-1:0];
+   wire scalared [WAY_WIDTH-3:0] 	      way_raddr[OPTION_DCACHE_WAYS-1:0];
+   wire scalared [WAY_WIDTH-3:0] 	      way_waddr[OPTION_DCACHE_WAYS-1:0];
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]    way_din[OPTION_DCACHE_WAYS-1:0];
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]    way_dout[OPTION_DCACHE_WAYS-1:0];
    reg [OPTION_DCACHE_WAYS-1:0]       way_we;
 
    // Does any way hit?
    wire 			      hit;
-   wire [OPTION_DCACHE_WAYS-1:0]      way_hit;
+   wire scalared [OPTION_DCACHE_WAYS-1:0]      way_hit;
 
    // This is the least recently used value before access the memory.
    // Those are one hot encoded.
-   wire [OPTION_DCACHE_WAYS-1:0]      lru;
+   wire scalared [OPTION_DCACHE_WAYS-1:0]      lru;
 
    // Register that stores the LRU value from lru
    reg [OPTION_DCACHE_WAYS-1:0]       tag_save_lru;
@@ -176,18 +176,18 @@ module mor1kx_dcache
 
    // The current LRU history as read from tag memory and the update
    // value after we accessed it to write back to tag memory.
-   wire [TAG_LRU_WIDTH_BITS-1:0]      current_lru_history;
-   wire [TAG_LRU_WIDTH_BITS-1:0]      next_lru_history;
+   wire scalared [TAG_LRU_WIDTH_BITS-1:0]      current_lru_history;
+   wire scalared [TAG_LRU_WIDTH_BITS-1:0]      next_lru_history;
 
    // Intermediate signals to ease debugging
-   wire [TAG_WIDTH-1:0]               check_way_tag [OPTION_DCACHE_WAYS-1:0];
+   wire scalared [TAG_WIDTH-1:0]               check_way_tag [OPTION_DCACHE_WAYS-1:0];
    wire                               check_way_match [OPTION_DCACHE_WAYS-1:0];
    wire                               check_way_valid [OPTION_DCACHE_WAYS-1:0];
 
    reg 				      write_pending;
 
    // Extract index to read from snooped address
-   wire [OPTION_DCACHE_SET_WIDTH-1:0] snoop_index;
+   wire scalared [OPTION_DCACHE_SET_WIDTH-1:0] snoop_index;
    assign snoop_index = snoop_adr_i[WAY_WIDTH-1:OPTION_DCACHE_BLOCK_WIDTH];
 
    // Register that is high one cycle after the actual snoop event to
@@ -200,17 +200,17 @@ module mor1kx_dcache
 
    // Snoop tag memory interface
    // Data out of tag memory
-   wire [TAGMEM_WIDTH-1:0] 	      snoop_dout;
+   wire scalared [TAGMEM_WIDTH-1:0] 	      snoop_dout;
    // Each ways information in the tag memory
-   wire [TAGMEM_WAY_WIDTH-1:0] 	      snoop_way_out [OPTION_DCACHE_WAYS-1:0];
+   wire scalared [TAGMEM_WAY_WIDTH-1:0] 	      snoop_way_out [OPTION_DCACHE_WAYS-1:0];
    // Each ways tag in the tag memory
-   wire [TAG_WIDTH-1:0] 	      snoop_check_way_tag [OPTION_DCACHE_WAYS-1:0];
+   wire scalared [TAG_WIDTH-1:0] 	      snoop_check_way_tag [OPTION_DCACHE_WAYS-1:0];
    // Whether the tag matches the snoop tag
    wire                               snoop_check_way_match [OPTION_DCACHE_WAYS-1:0];
    // Whether the tag is valid
    wire                               snoop_check_way_valid [OPTION_DCACHE_WAYS-1:0];
    // Whether the way hits
-   wire [OPTION_DCACHE_WAYS-1:0]      snoop_way_hit;
+   wire scalared [OPTION_DCACHE_WAYS-1:0]      snoop_way_hit;
    // Whether any way hits
    wire 			      snoop_hit;
 

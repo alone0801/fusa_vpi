@@ -20,11 +20,11 @@ module mor1kx_true_dpram_sclk
     input [ADDR_WIDTH-1:0]  addr_a,
     input 		    we_a,
     input [DATA_WIDTH-1:0]  din_a,
-    output [DATA_WIDTH-1:0] dout_a,
+    output wire scalared [DATA_WIDTH-1:0] dout_a,
     input [ADDR_WIDTH-1:0]  addr_b,
     input 		    we_b,
     input [DATA_WIDTH-1:0]  din_b,
-    output [DATA_WIDTH-1:0] dout_b
+    output wire scalared [DATA_WIDTH-1:0] dout_b
     );
 
    reg [DATA_WIDTH-1:0]     mem[(1<<ADDR_WIDTH)-1:0];

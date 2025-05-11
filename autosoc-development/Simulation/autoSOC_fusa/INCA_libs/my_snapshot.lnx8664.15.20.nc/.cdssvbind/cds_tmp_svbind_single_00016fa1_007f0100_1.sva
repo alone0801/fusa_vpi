@@ -1,0 +1,7 @@
+vunit cds_psl1 (autosoc_tb) {
+(*cds_generated_bind_instance*)
+`line 30 "./fi_wrapper.sv" 0
+autosoc_top #(.MEM_SIZE(33554432), .OPTION_CPU("LOCKSTEP"), .OPTION_PARITY("DISABLED"), .OPTION_CHECKPOINT("DISABLED"), .OPTION_MEMECC("DISABLED")) concur_1 (.wb_clk_i(syst_clk), .wb_rst_i(syst_rst), .tdo_pad_o(), .tms_pad_i(tms), .tck_pad_i(tck), .tdi_pad_i(tdi), .uart_stx(), .uart_srx(), .can_rx_i(1'b1), .can_tx_o(), .can_bus_off_on());
+
+}
+

@@ -316,7 +316,7 @@ void         triggerOnLoop( p_cback_data );
 
 void         addEosCallback( void ( * )( p_cb_data ) );             /* in eosCallback.c */
 void         dummyEosHandler( );
-void         vcd_vpi_register();
+void         vpit_RegisterTfs( void );
 int time_record_print( p_cb_data cb_data_p );
 void timeRecordEosHandler( p_cb_data data );
 vpiHandle obj_replace(vpiHandle obj, int vact_num);

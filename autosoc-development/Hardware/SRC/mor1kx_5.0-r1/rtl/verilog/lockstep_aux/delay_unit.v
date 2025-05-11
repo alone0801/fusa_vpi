@@ -21,7 +21,7 @@ module delay_unit
     (
         input                       clk,
         input   [OPERAND_WIDTH-1:0] signal_i,
-        output  [OPERAND_WIDTH-1:0] delayed_o
+        output wire scalared  [OPERAND_WIDTH-1:0] delayed_o
     );
 
     // Shift Register for Input Signal delay

@@ -1,0 +1,27 @@
+//
+// File created by:  irun
+// Do not modify this file
+//
+-sv
+-INCDIR
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/wb_bus/
+-INCDIR
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/
+-INCDIR
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/uart16550_1.5.4/rtl/verilog/
+-INCDIR
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/can_master/
+-INCDIR
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/wb_bus/wb_common_1.0.1/
+-INCDIR
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/utils/verilog_utils_0/
+-INCDIR
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/ecc_bch_dec/src/rtl/univ/
+-INCDIR
+/home/ICer/fusa_vpi/autosoc-development/Hardware/TB/include
+-INCDIR
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/adv_debug_sys_3.1.0/Hardware/adv_dbg_if/rtl/verilog/
+-DEFINE
+LOCKSTEP
+-SNAPSHOT
+my_snapshot

@@ -43,9 +43,9 @@ module mor1kx_fetch_cappuccino
     input 				  spr_bus_we_i,
     input 				  spr_bus_stb_i,
     input [OPTION_OPERAND_WIDTH-1:0] 	  spr_bus_dat_i,
-    output [OPTION_OPERAND_WIDTH-1:0] 	  spr_bus_dat_ic_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] 	  spr_bus_dat_ic_o,
     output 				  spr_bus_ack_ic_o,
-    output [OPTION_OPERAND_WIDTH-1:0] 	  spr_bus_dat_immu_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] 	  spr_bus_dat_immu_o,
     output 				  spr_bus_ack_immu_o,
 
     input 				  ic_enable,
@@ -58,7 +58,7 @@ module mor1kx_fetch_cappuccino
     input 				  ibus_ack_i,
     input [`OR1K_INSN_WIDTH-1:0] 	  ibus_dat_i,
     output 				  ibus_req_o,
-    output [OPTION_OPERAND_WIDTH-1:0] 	  ibus_adr_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] 	  ibus_adr_o,
     output 				  ibus_burst_o,
 
     // pipeline control input
@@ -69,8 +69,8 @@ module mor1kx_fetch_cappuccino
     output reg [OPTION_OPERAND_WIDTH-1:0] pc_decode_o,
     output reg [`OR1K_INSN_WIDTH-1:0] 	  decode_insn_o,
     output reg 				  fetch_valid_o,
-    output [OPTION_RF_ADDR_WIDTH-1:0] 	  fetch_rfa_adr_o,
-    output [OPTION_RF_ADDR_WIDTH-1:0] 	  fetch_rfb_adr_o,
+    output wire scalared [OPTION_RF_ADDR_WIDTH-1:0] 	  fetch_rfa_adr_o,
+    output wire scalared [OPTION_RF_ADDR_WIDTH-1:0] 	  fetch_rfb_adr_o,
     output 				  fetch_rf_adr_valid_o,
 
     // branch/jump indication
@@ -116,22 +116,22 @@ module mor1kx_fetch_cappuccino
 
    reg 					  imem_err;
    wire 				  imem_ack;
-   wire [`OR1K_INSN_WIDTH-1:0] 		  imem_dat;
+   wire scalared [`OR1K_INSN_WIDTH-1:0] 		  imem_dat;
 
    wire 				  ic_ack;
-   wire [`OR1K_INSN_WIDTH-1:0] 		  ic_dat;
+   wire scalared [`OR1K_INSN_WIDTH-1:0] 		  ic_dat;
 
    wire 				  ic_refill;
    wire 				  ic_refill_req;
    wire 				  ic_refill_done;
    wire 				  ic_invalidate;
-   wire [OPTION_OPERAND_WIDTH-1:0] 	  ic_addr;
-   wire [OPTION_OPERAND_WIDTH-1:0] 	  ic_addr_match;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] 	  ic_addr;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] 	  ic_addr_match;
 
    wire 				  ic_access;
 
 
-   wire [OPTION_OPERAND_WIDTH-1:0] 	  immu_phys_addr;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] 	  immu_phys_addr;
    wire 				  immu_cache_inhibit;
    wire 				  pagefault;
    wire 				  tlb_miss;
@@ -142,7 +142,7 @@ module mor1kx_fetch_cappuccino
 
    wire 				  tlb_reload_req;
    reg 					  tlb_reload_ack;
-   wire [OPTION_OPERAND_WIDTH-1:0] 	  tlb_reload_addr;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] 	  tlb_reload_addr;
    reg [OPTION_OPERAND_WIDTH-1:0] 	  tlb_reload_data;
    wire 				  tlb_reload_pagefault;
    wire 				  tlb_reload_busy;
@@ -326,7 +326,7 @@ module mor1kx_fetch_cappuccino
    reg [2:0] state;
 
    reg [OPTION_OPERAND_WIDTH-1:0] ibus_adr;
-   wire [OPTION_OPERAND_WIDTH-1:0] next_ibus_adr;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] next_ibus_adr;
    reg [`OR1K_INSN_WIDTH-1:0] 	  ibus_dat;
    reg 				  ibus_req;
    reg 				  ibus_ack;
@@ -565,7 +565,7 @@ endgenerate
 
 generate
 if (FEATURE_IMMU!="NONE") begin : immu_gen
-   wire  [OPTION_OPERAND_WIDTH-1:0] virt_addr = ic_addr;
+   wire scalared  [OPTION_OPERAND_WIDTH-1:0] virt_addr = ic_addr;
    wire 			    immu_spr_bus_stb;
    wire 			    immu_enable;
    // small hack to delay immu spr reads by one cycle

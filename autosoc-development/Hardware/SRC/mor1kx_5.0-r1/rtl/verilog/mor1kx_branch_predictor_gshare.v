@@ -56,7 +56,7 @@ module mor1kx_branch_predictor_gshare
    reg [GSHARE_BITS_NUM - 1:0] prev_idx = 0;
    
    // +2 bits for alignement
-   wire [GSHARE_BITS_NUM - 1:0] state_index = brn_hist_reg[GSHARE_BITS_NUM - 1:0] ^ brn_pc_i[GSHARE_BITS_NUM + 1:2];
+   wire scalared [GSHARE_BITS_NUM - 1:0] state_index = brn_hist_reg[GSHARE_BITS_NUM - 1:0] ^ brn_pc_i[GSHARE_BITS_NUM + 1:2];
 
    assign predicted_flag_o = (state[state_index][1] && op_bf_i) ||
                              (!state[state_index][1] && op_bnf_i);

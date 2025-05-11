@@ -63,9 +63,9 @@ module mor1kx_lsu_cappuccino
     // From control stage, exception PC for the store buffer input
     input [OPTION_OPERAND_WIDTH-1:0]  ctrl_epcr_i,
     // The exception PC as it has went through the store buffer
-    output [OPTION_OPERAND_WIDTH-1:0] store_buffer_epcr_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] store_buffer_epcr_o,
 
-    output [OPTION_OPERAND_WIDTH-1:0] lsu_result_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] lsu_result_o,
     output 			      lsu_valid_o,
     // exception output
     output 			      lsu_except_dbus_o,
@@ -88,9 +88,9 @@ module mor1kx_lsu_cappuccino
     input 			      spr_bus_we_i,
     input 			      spr_bus_stb_i,
     input [OPTION_OPERAND_WIDTH-1:0]  spr_bus_dat_i,
-    output [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_dc_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_dc_o,
     output 			      spr_bus_ack_dc_o,
-    output [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_dmmu_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_dmmu_o,
     output 			      spr_bus_ack_dmmu_o,
 
     input 			      dc_enable_i,
@@ -99,9 +99,9 @@ module mor1kx_lsu_cappuccino
     output 			      dc_hit_o,
 
     // interface to data bus
-    output [OPTION_OPERAND_WIDTH-1:0] dbus_adr_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] dbus_adr_o,
     output reg			      dbus_req_o,
-    output [OPTION_OPERAND_WIDTH-1:0] dbus_dat_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] dbus_dat_o,
     output reg [3:0] 		      dbus_bsel_o,
     output 			      dbus_we_o,
     output 			      dbus_burst_o,
@@ -132,24 +132,24 @@ module mor1kx_lsu_cappuccino
    reg 				     dbus_err;
    reg [OPTION_OPERAND_WIDTH-1:0]    dbus_dat;
    reg [OPTION_OPERAND_WIDTH-1:0]    dbus_adr;
-   wire [OPTION_OPERAND_WIDTH-1:0]   next_dbus_adr;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   next_dbus_adr;
    reg 				     dbus_we;
    reg [3:0] 			     dbus_bsel;
    wire 			     dbus_access;
    wire 			     dbus_stall;
 
-   wire [OPTION_OPERAND_WIDTH-1:0]   lsu_ldat;
-   wire [OPTION_OPERAND_WIDTH-1:0]   lsu_sdat;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   lsu_ldat;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   lsu_sdat;
    wire				     lsu_ack;
 
    wire 			     dc_ack;
    wire 			     dc_err;
-   wire [31:0] 			     dc_ldat;
-   wire [31:0] 			     dc_sdat;
-   wire [31:0] 			     dc_adr;
-   wire [31:0] 			     dc_adr_match;
+   wire scalared [31:0] 			     dc_ldat;
+   wire scalared [31:0] 			     dc_sdat;
+   wire scalared [31:0] 			     dc_adr;
+   wire scalared [31:0] 			     dc_adr_match;
    wire 			     dc_we;
-   wire [3:0] 			     dc_bsel;
+   wire scalared [3:0] 			     dc_bsel;
 
    wire 			     dc_access;
    wire 			     dc_hit;
@@ -166,7 +166,7 @@ module mor1kx_lsu_cappuccino
    // DMMU
    wire 			     tlb_miss;
    wire 			     pagefault;
-   wire [OPTION_OPERAND_WIDTH-1:0]   dmmu_phys_addr;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   dmmu_phys_addr;
    wire				     except_dtlb_miss;
    reg 				     except_dtlb_miss_r;
    wire 			     except_dpagefault;
@@ -175,7 +175,7 @@ module mor1kx_lsu_cappuccino
 
    wire 			     tlb_reload_req;
    wire 			     tlb_reload_busy;
-   wire [OPTION_OPERAND_WIDTH-1:0]   tlb_reload_addr;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   tlb_reload_addr;
    wire 			     tlb_reload_pagefault;
    reg 				     tlb_reload_ack;
    reg [OPTION_OPERAND_WIDTH-1:0]    tlb_reload_data;
@@ -187,10 +187,10 @@ module mor1kx_lsu_cappuccino
    wire				     store_buffer_read;
    wire 			     store_buffer_full;
    wire 			     store_buffer_empty;
-   wire [OPTION_OPERAND_WIDTH-1:0]   store_buffer_radr;
-   wire [OPTION_OPERAND_WIDTH-1:0]   store_buffer_wadr;
-   wire [OPTION_OPERAND_WIDTH-1:0]   store_buffer_dat;
-   wire [OPTION_OPERAND_WIDTH/8-1:0] store_buffer_bsel;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   store_buffer_radr;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   store_buffer_wadr;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   store_buffer_dat;
+   wire scalared [OPTION_OPERAND_WIDTH/8-1:0] store_buffer_bsel;
    wire 			     store_buffer_atomic;
    reg 				     store_buffer_write_pending;
 
@@ -782,7 +782,7 @@ endgenerate
 
 generate
 if (FEATURE_DMMU!="NONE") begin : dmmu_gen
-   wire  [OPTION_OPERAND_WIDTH-1:0] virt_addr;
+   wire scalared  [OPTION_OPERAND_WIDTH-1:0] virt_addr;
    wire 			    dmmu_spr_bus_stb;
    wire 			    dmmu_enable;
 

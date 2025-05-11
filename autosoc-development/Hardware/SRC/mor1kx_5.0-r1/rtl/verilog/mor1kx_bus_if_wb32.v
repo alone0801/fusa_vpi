@@ -27,7 +27,7 @@ module mor1kx_bus_if_wb32
 
     output        cpu_err_o,
     output        cpu_ack_o,
-    output [31:0] cpu_dat_o,
+    output wire scalared [31:0] cpu_dat_o,
     input [31:0]  cpu_adr_i,
     input [31:0]  cpu_dat_i,
     input         cpu_req_i,
@@ -35,14 +35,14 @@ module mor1kx_bus_if_wb32
     input         cpu_we_i,
     input         cpu_burst_i,
 
-    output [31:0] wbm_adr_o,
+    output wire scalared [31:0] wbm_adr_o,
     output        wbm_stb_o,
     output        wbm_cyc_o,
-    output [3:0]  wbm_sel_o,
+    output wire scalared [3:0]  wbm_sel_o,
     output        wbm_we_o,
-    output [2:0]  wbm_cti_o,
-    output [1:0]  wbm_bte_o,
-    output [31:0] wbm_dat_o,
+    output wire scalared [2:0]  wbm_cti_o,
+    output wire scalared [1:0]  wbm_bte_o,
+    output wire scalared [31:0] wbm_dat_o,
     input         wbm_err_i,
     input         wbm_ack_i,
     input [31:0]  wbm_dat_i,
@@ -64,7 +64,7 @@ module mor1kx_bus_if_wb32
 	 reg 			      bursting;
 	 reg [31:2] 		      burst_address;
 	 reg [BADDR_WITH-1:0]	      burst_wrap_start;
-	 wire [BADDR_WITH-1:0]	      burst_wrap_finish;
+	 wire scalared [BADDR_WITH-1:0]	      burst_wrap_finish;
 	 wire 			      address_differs;
 
 	 always @(posedge clk `OR_ASYNC_RST)

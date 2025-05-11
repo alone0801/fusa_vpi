@@ -92,7 +92,7 @@ module mor1kx_cpu_prontoespresso
     input 			      ibus_err_i,
     input 			      ibus_ack_i,
     input [`OR1K_INSN_WIDTH-1:0]      ibus_dat_i,
-    output [OPTION_OPERAND_WIDTH-1:0] ibus_adr_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] ibus_adr_o,
     output 			      ibus_req_o,
     output 			      ibus_burst_o,
 
@@ -100,10 +100,10 @@ module mor1kx_cpu_prontoespresso
     input 			      dbus_err_i,
     input 			      dbus_ack_i,
     input [OPTION_OPERAND_WIDTH-1:0]  dbus_dat_i,
-    output [OPTION_OPERAND_WIDTH-1:0] dbus_adr_o,
-    output [OPTION_OPERAND_WIDTH-1:0] dbus_dat_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] dbus_adr_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] dbus_dat_o,
     output 			      dbus_req_o,
-    output [3:0] 		      dbus_bsel_o,
+    output wire scalared [3:0] 		      dbus_bsel_o,
     output 			      dbus_we_o,
     output 			      dbus_burst_o,
 
@@ -115,17 +115,17 @@ module mor1kx_cpu_prontoespresso
     input 			      du_stb_i,
     input [OPTION_OPERAND_WIDTH-1:0]  du_dat_i,
     input 			      du_we_i,
-    output [OPTION_OPERAND_WIDTH-1:0] du_dat_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] du_dat_o,
     output 			      du_ack_o,
     // Stall control from debug interface
     input 			      du_stall_i,
     output 			      du_stall_o,
 
     // SPR accesses to external units (cache, mmu, etc.)
-    output [15:0] 		      spr_bus_addr_o,
+    output wire scalared [15:0] 		      spr_bus_addr_o,
     output 			      spr_bus_we_o,
     output 			      spr_bus_stb_o,
-    output [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_o,
     input [OPTION_OPERAND_WIDTH-1:0]  spr_bus_dat_dmmu_i,
     input 			      spr_bus_ack_dmmu_i,
     input [OPTION_OPERAND_WIDTH-1:0]  spr_bus_dat_immu_i,
@@ -138,27 +138,27 @@ module mor1kx_cpu_prontoespresso
     input 			      spr_bus_ack_pcu_i,
     input [OPTION_OPERAND_WIDTH-1:0]  spr_bus_dat_fpu_i,
     input 			      spr_bus_ack_fpu_i,
-    output [15:0] 		      spr_sr_o,
+    output wire scalared [15:0] 		      spr_sr_o,
 
     // The multicore core identifier
     input [OPTION_OPERAND_WIDTH-1:0] multicore_coreid_i
     );
 
-   wire [OPTION_OPERAND_WIDTH-1:0]   pc_fetch_to_decode;
-   wire [`OR1K_INSN_WIDTH-1:0] 	     insn_fetch_to_decode;
-   wire [OPTION_OPERAND_WIDTH-1:0]   pc_decode_to_execute;
-   wire [OPTION_OPERAND_WIDTH-1:0]   pc_execute_to_ctrl;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   pc_fetch_to_decode;
+   wire scalared [`OR1K_INSN_WIDTH-1:0] 	     insn_fetch_to_decode;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   pc_decode_to_execute;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   pc_execute_to_ctrl;
 
    /*AUTOWIRE*/
    // Beginning of automatic wires (for undeclared instantiated-module outputs)
-   wire [OPTION_OPERAND_WIDTH-1:0] adder_result_o;// From mor1kx_execute_alu of mor1kx_execute_alu.v
-   wire [OPTION_OPERAND_WIDTH-1:0] alu_result_o;// From mor1kx_execute_alu of mor1kx_execute_alu.v
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] adder_result_o;// From mor1kx_execute_alu of mor1kx_execute_alu.v
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] alu_result_o;// From mor1kx_execute_alu of mor1kx_execute_alu.v
    wire			alu_valid_o;		// From mor1kx_execute_alu of mor1kx_execute_alu.v
    wire			carry_clear_o;		// From mor1kx_execute_alu of mor1kx_execute_alu.v
    wire			carry_o;		// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
    wire			carry_set_o;		// From mor1kx_execute_alu of mor1kx_execute_alu.v
    wire			ctrl_branch_occur_o;	// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
-   wire [OPTION_OPERAND_WIDTH-1:0] ctrl_branch_target_o;// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] ctrl_branch_target_o;// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
    wire			ctrl_insn_done_o;	// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
    wire			ctrl_mfspr_we_o;	// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
    wire			decode_adder_do_carry_o;// From mor1kx_decode of mor1kx_decode.v
@@ -167,11 +167,11 @@ module mor1kx_cpu_prontoespresso
    wire			decode_except_illegal_o;// From mor1kx_decode of mor1kx_decode.v
    wire			decode_except_syscall_o;// From mor1kx_decode of mor1kx_decode.v
    wire			decode_except_trap_o;	// From mor1kx_decode of mor1kx_decode.v
-   wire [`OR1K_IMM_WIDTH-1:0] decode_imm16_o;	// From mor1kx_decode of mor1kx_decode.v
-   wire [OPTION_OPERAND_WIDTH-1:0] decode_immediate_o;// From mor1kx_decode of mor1kx_decode.v
+   wire scalared [`OR1K_IMM_WIDTH-1:0] decode_imm16_o;	// From mor1kx_decode of mor1kx_decode.v
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] decode_immediate_o;// From mor1kx_decode of mor1kx_decode.v
    wire			decode_immediate_sel_o;	// From mor1kx_decode of mor1kx_decode.v
-   wire [9:0]		decode_immjbr_upper_o;	// From mor1kx_decode of mor1kx_decode.v
-   wire [1:0]		decode_lsu_length_o;	// From mor1kx_decode of mor1kx_decode.v
+   wire scalared [9:0]		decode_immjbr_upper_o;	// From mor1kx_decode of mor1kx_decode.v
+   wire scalared [1:0]		decode_lsu_length_o;	// From mor1kx_decode of mor1kx_decode.v
    wire			decode_lsu_zext_o;	// From mor1kx_decode of mor1kx_decode.v
    wire			decode_op_add_o;	// From mor1kx_decode of mor1kx_decode.v
    wire			decode_op_alu_o;	// From mor1kx_decode of mor1kx_decode.v
@@ -183,7 +183,7 @@ module mor1kx_cpu_prontoespresso
    wire			decode_op_div_signed_o;	// From mor1kx_decode of mor1kx_decode.v
    wire			decode_op_div_unsigned_o;// From mor1kx_decode of mor1kx_decode.v
    wire			decode_op_ffl1_o;	// From mor1kx_decode of mor1kx_decode.v
-   wire [`OR1K_FPUOP_WIDTH-1:0] decode_op_fpu_o;// From mor1kx_decode of mor1kx_decode.v
+   wire scalared [`OR1K_FPUOP_WIDTH-1:0] decode_op_fpu_o;// From mor1kx_decode of mor1kx_decode.v
    wire			decode_op_jal_o;	// From mor1kx_decode of mor1kx_decode.v
    wire			decode_op_jbr_o;	// From mor1kx_decode of mor1kx_decode.v
    wire			decode_op_jr_o;		// From mor1kx_decode of mor1kx_decode.v
@@ -199,52 +199,52 @@ module mor1kx_cpu_prontoespresso
    wire			decode_op_rfe_o;	// From mor1kx_decode of mor1kx_decode.v
    wire			decode_op_setflag_o;	// From mor1kx_decode of mor1kx_decode.v
    wire			decode_op_shift_o;	// From mor1kx_decode of mor1kx_decode.v
-   wire [`OR1K_ALU_OPC_WIDTH-1:0] decode_opc_alu_o;// From mor1kx_decode of mor1kx_decode.v
-   wire [`OR1K_ALU_OPC_WIDTH-1:0] decode_opc_alu_secondary_o;// From mor1kx_decode of mor1kx_decode.v
-   wire [`OR1K_OPCODE_WIDTH-1:0] decode_opc_insn_o;// From mor1kx_decode of mor1kx_decode.v
+   wire scalared [`OR1K_ALU_OPC_WIDTH-1:0] decode_opc_alu_o;// From mor1kx_decode of mor1kx_decode.v
+   wire scalared [`OR1K_ALU_OPC_WIDTH-1:0] decode_opc_alu_secondary_o;// From mor1kx_decode of mor1kx_decode.v
+   wire scalared [`OR1K_OPCODE_WIDTH-1:0] decode_opc_insn_o;// From mor1kx_decode of mor1kx_decode.v
    wire			decode_rf_wb_o;		// From mor1kx_decode of mor1kx_decode.v
-   wire [OPTION_RF_ADDR_WIDTH-1:0] decode_rfa_adr_o;// From mor1kx_decode of mor1kx_decode.v
-   wire [OPTION_RF_ADDR_WIDTH-1:0] decode_rfb_adr_o;// From mor1kx_decode of mor1kx_decode.v
-   wire [OPTION_RF_ADDR_WIDTH-1:0] decode_rfd_adr_o;// From mor1kx_decode of mor1kx_decode.v
+   wire scalared [OPTION_RF_ADDR_WIDTH-1:0] decode_rfa_adr_o;// From mor1kx_decode of mor1kx_decode.v
+   wire scalared [OPTION_RF_ADDR_WIDTH-1:0] decode_rfb_adr_o;// From mor1kx_decode of mor1kx_decode.v
+   wire scalared [OPTION_RF_ADDR_WIDTH-1:0] decode_rfd_adr_o;// From mor1kx_decode of mor1kx_decode.v
    wire			du_restart_o;		// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
-   wire [OPTION_OPERAND_WIDTH-1:0] du_restart_pc_o;// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] du_restart_pc_o;// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
    wire			exception_taken_o;	// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
    wire			execute_waiting_o;	// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
    wire			fetch_quick_branch_o;	// From mor1kx_fetch_prontoespresso of mor1kx_fetch_prontoespresso.v
    wire			fetch_ready_o;		// From mor1kx_fetch_prontoespresso of mor1kx_fetch_tcm_prontoespresso.v, ...
    wire			fetch_rf_re_o;		// From mor1kx_fetch_prontoespresso of mor1kx_fetch_tcm_prontoespresso.v, ...
-   wire [OPTION_RF_ADDR_WIDTH-1:0] fetch_rfa_adr_o;// From mor1kx_fetch_prontoespresso of mor1kx_fetch_tcm_prontoespresso.v, ...
-   wire [OPTION_RF_ADDR_WIDTH-1:0] fetch_rfb_adr_o;// From mor1kx_fetch_prontoespresso of mor1kx_fetch_tcm_prontoespresso.v, ...
+   wire scalared [OPTION_RF_ADDR_WIDTH-1:0] fetch_rfa_adr_o;// From mor1kx_fetch_prontoespresso of mor1kx_fetch_tcm_prontoespresso.v, ...
+   wire scalared [OPTION_RF_ADDR_WIDTH-1:0] fetch_rfb_adr_o;// From mor1kx_fetch_prontoespresso of mor1kx_fetch_tcm_prontoespresso.v, ...
    wire			fetch_sleep_o;		// From mor1kx_fetch_prontoespresso of mor1kx_fetch_tcm_prontoespresso.v, ...
    wire			fetch_take_exception_branch_o;// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
-   wire [OPTION_OPERAND_WIDTH-1:0] fetched_pc_o;// From mor1kx_fetch_prontoespresso of mor1kx_fetch_tcm_prontoespresso.v, ...
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] fetched_pc_o;// From mor1kx_fetch_prontoespresso of mor1kx_fetch_tcm_prontoespresso.v, ...
    wire			flag_clear_o;		// From mor1kx_execute_alu of mor1kx_execute_alu.v
    wire			flag_o;			// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
    wire			flag_set_o;		// From mor1kx_execute_alu of mor1kx_execute_alu.v
-   wire [`OR1K_FPCSR_WIDTH-1:0] fpcsr_o;	// From mor1kx_execute_alu of mor1kx_execute_alu.v
+   wire scalared [`OR1K_FPCSR_WIDTH-1:0] fpcsr_o;	// From mor1kx_execute_alu of mor1kx_execute_alu.v
    wire			fpcsr_set_o;		// From mor1kx_execute_alu of mor1kx_execute_alu.v
-   wire [OPTION_OPERAND_WIDTH-1:0] link_addr_o;	// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] link_addr_o;	// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
    wire			lsu_except_align_o;	// From mor1kx_lsu_espresso of mor1kx_lsu_espresso.v
    wire			lsu_except_dbus_o;	// From mor1kx_lsu_espresso of mor1kx_lsu_espresso.v
-   wire [OPTION_OPERAND_WIDTH-1:0] lsu_result_o;// From mor1kx_lsu_espresso of mor1kx_lsu_espresso.v
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] lsu_result_o;// From mor1kx_lsu_espresso of mor1kx_lsu_espresso.v
    wire			lsu_valid_o;		// From mor1kx_lsu_espresso of mor1kx_lsu_espresso.v
-   wire [OPTION_OPERAND_WIDTH-1:0] mfspr_dat_o;	// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
-   wire [OPTION_OPERAND_WIDTH-1:0] mul_result_o;// From mor1kx_execute_alu of mor1kx_execute_alu.v
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] mfspr_dat_o;	// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] mul_result_o;// From mor1kx_execute_alu of mor1kx_execute_alu.v
    wire			overflow_clear_o;	// From mor1kx_execute_alu of mor1kx_execute_alu.v
    wire			overflow_set_o;		// From mor1kx_execute_alu of mor1kx_execute_alu.v
    wire			padv_decode_o;		// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
    wire			padv_execute_o;		// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
    wire			padv_fetch_o;		// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
-   wire [OPTION_OPERAND_WIDTH-1:0] pc_fetch_next_o;// From mor1kx_fetch_prontoespresso of mor1kx_fetch_tcm_prontoespresso.v, ...
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] pc_fetch_next_o;// From mor1kx_fetch_prontoespresso of mor1kx_fetch_tcm_prontoespresso.v, ...
    wire			pipeline_flush_o;	// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
-   wire [OPTION_OPERAND_WIDTH-1:0] rf_result_o;	// From mor1kx_wb_mux_espresso of mor1kx_wb_mux_espresso.v
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] rf_result_o;	// From mor1kx_wb_mux_espresso of mor1kx_wb_mux_espresso.v
    wire			rf_we_o;		// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
-   wire [OPTION_OPERAND_WIDTH-1:0] rfa_o;	// From mor1kx_rf_espresso of mor1kx_rf_espresso.v
-   wire [OPTION_OPERAND_WIDTH-1:0] rfb_o;	// From mor1kx_rf_espresso of mor1kx_rf_espresso.v
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] rfa_o;	// From mor1kx_rf_espresso of mor1kx_rf_espresso.v
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] rfb_o;	// From mor1kx_rf_espresso of mor1kx_rf_espresso.v
    wire			spr_bus_ack_ic_i;	// From mor1kx_fetch_prontoespresso of mor1kx_fetch_prontoespresso.v
-   wire [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_ic_i;// From mor1kx_fetch_prontoespresso of mor1kx_fetch_prontoespresso.v
-   wire [OPTION_OPERAND_WIDTH-1:0] spr_npc_o;	// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
-   wire [OPTION_OPERAND_WIDTH-1:0] spr_ppc_o;	// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_ic_i;// From mor1kx_fetch_prontoespresso of mor1kx_fetch_prontoespresso.v
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_npc_o;	// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_ppc_o;	// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
    wire			stepping_o;		// From mor1kx_ctrl_prontoespresso of mor1kx_ctrl_prontoespresso.v
    // End of automatics
 

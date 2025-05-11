@@ -302,7 +302,8 @@ wb_ram #(
         // Parameter for ECC Enable
         .OPTION_MEMECC  (OPTION_MEMECC),
 
-	.depth	        (MEM_SIZE)
+	.depth	        (MEM_SIZE),
+    .memfile    ("/home/ICer/fusa_vpi/autosoc-development/Simulation/hello.txt")
 ) wb_bfm_memory0 (
 	//Wishbone Master interface
 	.wb_clk_i	(wb_clk_i),

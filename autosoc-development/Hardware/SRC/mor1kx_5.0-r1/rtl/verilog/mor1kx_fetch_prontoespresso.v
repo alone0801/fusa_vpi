@@ -48,7 +48,7 @@ module mor1kx_fetch_prontoespresso
    input clk, rst;
 
    // interface to ibus
-   output [OPTION_OPERAND_WIDTH-1:0] ibus_adr_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] ibus_adr_o;
    output 			     ibus_req_o;
    output 			     ibus_burst_o;
    input 			     ibus_err_i;
@@ -63,19 +63,19 @@ module mor1kx_fetch_prontoespresso
    output reg [`OR1K_INSN_WIDTH-1:0]  decode_insn_o;
 
    // PC of the current instruction, SPR_PPC basically
-   output     [OPTION_OPERAND_WIDTH-1:0] fetched_pc_o;
+   output wire scalared     [OPTION_OPERAND_WIDTH-1:0] fetched_pc_o;
 
    // Indication to pipeline control that the fetch stage is ready
    output 				 fetch_ready_o;
 
    // Signals going to register file to do the read access as we
    // register the instruction out to the decode stage
-   output [OPTION_RF_ADDR_WIDTH-1:0] 	 fetch_rfa_adr_o;
-   output [OPTION_RF_ADDR_WIDTH-1:0] 	 fetch_rfb_adr_o;
+   output wire scalared [OPTION_RF_ADDR_WIDTH-1:0] 	 fetch_rfa_adr_o;
+   output wire scalared [OPTION_RF_ADDR_WIDTH-1:0] 	 fetch_rfb_adr_o;
    output 				 fetch_rf_re_o;
 
    // Signal back to the control
-   output [OPTION_OPERAND_WIDTH-1:0] 	 pc_fetch_next_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] 	 pc_fetch_next_o;
 
 
    // branch/jump indication
@@ -117,7 +117,7 @@ module mor1kx_fetch_prontoespresso
    input 				  spr_bus_we_i;
    input 				  spr_bus_stb_i;
    input [OPTION_OPERAND_WIDTH-1:0] 	  spr_bus_dat_i;
-   output [OPTION_OPERAND_WIDTH-1:0] 	  spr_bus_dat_ic_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] 	  spr_bus_dat_ic_o;
    output 				  spr_bus_ack_ic_o;
 
 
@@ -142,18 +142,18 @@ module mor1kx_fetch_prontoespresso
    reg 					  waited_with_early_pc_onto_cache_hit;
 
    // Wires
-   wire [`OR1K_INSN_WIDTH-1:0] 		  new_insn;
+   wire scalared [`OR1K_INSN_WIDTH-1:0] 		  new_insn;
    wire 				  new_insn_ready;
-   wire [OPTION_OPERAND_WIDTH-1:0] 	  pc_fetch_next;
-   wire [OPTION_OPERAND_WIDTH-1:0] 	  pc_plus_four;
-   wire [OPTION_OPERAND_WIDTH-1:0] 	  early_pc_next;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] 	  pc_fetch_next;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] 	  pc_plus_four;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] 	  early_pc_next;
    wire 				  padv_deasserted;
    wire 				  padv_asserted;
-   wire [`OR1K_OPCODE_WIDTH-1:0] 	  next_insn_opcode;
+   wire scalared [`OR1K_OPCODE_WIDTH-1:0] 	  next_insn_opcode;
    wire 				  will_go_to_sleep;
    wire 				  mini_cache_hit;
    wire 				  mini_cache_hit_ungated;
-   wire [`OR1K_INSN_WIDTH-1:0] 		  mini_cache_insn;
+   wire scalared [`OR1K_INSN_WIDTH-1:0] 		  mini_cache_insn;
    wire 				  hold_decode_output;
    wire 				  next_instruction_to_decode_condition;
 
@@ -487,9 +487,9 @@ module mor1kx_fetch_prontoespresso
 	   wire invalidate;
 	   reg [`OR1K_INSN_WIDTH-1:0] mini_cache [0:NUMBER_MINI_CACHE_WORDS-1];
 	   reg [OPTION_OPERAND_WIDTH-1:MINI_CACHE_TAG_END] mini_cache_tag [0:NUMBER_MINI_CACHE_WORDS-1];
-	   wire [OPTION_OPERAND_WIDTH-1:MINI_CACHE_TAG_END] pc_tag;
-	   wire [OPTION_ICACHE_BLOCK_WIDTH-1:0] 	    pc_word_sel;
-	   wire [`OR1K_INSN_WIDTH-1:0] 		    mini_cache_branch_dest_insn;
+	   wire scalared [OPTION_OPERAND_WIDTH-1:MINI_CACHE_TAG_END] pc_tag;
+	   wire scalared [OPTION_ICACHE_BLOCK_WIDTH-1:0] 	    pc_word_sel;
+	   wire scalared [`OR1K_INSN_WIDTH-1:0] 		    mini_cache_branch_dest_insn;
 
 	   // This is the address we'll write into the tag
 	   assign pc_word_sel    = pc[OPTION_ICACHE_BLOCK_WIDTH+1:2];

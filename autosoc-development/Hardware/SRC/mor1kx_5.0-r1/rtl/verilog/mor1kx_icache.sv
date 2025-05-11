@@ -51,7 +51,7 @@ module mor1kx_icache
     input 			      spr_bus_stb_i,
     input [OPTION_OPERAND_WIDTH-1:0]  spr_bus_dat_i,
 
-    output [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_o,
     output reg 			      spr_bus_ack_o
     );
 
@@ -102,23 +102,23 @@ module mor1kx_icache
    wire				      invalidate;
 
    reg [WAY_WIDTH-1:OPTION_ICACHE_BLOCK_WIDTH] invalidate_adr;
-   wire [31:0] 			      next_refill_adr;
+   wire scalared [31:0] 			      next_refill_adr;
    wire 			      refill_done;
    wire 			      refill_hit;
    reg [(1<<(OPTION_ICACHE_BLOCK_WIDTH-2))-1:0] refill_valid;
    reg [(1<<(OPTION_ICACHE_BLOCK_WIDTH-2))-1:0] refill_valid_r;
 
    // The index we read and write from tag memory
-   wire [OPTION_ICACHE_SET_WIDTH-1:0] tag_rindex;
-   wire [OPTION_ICACHE_SET_WIDTH-1:0] tag_windex;
+   wire scalared [OPTION_ICACHE_SET_WIDTH-1:0] tag_rindex;
+   wire scalared [OPTION_ICACHE_SET_WIDTH-1:0] tag_windex;
 
    // The data from the tag memory
-   wire [TAGMEM_WIDTH-1:0] 	      tag_dout;
-   wire [TAG_LRU_WIDTH_BITS-1:0]      tag_lru_out;
-   wire [TAGMEM_WAY_WIDTH-1:0] 	      tag_way_out [OPTION_ICACHE_WAYS-1:0];
+   wire scalared [TAGMEM_WIDTH-1:0] 	      tag_dout;
+   wire scalared [TAG_LRU_WIDTH_BITS-1:0]      tag_lru_out;
+   wire scalared [TAGMEM_WAY_WIDTH-1:0] 	      tag_way_out [OPTION_ICACHE_WAYS-1:0];
 
    // The data to the tag memory
-   wire [TAGMEM_WIDTH-1:0] 	      tag_din;
+   wire scalared [TAGMEM_WIDTH-1:0] 	      tag_din;
    reg [TAG_LRU_WIDTH_BITS-1:0]       tag_lru_in;
    reg [TAGMEM_WAY_WIDTH-1:0] 	      tag_way_in [OPTION_ICACHE_WAYS-1:0];
 
@@ -128,25 +128,25 @@ module mor1kx_icache
    reg 				      tag_we;
 
    // This is the tag we need to write to the tag memory during refill
-   wire [TAG_WIDTH-1:0] 	      tag_wtag;
+   wire scalared [TAG_WIDTH-1:0] 	      tag_wtag;
 
    // This is the tag we check against
-   wire [TAG_WIDTH-1:0] 	      tag_tag;
+   wire scalared [TAG_WIDTH-1:0] 	      tag_tag;
 
    // Access to the way memories
-   wire [WAY_WIDTH-3:0] 	      way_raddr[OPTION_ICACHE_WAYS-1:0];
-   wire [WAY_WIDTH-3:0] 	      way_waddr[OPTION_ICACHE_WAYS-1:0];
-   wire [OPTION_OPERAND_WIDTH-1:0]    way_din[OPTION_ICACHE_WAYS-1:0];
-   wire [OPTION_OPERAND_WIDTH-1:0]    way_dout[OPTION_ICACHE_WAYS-1:0];
+   wire scalared [WAY_WIDTH-3:0] 	      way_raddr[OPTION_ICACHE_WAYS-1:0];
+   wire scalared [WAY_WIDTH-3:0] 	      way_waddr[OPTION_ICACHE_WAYS-1:0];
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]    way_din[OPTION_ICACHE_WAYS-1:0];
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]    way_dout[OPTION_ICACHE_WAYS-1:0];
    reg [OPTION_ICACHE_WAYS-1:0]       way_we;
 
    // Does any way hit?
    wire 			      hit;
-   wire [OPTION_ICACHE_WAYS-1:0]      way_hit;
+   wire scalared [OPTION_ICACHE_WAYS-1:0]      way_hit;
 
    // This is the least recently used value before access the memory.
    // Those are one hot encoded.
-   wire [OPTION_ICACHE_WAYS-1:0]      lru;
+   wire scalared [OPTION_ICACHE_WAYS-1:0]      lru;
 
    // Register that stores the LRU value from lru
    reg [OPTION_ICACHE_WAYS-1:0]       tag_save_lru;
@@ -157,11 +157,11 @@ module mor1kx_icache
 
    // The current LRU history as read from tag memory and the update
    // value after we accessed it to write back to tag memory.
-   wire [TAG_LRU_WIDTH_BITS-1:0]      current_lru_history;
-   wire [TAG_LRU_WIDTH_BITS-1:0]      next_lru_history;
+   wire scalared [TAG_LRU_WIDTH_BITS-1:0]      current_lru_history;
+   wire scalared [TAG_LRU_WIDTH_BITS-1:0]      next_lru_history;
 
    // Intermediate signals to ease debugging
-   wire [TAG_WIDTH-1:0]               check_way_tag [OPTION_ICACHE_WAYS-1:0];
+   wire scalared [TAG_WIDTH-1:0]               check_way_tag [OPTION_ICACHE_WAYS-1:0];
    wire                               check_way_match [OPTION_ICACHE_WAYS-1:0];
    wire                               check_way_valid [OPTION_ICACHE_WAYS-1:0];
 

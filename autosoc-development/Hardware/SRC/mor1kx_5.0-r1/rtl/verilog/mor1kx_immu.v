@@ -51,28 +51,28 @@ module mor1kx_immu
     input 				  spr_bus_stb_i,
     input [OPTION_OPERAND_WIDTH-1:0] 	  spr_bus_dat_i,
 
-    output [OPTION_OPERAND_WIDTH-1:0] 	  spr_bus_dat_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] 	  spr_bus_dat_o,
     output 				  spr_bus_ack_o
     );
 
    localparam WAYS_WIDTH = (OPTION_IMMU_WAYS < 2) ? 1 : 2;
 
-   wire [OPTION_OPERAND_WIDTH-1:0]    itlb_match_dout[OPTION_IMMU_WAYS-1:0];
-   wire [OPTION_IMMU_SET_WIDTH-1:0]   itlb_match_addr;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]    itlb_match_dout[OPTION_IMMU_WAYS-1:0];
+   wire scalared [OPTION_IMMU_SET_WIDTH-1:0]   itlb_match_addr;
    reg [OPTION_IMMU_WAYS-1:0]         itlb_match_we;
-   wire [OPTION_OPERAND_WIDTH-1:0]    itlb_match_din;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]    itlb_match_din;
 
-   wire [OPTION_OPERAND_WIDTH-1:0]    itlb_match_huge_dout[OPTION_IMMU_WAYS-1:0];
-   wire [OPTION_IMMU_SET_WIDTH-1:0]   itlb_match_huge_addr;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]    itlb_match_huge_dout[OPTION_IMMU_WAYS-1:0];
+   wire scalared [OPTION_IMMU_SET_WIDTH-1:0]   itlb_match_huge_addr;
    wire				      itlb_match_huge_we;
 
-   wire [OPTION_OPERAND_WIDTH-1:0]    itlb_trans_dout[OPTION_IMMU_WAYS-1:0];
-   wire [OPTION_IMMU_SET_WIDTH-1:0]   itlb_trans_addr;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]    itlb_trans_dout[OPTION_IMMU_WAYS-1:0];
+   wire scalared [OPTION_IMMU_SET_WIDTH-1:0]   itlb_trans_addr;
    reg [OPTION_IMMU_WAYS-1:0]         itlb_trans_we;
-   wire [OPTION_OPERAND_WIDTH-1:0]    itlb_trans_din;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]    itlb_trans_din;
 
-   wire [OPTION_OPERAND_WIDTH-1:0]    itlb_trans_huge_dout[OPTION_IMMU_WAYS-1:0];
-   wire [OPTION_IMMU_SET_WIDTH-1:0]   itlb_trans_huge_addr;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]    itlb_trans_huge_dout[OPTION_IMMU_WAYS-1:0];
+   wire scalared [OPTION_IMMU_SET_WIDTH-1:0]   itlb_trans_huge_addr;
    wire				      itlb_trans_huge_we;
 
    reg 				      itlb_match_reload_we;
@@ -90,14 +90,14 @@ module mor1kx_immu
    reg 				      immucr_spr_cs_r;
    reg [OPTION_OPERAND_WIDTH-1:0]     immucr;
 
-   wire [1:0] 			      spr_way_idx_full;
-   wire [WAYS_WIDTH-1:0] 	      spr_way_idx;
+   wire scalared [1:0] 			      spr_way_idx_full;
+   wire scalared [WAYS_WIDTH-1:0] 	      spr_way_idx;
    reg [WAYS_WIDTH-1:0] 	      spr_way_idx_r;
 
-   wire [OPTION_IMMU_WAYS-1:0]        way_huge;
+   wire scalared [OPTION_IMMU_WAYS-1:0]        way_huge;
 
-   wire [OPTION_IMMU_WAYS-1:0]        way_hit;
-   wire [OPTION_IMMU_WAYS-1:0]        way_huge_hit;
+   wire scalared [OPTION_IMMU_WAYS-1:0]        way_hit;
+   wire scalared [OPTION_IMMU_WAYS-1:0]        way_huge_hit;
 
    reg 				      tlb_reload_pagefault;
    reg 				      tlb_reload_huge;
@@ -109,7 +109,7 @@ module mor1kx_immu
 
    reg 				      spr_bus_ack;
    reg 				      spr_bus_ack_r;
-   wire [OPTION_OPERAND_WIDTH-1:0]    spr_bus_dat;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]    spr_bus_dat;
    reg [OPTION_OPERAND_WIDTH-1:0]     spr_bus_dat_r;
 
    genvar                             i;

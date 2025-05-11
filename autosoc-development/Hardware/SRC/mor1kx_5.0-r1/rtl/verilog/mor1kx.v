@@ -109,27 +109,27 @@ module mor1kx
     input 			      rst,
 
     // Wishbone interface
-    output [31:0] 		      iwbm_adr_o,
+    output wire scalared [31:0] 		      iwbm_adr_o,
     output 			      iwbm_stb_o,
     output 			      iwbm_cyc_o,
-    output [3:0] 		      iwbm_sel_o,
+    output wire scalared [3:0] 		      iwbm_sel_o,
     output 			      iwbm_we_o,
-    output [2:0] 		      iwbm_cti_o,
-    output [1:0] 		      iwbm_bte_o,
-    output [31:0] 		      iwbm_dat_o,
+    output wire scalared [2:0] 		      iwbm_cti_o,
+    output wire scalared [1:0] 		      iwbm_bte_o,
+    output wire scalared [31:0] 		      iwbm_dat_o,
     input 			      iwbm_err_i,
     input 			      iwbm_ack_i,
     input [31:0] 		      iwbm_dat_i,
     input 			      iwbm_rty_i,
 
-    output [31:0] 		      dwbm_adr_o,
+    output wire scalared [31:0] 		      dwbm_adr_o,
     output 			      dwbm_stb_o,
     output 			      dwbm_cyc_o,
-    output [3:0] 		      dwbm_sel_o,
+    output wire scalared [3:0] 		      dwbm_sel_o,
     output 			      dwbm_we_o,
-    output [2:0] 		      dwbm_cti_o,
-    output [1:0] 		      dwbm_bte_o,
-    output [31:0] 		      dwbm_dat_o,
+    output wire scalared [2:0] 		      dwbm_cti_o,
+    output wire scalared [1:0] 		      dwbm_bte_o,
+    output wire scalared [31:0] 		      dwbm_dat_o,
     input 			      dwbm_err_i,
     input 			      dwbm_ack_i,
     input [31:0] 		      dwbm_dat_i,
@@ -142,21 +142,21 @@ module mor1kx
     input 			      du_stb_i,
     input [OPTION_OPERAND_WIDTH-1:0]  du_dat_i,
     input 			      du_we_i,
-    output [OPTION_OPERAND_WIDTH-1:0] du_dat_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] du_dat_o,
     output 			      du_ack_o,
     // Stall control from debug interface
     input 			      du_stall_i,
     output 			      du_stall_o,
 
     output                            traceport_exec_valid_o,
-    output [31:0]                     traceport_exec_pc_o,
+    output wire scalared [31:0]                     traceport_exec_pc_o,
     output                            traceport_exec_jb_o,
     output                            traceport_exec_jal_o,
     output                            traceport_exec_jr_o,
-    output [31:0]                     traceport_exec_jbtarget_o,
-    output [`OR1K_INSN_WIDTH-1:0]     traceport_exec_insn_o,
-    output [OPTION_OPERAND_WIDTH-1:0] traceport_exec_wbdata_o,
-    output [OPTION_RF_ADDR_WIDTH-1:0] traceport_exec_wbreg_o,
+    output wire scalared [31:0]                     traceport_exec_jbtarget_o,
+    output wire scalared [`OR1K_INSN_WIDTH-1:0]     traceport_exec_insn_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] traceport_exec_wbdata_o,
+    output wire scalared [OPTION_RF_ADDR_WIDTH-1:0] traceport_exec_wbreg_o,
     output                           traceport_exec_wben_o,
 
     // The multicore core identifier
@@ -174,28 +174,28 @@ module mor1kx
 
    /*AUTOWIRE*/
    // Beginning of automatic wires (for undeclared instantiated-module outputs)
-   wire [OPTION_OPERAND_WIDTH-1:0] dbus_adr_o;	// From mor1kx_cpu of mor1kx_cpu.v
-   wire [3:0]		dbus_bsel_o;		// From mor1kx_cpu of mor1kx_cpu.v
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] dbus_adr_o;	// From mor1kx_cpu of mor1kx_cpu.v
+   wire scalared [3:0]		dbus_bsel_o;		// From mor1kx_cpu of mor1kx_cpu.v
    wire			dbus_burst_o;		// From mor1kx_cpu of mor1kx_cpu.v
-   wire [OPTION_OPERAND_WIDTH-1:0] dbus_dat_o;	// From mor1kx_cpu of mor1kx_cpu.v
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] dbus_dat_o;	// From mor1kx_cpu of mor1kx_cpu.v
    wire			dbus_req_o;		// From mor1kx_cpu of mor1kx_cpu.v
    wire			dbus_we_o;		// From mor1kx_cpu of mor1kx_cpu.v
-   wire [OPTION_OPERAND_WIDTH-1:0] ibus_adr_o;	// From mor1kx_cpu of mor1kx_cpu.v
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] ibus_adr_o;	// From mor1kx_cpu of mor1kx_cpu.v
    wire			ibus_burst_o;		// From mor1kx_cpu of mor1kx_cpu.v
    wire			ibus_req_o;		// From mor1kx_cpu of mor1kx_cpu.v
-   wire [15:0]		spr_bus_addr_o;		// From mor1kx_cpu of mor1kx_cpu.v
-   wire [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_o;// From mor1kx_cpu of mor1kx_cpu.v
+   wire scalared [15:0]		spr_bus_addr_o;		// From mor1kx_cpu of mor1kx_cpu.v
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_o;// From mor1kx_cpu of mor1kx_cpu.v
    wire			spr_bus_stb_o;		// From mor1kx_cpu of mor1kx_cpu.v
    wire			spr_bus_we_o;		// From mor1kx_cpu of mor1kx_cpu.v
-   wire [15:0]		spr_sr_o;		// From mor1kx_cpu of mor1kx_cpu.v
+   wire scalared [15:0]		spr_sr_o;		// From mor1kx_cpu of mor1kx_cpu.v
    // End of automatics
 
    wire 			   ibus_ack_i;
-   wire [OPTION_OPERAND_WIDTH-1:0] ibus_dat_i;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] ibus_dat_i;
    wire 			   ibus_err_i;
 
    wire 			   dbus_ack_i;
-   wire [OPTION_OPERAND_WIDTH-1:0] dbus_dat_i;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] dbus_dat_i;
    wire 			   dbus_err_i;
 
    generate

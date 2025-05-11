@@ -171,7 +171,7 @@ module mor1kx_decode_execute_cappuccino
     output reg 				  execute_op_bf_o,
     output reg 				  execute_op_bnf_o,
     output reg                            execute_op_msync_o,
-    output [`OR1K_FPUOP_WIDTH-1:0]        execute_op_fpu_o,
+    output wire scalared [`OR1K_FPUOP_WIDTH-1:0]        execute_op_fpu_o,
 
     output reg [OPTION_OPERAND_WIDTH-1:0] execute_jal_result_o,
 
@@ -179,7 +179,7 @@ module mor1kx_decode_execute_cappuccino
 
     // branch detection
     output 				  decode_branch_o,
-    output [OPTION_OPERAND_WIDTH-1:0] 	  decode_branch_target_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] 	  decode_branch_target_o,
 
     // exceptions in
     input 				  decode_except_ibus_err_i,
@@ -209,13 +209,13 @@ module mor1kx_decode_execute_cappuccino
 
    wire 			   ctrl_to_decode_interlock;
    wire 			   branch_to_imm;
-   wire [OPTION_OPERAND_WIDTH-1:0] branch_to_imm_target;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] branch_to_imm_target;
    wire 			   branch_to_reg;
 
    wire 			   decode_except_ibus_align;
 
-   wire [OPTION_OPERAND_WIDTH-1:0] next_pc_after_branch_insn;
-   wire [OPTION_OPERAND_WIDTH-1:0] decode_mispredict_target;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] next_pc_after_branch_insn;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] decode_mispredict_target;
 
    // Op control signals to execute stage
    always @(posedge clk `OR_ASYNC_RST)

@@ -55,17 +55,17 @@ module mor1kx_lsu_espresso
    input 			    next_fetch_done_i;
 
 
-   output [OPTION_OPERAND_WIDTH-1:0] lsu_result_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] lsu_result_o;
    output 			     lsu_valid_o;
    // exception output
    output 			     lsu_except_dbus_o;
    output 			     lsu_except_align_o;
 
    // interface to data bus
-   output [OPTION_OPERAND_WIDTH-1:0] dbus_adr_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] dbus_adr_o;
    output 			     dbus_req_o;
-   output [OPTION_OPERAND_WIDTH-1:0] dbus_dat_o;
-   output [3:0] 		     dbus_bsel_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] dbus_dat_o;
+   output wire scalared [3:0] 		     dbus_bsel_o;
    output 			     dbus_we_o;
    output 			     dbus_burst_o;
    input 			     dbus_err_i;

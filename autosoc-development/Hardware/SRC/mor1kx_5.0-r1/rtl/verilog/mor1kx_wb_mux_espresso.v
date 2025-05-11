@@ -35,7 +35,7 @@ module mor1kx_wb_mux_espresso
    input [OPTION_OPERAND_WIDTH-1:0] pc_fetch_next_i;
    input [OPTION_OPERAND_WIDTH-1:0] spr_i;
 
-   output [OPTION_OPERAND_WIDTH-1:0] rf_result_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] rf_result_o;
 
    input 			      op_jal_i;
    input 			      op_lsu_load_i;

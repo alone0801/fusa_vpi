@@ -66,20 +66,20 @@ module mor1kx_decode
     input [`OR1K_INSN_WIDTH-1:0]      decode_insn_i,
 
     // ALU opcodes
-    output [`OR1K_ALU_OPC_WIDTH-1:0]  decode_opc_alu_o,
-    output [`OR1K_ALU_OPC_WIDTH-1:0]  decode_opc_alu_secondary_o,
+    output wire scalared [`OR1K_ALU_OPC_WIDTH-1:0]  decode_opc_alu_o,
+    output wire scalared [`OR1K_ALU_OPC_WIDTH-1:0]  decode_opc_alu_secondary_o,
 
-    output [`OR1K_IMM_WIDTH-1:0]      decode_imm16_o,
-    output [OPTION_OPERAND_WIDTH-1:0] decode_immediate_o,
+    output wire scalared [`OR1K_IMM_WIDTH-1:0]      decode_imm16_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] decode_immediate_o,
     output 			      decode_immediate_sel_o,
 
     // Upper 10 bits of immediate for jumps and branches
-    output [9:0] 		      decode_immjbr_upper_o,
+    output wire scalared [9:0] 		      decode_immjbr_upper_o,
 
     // GPR numbers
-    output [OPTION_RF_ADDR_WIDTH-1:0] decode_rfd_adr_o,
-    output [OPTION_RF_ADDR_WIDTH-1:0] decode_rfa_adr_o,
-    output [OPTION_RF_ADDR_WIDTH-1:0] decode_rfb_adr_o,
+    output wire scalared [OPTION_RF_ADDR_WIDTH-1:0] decode_rfd_adr_o,
+    output wire scalared [OPTION_RF_ADDR_WIDTH-1:0] decode_rfa_adr_o,
+    output wire scalared [OPTION_RF_ADDR_WIDTH-1:0] decode_rfb_adr_o,
 
     output 			      decode_rf_wb_o,
 
@@ -117,7 +117,7 @@ module mor1kx_decode
 
     // Sync operations
     output                            decode_op_msync_o,
-    output [`OR1K_FPUOP_WIDTH-1:0]    decode_op_fpu_o,
+    output wire scalared [`OR1K_FPUOP_WIDTH-1:0]    decode_op_fpu_o,
 
 
     // Adder control logic
@@ -129,17 +129,17 @@ module mor1kx_decode
     output 			      decode_except_syscall_o,
     output 			      decode_except_trap_o,
 
-    output [`OR1K_OPCODE_WIDTH-1:0]   decode_opc_insn_o
+    output wire scalared [`OR1K_OPCODE_WIDTH-1:0]   decode_opc_insn_o
     );
 
-   wire [`OR1K_OPCODE_WIDTH-1:0]      opc_insn;
-   wire [`OR1K_ALU_OPC_WIDTH-1:0]     opc_alu;
+   wire scalared [`OR1K_OPCODE_WIDTH-1:0]      opc_insn;
+   wire scalared [`OR1K_ALU_OPC_WIDTH-1:0]     opc_alu;
 
-   wire [OPTION_OPERAND_WIDTH-1:0]    imm_sext;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]    imm_sext;
    wire 			      imm_sext_sel;
-   wire [OPTION_OPERAND_WIDTH-1:0]    imm_zext;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]    imm_zext;
    wire 			      imm_zext_sel;
-   wire [OPTION_OPERAND_WIDTH-1:0]    imm_high;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]    imm_high;
    wire 			      imm_high_sel;
 
    wire 			      decode_except_ibus_align;

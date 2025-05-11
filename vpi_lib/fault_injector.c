@@ -140,9 +140,11 @@ vpiHandle cur_replace(vpiHandle obj, int vact_num)
             strcat(replace_name, origin_name + lenD);
         }
         //printf("+++++++DEBUG::replace_name:%s+++++++++\n",replace_name);
-        //printf("%zu,%c\n",new_len,replace_name[new_len-1]); 
+        //printf("%zu,%c\n",new_len,replace_name[new_len-1]);
+        /*
         if(replace_name[new_len-1] == ']')
         {
+            
             const char* last_bracket = strrchr(replace_name, '[');
             size_t sublen = new_len - strlen(last_bracket);
             //printf("%zu\n", sublen);
@@ -154,9 +156,13 @@ vpiHandle cur_replace(vpiHandle obj, int vact_num)
             //printf("+++++++DEBUG::parent_name:%s index:%d+++++++++\n", parent_name, index);
             vpiHandle parent_h = vpi_handle_by_name(parent_name,0);
             con_obj = vpi_handle_by_index(parent_h, index);
+    
+            printf("debug\n");
+            //con_obj = vpi_handle_by_name(replace_name,0);
+            
         }
-        else
-            con_obj = vpi_handle_by_name(replace_name,0);
+        else*/
+        con_obj = vpi_handle_by_name(replace_name,0);
 
         //printf("+++++++DEBUG::replace_name:%s+++++++++\n",replace_name);
 

@@ -57,7 +57,7 @@ module mor1kx_rf_cappuccino
     input 			      spr_bus_we_i,
     input [OPTION_OPERAND_WIDTH-1:0]  spr_bus_dat_i,
     output 			      spr_gpr_ack_o,
-    output [OPTION_OPERAND_WIDTH-1:0] spr_gpr_dat_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_gpr_dat_o,
 
     // Write back signal indications
     input 			      execute_rf_wb_i,
@@ -69,10 +69,10 @@ module mor1kx_rf_cappuccino
 
     input 			      pipeline_flush_i,
 
-    output [OPTION_OPERAND_WIDTH-1:0] decode_rfa_o,
-    output [OPTION_OPERAND_WIDTH-1:0] decode_rfb_o,
-    output [OPTION_OPERAND_WIDTH-1:0] execute_rfa_o,
-    output [OPTION_OPERAND_WIDTH-1:0] execute_rfb_o
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] decode_rfa_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] decode_rfb_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] execute_rfa_o,
+    output wire scalared [OPTION_OPERAND_WIDTH-1:0] execute_rfb_o
     );
 
 `include "mor1kx_utils.vh"
@@ -87,22 +87,22 @@ module mor1kx_rf_cappuccino
    localparam RF_ADDR_WIDTH = calc_rf_addr_width(OPTION_RF_ADDR_WIDTH,
                                                  OPTION_RF_NUM_SHADOW_GPR);
 
-   wire [OPTION_OPERAND_WIDTH-1:0]    rfa_ram_o;
-   wire [OPTION_OPERAND_WIDTH-1:0]    rfb_ram_o;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]    rfa_ram_o;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]    rfb_ram_o;
 
    reg [OPTION_OPERAND_WIDTH-1:0]     wb_hazard_result;
    reg [OPTION_OPERAND_WIDTH-1:0]     execute_rfa;
    reg [OPTION_OPERAND_WIDTH-1:0]     execute_rfb;
 
-   wire [RF_ADDR_WIDTH-1:0]           rfa_rdad;
-   wire [RF_ADDR_WIDTH-1:0]           rfb_rdad;
+   wire scalared [RF_ADDR_WIDTH-1:0]           rfa_rdad;
+   wire scalared [RF_ADDR_WIDTH-1:0]           rfb_rdad;
 
    wire 			      rfa_rden;
    wire 			      rfb_rden;
 
    wire 			      rf_wren;
-   wire [RF_ADDR_WIDTH-1:0] 	      rf_wradr;
-   wire [OPTION_OPERAND_WIDTH-1:0]    rf_wrdat;
+   wire scalared [RF_ADDR_WIDTH-1:0] 	      rf_wradr;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]    rf_wrdat;
 
    reg 				      flushing;
 
@@ -136,7 +136,7 @@ module mor1kx_rf_cappuccino
      if (decode_valid_i)
        execute_hazard_result_r <= ctrl_alu_result_i;
 
-   wire [OPTION_OPERAND_WIDTH-1:0] execute_hazard_result;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] execute_hazard_result;
    assign execute_hazard_result = decode_valid_i ? ctrl_alu_result_i :
 				  execute_hazard_result_r;
 
@@ -153,7 +153,7 @@ module mor1kx_rf_cappuccino
      if (decode_valid_i)
        ctrl_hazard_result_r <= result_i;
 
-   wire [OPTION_OPERAND_WIDTH-1:0] ctrl_hazard_result;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] ctrl_hazard_result;
    assign ctrl_hazard_result = decode_valid_i ? result_i : ctrl_hazard_result_r;
 
    reg wb_hazard_a;
@@ -203,7 +203,7 @@ module mor1kx_rf_cappuccino
    assign ctrl_to_decode_bypass_a = use_last_wb_a | wb_rf_wb_i &
 				    (wb_rfd_adr_i == decode_rfa_adr_i);
 
-   wire [OPTION_OPERAND_WIDTH-1:0] ctrl_to_decode_result_a;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] ctrl_to_decode_result_a;
    assign ctrl_to_decode_result_a = use_last_wb_a ?
 				  wb_to_decode_result_a : result_i;
 
@@ -231,7 +231,7 @@ module mor1kx_rf_cappuccino
    assign ctrl_to_decode_bypass_b = use_last_wb_b | wb_rf_wb_i &
 				    (wb_rfd_adr_i == decode_rfb_adr_i);
 
-   wire [OPTION_OPERAND_WIDTH-1:0] ctrl_to_decode_result_b;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0] ctrl_to_decode_result_b;
    assign ctrl_to_decode_result_b = use_last_wb_b ?
 				  wb_to_decode_result_b : result_i;
 
@@ -280,7 +280,7 @@ if (FEATURE_DEBUGUNIT!="NONE" || FEATURE_FASTCONTEXTS!="NONE" ||
 			  spr_gpr_re & spr_gpr_read_ack;
 
 //ORIGINAL
-   wire [RF_ADDR_WIDTH-1:0] wb_rfd_adr_expand;
+   wire scalared [RF_ADDR_WIDTH-1:0] wb_rfd_adr_expand;
    assign wb_rfd_adr_expand[RF_ADDR_WIDTH-1:OPTION_RF_ADDR_WIDTH] = 0;
    assign wb_rfd_adr_expand[OPTION_RF_ADDR_WIDTH-1:0] = wb_rfd_adr_i;
    assign rf_wren =  wb_rf_wb_i | spr_gpr_we;
@@ -291,7 +291,7 @@ if (FEATURE_DEBUGUNIT!="NONE" || FEATURE_FASTCONTEXTS!="NONE" ||
    if (OPTION_RF_NUM_SHADOW_GPR > 0) begin
    
    //Added
-   //wire [RF_ADDR_WIDTH-1:0] wb_rfd_adr_expand;
+   //wire scalared [RF_ADDR_WIDTH-1:0] wb_rfd_adr_expand;
    //assign wb_rfd_adr_expand[RF_ADDR_WIDTH-1:OPTION_RF_ADDR_WIDTH] = 0;
    //assign wb_rfd_adr_expand[OPTION_RF_ADDR_WIDTH-1:0] = wb_rfd_adr_i;
 

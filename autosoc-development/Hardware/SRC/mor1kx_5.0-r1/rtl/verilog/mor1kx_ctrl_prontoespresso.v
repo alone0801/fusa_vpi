@@ -104,11 +104,11 @@ module mor1kx_ctrl_prontoespresso
 
    input                            ctrl_flag_set_i, ctrl_flag_clear_i;
 
-   output [OPTION_OPERAND_WIDTH-1:0] spr_npc_o;
-   output [OPTION_OPERAND_WIDTH-1:0] spr_ppc_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_npc_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_ppc_o;
 
    // Link address, to writeback stage
-   output [OPTION_OPERAND_WIDTH-1:0] link_addr_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] link_addr_o;
 
    input [`OR1K_OPCODE_WIDTH-1:0]    ctrl_opc_insn_i;
 
@@ -142,7 +142,7 @@ module mor1kx_ctrl_prontoespresso
    input [31:0] 		     irq_i;
 
    // SPR data out
-   output [OPTION_OPERAND_WIDTH-1:0] mfspr_dat_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] mfspr_dat_o;
 
    // WE to RF for l.mfspr
    output                            ctrl_mfspr_we_o;
@@ -160,7 +160,7 @@ module mor1kx_ctrl_prontoespresso
    // Branch indicator from control unit (l.rfe/exception)
    wire                              ctrl_branch_exception;
    // PC out to fetch stage for l.rfe, exceptions
-   wire [OPTION_OPERAND_WIDTH-1:0]   ctrl_branch_except_pc;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   ctrl_branch_except_pc;
 
    // Clear instructions from decode and fetch stage
    output                            pipeline_flush_o;
@@ -184,19 +184,19 @@ module mor1kx_ctrl_prontoespresso
    input                             du_stb_i;
    input [OPTION_OPERAND_WIDTH-1:0]  du_dat_i;
    input                             du_we_i;
-   output [OPTION_OPERAND_WIDTH-1:0] du_dat_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] du_dat_o;
    output                            du_ack_o;
    // Stall control from debug interface
    input                             du_stall_i;
    output                            du_stall_o;
-   output [OPTION_OPERAND_WIDTH-1:0] du_restart_pc_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] du_restart_pc_o;
    output                            du_restart_o;
 
    // SPR accesses to external units (cache, mmu, etc.)
-   output [15:0] 		     spr_bus_addr_o;
+   output wire scalared [15:0] 		     spr_bus_addr_o;
    output                            spr_bus_we_o;
    output                            spr_bus_stb_o;
-   output [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] spr_bus_dat_o;
    input [OPTION_OPERAND_WIDTH-1:0]  spr_bus_dat_dc_i;
    input                             spr_bus_ack_dc_i;
    input [OPTION_OPERAND_WIDTH-1:0]  spr_bus_dat_ic_i;
@@ -213,7 +213,7 @@ module mor1kx_ctrl_prontoespresso
    input                             spr_bus_ack_pcu_i;
    input [OPTION_OPERAND_WIDTH-1:0]  spr_bus_dat_fpu_i;
    input                             spr_bus_ack_fpu_i;
-   output [15:0] 		     spr_sr_o;
+   output wire scalared [15:0] 		     spr_sr_o;
 
    // The multicore core identifier
    input [OPTION_OPERAND_WIDTH-1:0] multicore_coreid_i;
@@ -226,17 +226,17 @@ module mor1kx_ctrl_prontoespresso
    reg [OPTION_OPERAND_WIDTH-1:0]    spr_eear;
 
    // Programmable Interrupt Control SPRs
-   wire [31:0] 			     spr_picmr;
-   wire [31:0] 			     spr_picsr;
+   wire scalared [31:0] 			     spr_picmr;
+   wire scalared [31:0] 			     spr_picsr;
 
    // Tick Timer SPRs
-   wire [31:0] 			     spr_ttmr;
-   wire [31:0] 			     spr_ttcr;
+   wire scalared [31:0] 			     spr_ttmr;
+   wire scalared [31:0] 			     spr_ttcr;
 
    reg [OPTION_OPERAND_WIDTH-1:0]    spr_ppc;
    reg [OPTION_OPERAND_WIDTH-1:0]    spr_npc;
 
-   output [OPTION_OPERAND_WIDTH-1:0] ctrl_branch_target_o;
+   output wire scalared [OPTION_OPERAND_WIDTH-1:0] ctrl_branch_target_o;
 
    reg                               execute_go;
    wire                              execute_done;
@@ -267,7 +267,7 @@ module mor1kx_ctrl_prontoespresso
 
    wire                              exception_re;
 
-   wire [31:0] 			     irq_unmasked;
+   wire scalared [31:0] 			     irq_unmasked;
 
    wire                              except_ticktimer;
    wire                              except_pic;
@@ -277,13 +277,13 @@ module mor1kx_ctrl_prontoespresso
 
    wire                              except_range;
 
-   wire [15:0]                       spr_addr;
+   wire scalared [15:0]                       spr_addr;
 
    wire                              op_mtspr;
    wire                              op_mfspr;
    wire                              op_rfe;
 
-   wire [OPTION_OPERAND_WIDTH-1:0]   b;
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   b;
 
    wire                              execute_waiting;
 
@@ -311,37 +311,37 @@ module mor1kx_ctrl_prontoespresso
    wire                              du_access;
    reg                               cpu_stall;
    wire                              du_restart_from_stall;
-   wire [1:0] 			     pstep;
+   wire scalared [1:0] 			     pstep;
    wire                              stepping;
    wire                              du_npc_write;
 
    /* Wires for SPR management */
    wire                              spr_group_present;
-   wire [3:0] 			     spr_group;
+   wire scalared [3:0] 			     spr_group;
    wire                              spr_we;
    wire                              spr_read;
-   wire [OPTION_OPERAND_WIDTH-1:0]   spr_write_dat;
-   wire [11:0] 			     spr_access_ack;
-   wire [31:0] 			     spr_internal_read_dat [0:12];
+   wire scalared [OPTION_OPERAND_WIDTH-1:0]   spr_write_dat;
+   wire scalared [11:0] 			     spr_access_ack;
+   wire scalared [31:0] 			     spr_internal_read_dat [0:12];
    wire                              spr_read_access;
    wire                              spr_write_access;
    wire                              spr_bus_access;
    reg [OPTION_OPERAND_WIDTH-1:0]    spr_sys_group_read;
 
    /* Wires from mor1kx_cfgrs module */
-   wire [31:0] 			     spr_vr;
-   wire [31:0] 			     spr_vr2;
-   wire [31:0] 			     spr_avr;
-   wire [31:0] 			     spr_upr;
-   wire [31:0] 			     spr_cpucfgr;
-   wire [31:0] 			     spr_dmmucfgr;
-   wire [31:0] 			     spr_immucfgr;
-   wire [31:0] 			     spr_dccfgr;
-   wire [31:0] 			     spr_iccfgr;
-   wire [31:0] 			     spr_dcfgr;
-   wire [31:0] 			     spr_pccfgr;
-   wire [31:0] 			     spr_fpcsr = 0;
-   wire [31:0] 			     spr_isr [0:7];
+   wire scalared [31:0] 			     spr_vr;
+   wire scalared [31:0] 			     spr_vr2;
+   wire scalared [31:0] 			     spr_avr;
+   wire scalared [31:0] 			     spr_upr;
+   wire scalared [31:0] 			     spr_cpucfgr;
+   wire scalared [31:0] 			     spr_dmmucfgr;
+   wire scalared [31:0] 			     spr_immucfgr;
+   wire scalared [31:0] 			     spr_dccfgr;
+   wire scalared [31:0] 			     spr_iccfgr;
+   wire scalared [31:0] 			     spr_dcfgr;
+   wire scalared [31:0] 			     spr_pccfgr;
+   wire scalared [31:0] 			     spr_fpcsr = 0;
+   wire scalared [31:0] 			     spr_isr [0:7];
 
    assign b = ctrl_rfb_i;
 
@@ -1238,25 +1238,25 @@ module mor1kx_ctrl_prontoespresso
              branch_step <= {branch_step[0], /*execute_delay_slot*/ 1'b0};
 
          /* Signals for waveform debuging */
-         wire [31:0] spr_read_data_group_0;
+         wire scalared [31:0] spr_read_data_group_0;
          assign spr_read_data_group_0 = spr_internal_read_dat[0];
-         wire [31:0] spr_read_data_group_1;
+         wire scalared [31:0] spr_read_data_group_1;
          assign spr_read_data_group_1 = spr_internal_read_dat[1];
-         wire [31:0] spr_read_data_group_2;
+         wire scalared [31:0] spr_read_data_group_2;
          assign spr_read_data_group_2 = spr_internal_read_dat[2];
-         wire [31:0] spr_read_data_group_3;
+         wire scalared [31:0] spr_read_data_group_3;
          assign spr_read_data_group_3 = spr_internal_read_dat[3];
-         wire [31:0] spr_read_data_group_4;
+         wire scalared [31:0] spr_read_data_group_4;
          assign spr_read_data_group_4 = spr_internal_read_dat[4];
-         wire [31:0] spr_read_data_group_5;
+         wire scalared [31:0] spr_read_data_group_5;
          assign spr_read_data_group_5 = spr_internal_read_dat[5];
-         wire [31:0] spr_read_data_group_6;
+         wire scalared [31:0] spr_read_data_group_6;
          assign spr_read_data_group_6 = spr_internal_read_dat[6];
-         wire [31:0] spr_read_data_group_7;
+         wire scalared [31:0] spr_read_data_group_7;
          assign spr_read_data_group_7 = spr_internal_read_dat[7];
-         wire [31:0] spr_read_data_group_8;
+         wire scalared [31:0] spr_read_data_group_8;
          assign spr_read_data_group_8 = spr_internal_read_dat[8];
-         wire [31:0] spr_read_data_group_9;
+         wire scalared [31:0] spr_read_data_group_9;
          assign spr_read_data_group_9 = spr_internal_read_dat[9];
 
 

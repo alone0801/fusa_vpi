@@ -26,7 +26,7 @@ module mor1kx_simple_dpram_sclk
     input [ADDR_WIDTH-1:0]  waddr,
     input 		    we,
     input [DATA_WIDTH-1:0]  din,
-    output [DATA_WIDTH-1:0] dout
+    output wire scalared [DATA_WIDTH-1:0] dout
     );
 
    reg [DATA_WIDTH-1:0]     mem[(1<<ADDR_WIDTH)-1:0];

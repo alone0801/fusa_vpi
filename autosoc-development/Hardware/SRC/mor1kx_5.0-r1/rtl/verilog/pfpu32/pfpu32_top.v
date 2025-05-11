@@ -60,18 +60,18 @@ module pfpu32_top
   input [`OR1K_FPCSR_RM_SIZE-1:0]  round_mode_i,
   input [OPTION_OPERAND_WIDTH-1:0] rfa_i,
   input [OPTION_OPERAND_WIDTH-1:0] rfb_i,
-  output [OPTION_OPERAND_WIDTH-1:0] fpu_result_o,
+  output wire scalared [OPTION_OPERAND_WIDTH-1:0] fpu_result_o,
   output fpu_arith_valid_o,
   output fpu_cmp_flag_o,
   output fpu_cmp_valid_o,
-  output [`OR1K_FPCSR_WIDTH-1:0] fpcsr_o
+  output wire scalared [`OR1K_FPCSR_WIDTH-1:0] fpcsr_o
 );
 
 // MSB (set by decode stage) indicates FPU instruction
 // Get rid of top bit - is FPU op valid bit
 wire   is_op_fpu = op_fpu_i[`OR1K_FPUOP_WIDTH-1];
-wire [`OR1K_FPUOP_WIDTH-1:0] op_fpu = {1'b0,op_fpu_i[`OR1K_FPUOP_WIDTH-2:0]};
-wire [2:0] op_arith_conv = op_fpu_i[2:0]; // alias
+wire scalared [`OR1K_FPUOP_WIDTH-1:0] op_fpu = {1'b0,op_fpu_i[`OR1K_FPUOP_WIDTH-2:0]};
+wire scalared [2:0] op_arith_conv = op_fpu_i[2:0]; // alias
 wire a_cmp = op_fpu_i[3]; // alias for compare bit of fpu's opcode
 
 // advance FPU units
@@ -97,8 +97,8 @@ wire new_fpu_data = new_data & is_op_fpu;
 // analysis of input values
 //   split input a
 wire        in_signa  = rfa_i[31];
-wire [7:0]  in_expa   = rfa_i[30:23];
-wire [22:0] in_fracta = rfa_i[22:0];
+wire scalared [7:0]  in_expa   = rfa_i[30:23];
+wire scalared [22:0] in_fracta = rfa_i[22:0];
 //   detect infinity a
 wire in_expa_ff = &in_expa;
 wire in_infa    = in_expa_ff & (~(|in_fracta));
@@ -113,8 +113,8 @@ wire in_opa_dn = (~(|in_expa)) & (|in_fracta);
 
 //   split input b
 wire        in_signb  = rfb_i[31];
-wire [7:0]  in_expb   = rfb_i[30:23];
-wire [22:0] in_fractb = rfb_i[22:0];
+wire scalared [7:0]  in_expb   = rfb_i[30:23];
+wire scalared [22:0] in_fractb = rfb_i[22:0];
 //   detect infinity b
 wire in_expb_ff = &in_expb;
 wire in_infb    = in_expb_ff & (~(|in_fractb));
@@ -134,11 +134,11 @@ wire in_anan_sign = (in_snan_a | in_qnan_a) ? in_signa :
                                               in_signb;
 
 // restored exponents
-wire [9:0] in_exp10a = {2'd0,in_expa[7:1],(in_expa[0] | in_opa_dn)};
-wire [9:0] in_exp10b = {2'd0,in_expb[7:1],(in_expb[0] | in_opb_dn)};
+wire scalared [9:0] in_exp10a = {2'd0,in_expa[7:1],(in_expa[0] | in_opa_dn)};
+wire scalared [9:0] in_exp10b = {2'd0,in_expb[7:1],(in_expb[0] | in_opb_dn)};
 // restored fractionals
-wire [23:0] in_fract24a = {((~in_opa_dn) & (~in_opa_0)),in_fracta};
-wire [23:0] in_fract24b = {((~in_opb_dn) & (~in_opb_0)),in_fractb};
+wire scalared [23:0] in_fract24a = {((~in_opa_dn) & (~in_opa_0)),in_fracta};
+wire scalared [23:0] in_fract24b = {((~in_opb_dn) & (~in_opb_0)),in_fractb};
 
 
 // comparator
@@ -189,10 +189,10 @@ wire add_start = op_add &
 wire        add_rdy_o;       // add/sub is ready
 wire        add_sign_o;      // add/sub signum
 wire        add_sub_0_o;     // flag that actual substruction is performed and result is zero
-wire  [4:0] add_shl_o;       // do left shift in align stage
-wire  [9:0] add_exp10shl_o;  // exponent for left shift align
-wire  [9:0] add_exp10sh0_o;  // exponent for no shift in align
-wire [27:0] add_fract28_o;   // fractional with appended {r,s} bits
+wire scalared  [4:0] add_shl_o;       // do left shift in align stage
+wire scalared  [9:0] add_exp10shl_o;  // exponent for left shift align
+wire scalared  [9:0] add_exp10sh0_o;  // exponent for no shift in align
+wire scalared [27:0] add_fract28_o;   // fractional with appended {r,s} bits
 wire        add_inv_o;       // add/sub invalid operation flag
 wire        add_inf_o;       // add/sub infinity output reg
 wire        add_snan_o;      // add/sub signaling NaN output reg
@@ -247,12 +247,12 @@ wire mul_start = (op_mul | op_div) &
 // MUL/DIV common outputs
 wire        mul_rdy_o;       // mul is ready
 wire        mul_sign_o;      // mul signum
-wire  [4:0] mul_shr_o;       // do right shift in align stage
-wire  [9:0] mul_exp10shr_o;  // exponent for right shift align
+wire scalared  [4:0] mul_shr_o;       // do right shift in align stage
+wire scalared  [9:0] mul_exp10shr_o;  // exponent for right shift align
 wire        mul_shl_o;       // do left shift in align stage
-wire  [9:0] mul_exp10shl_o;  // exponent for left shift align
-wire  [9:0] mul_exp10sh0_o;  // exponent for no shift in align
-wire [27:0] mul_fract28_o;   // fractional with appended {r,s} bits
+wire scalared  [9:0] mul_exp10shl_o;  // exponent for left shift align
+wire scalared  [9:0] mul_exp10sh0_o;  // exponent for no shift in align
+wire scalared [27:0] mul_fract28_o;   // fractional with appended {r,s} bits
 wire        mul_inv_o;       // mul invalid operation flag
 wire        mul_inf_o;       // mul infinity output reg
 wire        mul_snan_o;      // mul signaling NaN output reg
@@ -314,12 +314,12 @@ wire i2f_start  = op_i2f_cnv &
                   new_fpu_data;
 wire        i2f_rdy_o;       // i2f is ready
 wire        i2f_sign_o;      // i2f signum
-wire  [3:0] i2f_shr_o;
-wire  [7:0] i2f_exp8shr_o;
-wire  [4:0] i2f_shl_o;
-wire  [7:0] i2f_exp8shl_o;
-wire  [7:0] i2f_exp8sh0_o;
-wire [31:0] i2f_fract32_o;
+wire scalared  [3:0] i2f_shr_o;
+wire scalared  [7:0] i2f_exp8shr_o;
+wire scalared  [4:0] i2f_shl_o;
+wire scalared  [7:0] i2f_exp8shl_o;
+wire scalared  [7:0] i2f_exp8sh0_o;
+wire scalared [31:0] i2f_fract32_o;
 //   i2f module instance
 pfpu32_i2f u_i2f_cnv
 (
@@ -344,9 +344,9 @@ wire f2i_start  = op_f2i_cnv &
                   new_fpu_data;
 wire        f2i_rdy_o;       // f2i is ready
 wire        f2i_sign_o;      // f2i signum
-wire [23:0] f2i_int24_o;     // f2i fractional
-wire  [4:0] f2i_shr_o;       // f2i required shift right value
-wire  [3:0] f2i_shl_o;       // f2i required shift left value   
+wire scalared [23:0] f2i_int24_o;     // f2i fractional
+wire scalared  [4:0] f2i_shr_o;       // f2i required shift right value
+wire scalared  [3:0] f2i_shl_o;       // f2i required shift left value   
 wire        f2i_ovf_o;       // f2i overflow flag
 wire        f2i_snan_o;      // f2i signaling NaN output reg
 //    f2i module instance

@@ -1,0 +1,97 @@
+-MSS\ 
+-dumpxst\ 
+autosoc_tb_0x1ae41cc5\ 
+-LOG_FD\ 
+4\ 
+-neverwarn\ 
+-reduce_messages\ 
+-nocopyright\ 
+-specificunit\ 
+worklib.autosoc_tb:v\ 
+-SV\ 
+-DEFINE\ 
+LOCKSTEP\ 
+-INCDIR\ 
+.\ 
+-INCDIR\ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/wb_bus\ 
+-INCDIR\ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog\ 
+-INCDIR\ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/uart16550_1.5.4/rtl/verilog\ 
+-INCDIR\ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/can_master\ 
+-INCDIR\ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/wb_bus/wb_common_1.0.1\ 
+-INCDIR\ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/utils/verilog_utils_0\ 
+-INCDIR\ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/ecc_bch_dec/src/rtl/univ\ 
+-INCDIR\ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/TB/include\ 
+-INCDIR\ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/adv_debug_sys_3.1.0/Hardware/adv_dbg_if/rtl/verilog\ 
+-vtimescale\ 
+1ns/1ps\ 
+-cdslib\ 
+./INCA_libs/my_snapshot.lnx8664.15.20.nc/cds.lib\ 
+-hdlvar\ 
+./INCA_libs/my_snapshot.lnx8664.15.20.nc/hdl.var\ 
+-runmode\ 
+-propfile ./INCA_libs/my_snapshot.lnx8664.15.20.nc/.cdssvbind/cds_tmp_svbind_single_00016fa1_007f0100_1.sva \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/can_master/can_acf.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/wb_bus/wb_common_1.0.1/wb_common.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/wb_bus/wb_intercon_1.0/rtl/verilog/wb_arbiter.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/wb_bus/wb_intercon_1.0/rtl/verilog/wb_mux.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/wb_ram_1.0/rtl/verilog/wb_ram.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/adv_debug_sys_3.1.0/Hardware/adv_dbg_if/rtl/verilog/adbg_jsp_biu.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/adv_debug_sys_3.1.0/Hardware/adv_dbg_if/rtl/verilog/adbg_jsp_module.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/adv_debug_sys_3.1.0/Hardware/adv_dbg_if/rtl/verilog/adbg_or1k_module.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/adv_debug_sys_3.1.0/Hardware/adv_dbg_if/rtl/verilog/adbg_or1k_status_reg.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/adv_debug_sys_3.1.0/Hardware/adv_dbg_if/rtl/verilog/adbg_wb_biu.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/adv_debug_sys_3.1.0/Hardware/adv_dbg_if/rtl/verilog/adbg_wb_module.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/can_master/can_top.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/ecc_bch_dec/src/rtl/univ/err_pat_dcd_rom_univ.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_cfgrs.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_cpu.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_cpu_cappuccino.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_cpu_espresso.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_cpu_prontoespresso.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_ctrl_cappuccino.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_ctrl_espresso.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_ctrl_prontoespresso.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_dcache.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_decode.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_decode_execute_cappuccino.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_dmmu.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_execute_alu.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_execute_ctrl_cappuccino.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_fetch_cappuccino.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_fetch_espresso.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_fetch_prontoespresso.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_fetch_tcm_prontoespresso.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_icache.sv \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_immu.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_lockstep_cpu_cappuccino.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_lsu_cappuccino.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_lsu_espresso.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_pcu.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_pic.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_rf_cappuccino.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_store_buffer.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/pfpu32/pfpu32_addsub.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/pfpu32/pfpu32_cmp.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/pfpu32/pfpu32_f2i.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/pfpu32/pfpu32_i2f.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/mor1kx_5.0-r1/rtl/verilog/pfpu32/pfpu32_rnd.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/uart16550_1.5.4/rtl/verilog/uart_receiver.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/uart16550_1.5.4/rtl/verilog/uart_regs.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/uart16550_1.5.4/rtl/verilog/uart_tfifo.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/uart16550_1.5.4/rtl/verilog/uart_transmitter.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/uart16550_1.5.4/rtl/verilog/uart_wb.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/SRC/utils/verilog-arbiter_0-r1/src/arbiter.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/TB/autosoc_tb.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/TB/jtag_vpi_0-r2/jtag_vpi.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Hardware/TB/mor1kx_monitor.v \ 
+/home/ICer/fusa_vpi/autosoc-development/Simulation/autoSOC_fusa/fi_wrapper.sv \ 

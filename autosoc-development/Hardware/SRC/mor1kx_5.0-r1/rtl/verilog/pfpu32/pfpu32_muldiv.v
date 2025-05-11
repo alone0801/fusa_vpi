@@ -226,20 +226,20 @@ module pfpu32_muldiv
 
 
   // left-shift the dividend and divisor
-  wire [23:0] s1t_fract24a_shl = s0o_fract24a << s0o_shla;
-  wire [23:0] s1t_fract24b_shl = s0o_fract24b << s0o_shlb;
+  wire scalared [23:0] s1t_fract24a_shl = s0o_fract24a << s0o_shla;
+  wire scalared [23:0] s1t_fract24b_shl = s0o_fract24b << s0o_shlb;
   
   // force result to zero
-  wire [23:0] s1t_fract24a = s1t_fract24a_shl & {24{~s0o_opc_0}};
-  wire [23:0] s1t_fract24b = s1t_fract24b_shl & {24{~s0o_opc_0}};
+  wire scalared [23:0] s1t_fract24a = s1t_fract24a_shl & {24{~s0o_opc_0}};
+  wire scalared [23:0] s1t_fract24b = s1t_fract24b_shl & {24{~s0o_opc_0}};
 
   // exponent
-  wire [9:0] s1t_exp10mux =
+  wire scalared [9:0] s1t_exp10mux =
     s0o_is_div ? (s0o_exp10a - {5'd0,s0o_shla} - s0o_exp10b + {5'd0,s0o_shlb} + 10'd127) :
                  (s0o_exp10a - {5'd0,s0o_shla} + s0o_exp10b - {5'd0,s0o_shlb} - 10'd127);
   
   // force result to zero
-  wire [9:0] s1t_exp10c = s1t_exp10mux & {10{~s0o_opc_0}};
+  wire scalared [9:0] s1t_exp10c = s1t_exp10mux & {10{~s0o_opc_0}};
 
 
   // Goldshmidt division iterations control
@@ -318,10 +318,10 @@ module pfpu32_muldiv
   // rigt shift value
   // and appropriatelly corrected exponent
   wire s1o_exp10c_0             = ~(|s1o_exp10c);
-  wire [9:0] s2t_shr_of_neg_exp = 11'h401 - {1'b0,s1o_exp10c}; // 1024-v+1
+  wire scalared [9:0] s2t_shr_of_neg_exp = 11'h401 - {1'b0,s1o_exp10c}; // 1024-v+1
   // variants:
-  wire [9:0] s2t_shr_t;
-  wire [9:0] s2t_exp10rx;
+  wire scalared [9:0] s2t_shr_t;
+  wire scalared [9:0] s2t_exp10rx;
   assign {s2t_shr_t,s2t_exp10rx} =
     // force zero result
     s1o_opc_0     ? {10'd0,10'd0} :
@@ -334,12 +334,12 @@ module pfpu32_muldiv
     //   (!) 1x.xx case is processed in next stage
                     {{9'd0,s1o_exp10c_0},(s1o_exp10c | {9'd0,s1o_exp10c_0})};
   // limited by 31 and forced result to zero
-  wire [4:0] s2t_shrx = s2t_shr_t[4:0] | {5{|s2t_shr_t[9:5]}};
+  wire scalared [4:0] s2t_shrx = s2t_shr_t[4:0] | {5{|s2t_shr_t[9:5]}};
 
 
   // Support Goldshmidt iteration
   // initial estimation of reciprocal
-  wire [8:0] itr_recip9b;
+  wire scalared [8:0] itr_recip9b;
   arecip_lut u_arlut
   (
     .b_i(s1o_fract24b[22:16]),
@@ -348,7 +348,7 @@ module pfpu32_muldiv
   // support case: b==1
   wire b_eq_1 = s1o_fract24b[23] & (~(|s1o_fract24b[22:0]));
   // reciprocal with restored leading 01
-  wire [10:0] itr_recip11b = b_eq_1 ?  11'b10000000000 :
+  wire scalared [10:0] itr_recip11b = b_eq_1 ?  11'b10000000000 :
                                       {2'b01,itr_recip9b};
 
   // the subsequent two stages multiplier operates with 32-bit inputs
@@ -364,11 +364,11 @@ module pfpu32_muldiv
   wire itr_rndD = itr_state[3] | itr_state[6];
   wire itr_rndDvsr;
   //   align resulting quotient to support subsequent IEEE-compliant rounding
-  wire [25:0] itr_res_qtnt26; // rounded quotient
+  wire scalared [25:0] itr_res_qtnt26; // rounded quotient
   //   Updated quotient or divisor
-  wire [32:0] itr_qtnt33;
+  wire scalared [32:0] itr_qtnt33;
   //   'F' (2-D) or 'Reminder'
-  wire [32:0] itr_rmnd33;
+  wire scalared [32:0] itr_rmnd33;
 
 
   // control for multiplier's input 'A'
@@ -377,7 +377,7 @@ module pfpu32_muldiv
                   itr_state[0] | itr_state[3] | 
                   itr_state[6] | itr_rndQ;
   // multiplexer for multiplier's input 'A'
-  wire [31:0] itr_mul32a =
+  wire scalared [31:0] itr_mul32a =
      s1t_is_mul   ? {s1t_fract24a,8'd0}   :
      itr_state[0] ? {itr_recip11b,21'd0}  :
      itr_rndQ     ? {itr_res_qtnt26,6'd0} : // truncate by 2^(-n-1)
@@ -401,7 +401,7 @@ module pfpu32_muldiv
                   itr_state[6] | itr_state[7] |
                   itr_rndQ;
   // multiplexer for multiplier's input 'B'
-  wire [31:0] itr_mul32b =
+  wire scalared [31:0] itr_mul32b =
      s1t_is_mul               ? {s1t_fract24b,8'd0} :
     (itr_state[0] | itr_rndQ) ? {s1o_fract24b,8'd0} :
      itr_state[1]             ? {s1o_fract24a,8'd0} :
@@ -483,7 +483,7 @@ module pfpu32_muldiv
 
 
   // 2nd stage of multiplier
-  wire [47:0] s3t_fract48;
+  wire scalared [47:0] s3t_fract48;
   assign s3t_fract48 = {s2o_fract32_ahbh,  16'd0} +
                        {16'd0, s2o_fract32_ahbl} +
                        {16'd0, s2o_fract32_albh} +
@@ -554,7 +554,7 @@ module pfpu32_muldiv
   //   +2^(-n-2) in case of rounding 0.1xx qutient
   wire itr_rndQ01x = (~s3o_mul33o[31]);
   //   rounding mask:
-  wire [32:0] itr_rndM33 = // bits [6],[5] ... [0]
+  wire scalared [32:0] itr_rndM33 = // bits [6],[5] ... [0]
     { 26'd0,(itr_rndQ & itr_rndQ1xx),(itr_rndQ & itr_rndQ01x), // round resulting quotient
        4'd0,(itr_rndD & s3o_mul33s) };                         // round intermediate divisor
   //   rounding
@@ -563,7 +563,7 @@ module pfpu32_muldiv
 
   // compute 2's complement or reminder (for sticky bit detection)
   // binary point position is located just after bit [30]
-  wire [32:0] itr_AorT33 =
+  wire scalared [32:0] itr_AorT33 =
     s3o_div_ready ? {1'b0,s3o_fract24a,8'd0} : // for reminder
                     {32'h80000000,1'b0};       // for two's complement
 
@@ -601,10 +601,10 @@ module pfpu32_muldiv
   //   and the result is non-zero
   //   the '1' is maximum number of leading zeros in the quotient.
   wire s4t_nlz = ~s3o_res_qtnt26[25];
-  wire [9:0] s4t_exp10_m1 = s3o_exp10c - 10'd1;
+  wire scalared [9:0] s4t_exp10_m1 = s3o_exp10c - 10'd1;
   // left shift flag and corrected exponent
   wire       s4t_shlx;
-  wire [9:0] s4t_exp10lx;
+  wire scalared [9:0] s4t_exp10lx;
   assign {s4t_shlx,s4t_exp10lx} =
       // shift isn't needed (includes zero result)
     (~s4t_nlz)            ? {1'b0,s3o_exp10c} :
@@ -621,7 +621,7 @@ module pfpu32_muldiv
   //   - for normalized result
   //   - exact result
   //   - non-exact but lesser than infinity precision result
-  wire [25:0] s4t_qtnt26 =
+  wire scalared [25:0] s4t_qtnt26 =
     ( (~s4t_denorm) | s4t_qtnt_exact |
       ((~s4t_qtnt_exact) & (~s4t_sign_rmnd)) ) ? s3o_res_qtnt26 :
                                                  s3o_raw_qtnt26;

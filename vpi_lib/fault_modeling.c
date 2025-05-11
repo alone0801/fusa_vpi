@@ -55,7 +55,7 @@ void fault_modeling(p_cb_data cb_data)
 
     type = SA_FAULT;                          // to be determined////////////
     //vpi_printf("This is fault_modeling() running\n");
-    fp = fopen("Fault_list.xml","w");           // to be determined/////////////
+    fp = fopen("fault.set","w");           // to be determined/////////////
     if(fp == NULL)
         printf("Error opening file!\n");
     else
@@ -189,18 +189,18 @@ int find_net_or_logic_signal(vpiHandle module_h, FILE *fp,int node_num,int is_lo
                                 {
                                     // It's a vector signal, get all of its bits
                                     if((GetRandNum(0,100,node_num) % 2) == 0)
-                                        fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,signalBit_handle),"SA0",GetRandNum(0,100,node_num));
+                                        fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA0",GetRandNum(0,100,node_num), "UU");
                                     else
-                                        fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,signalBit_handle),"SA1",GetRandNum(0,100,node_num));
+                                        fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA1",GetRandNum(0,100,node_num), "UU");
                                     node_num = node_num + 1;
                                 }
                             else
                             {
                                 // It's a scalar signal
                                 if((GetRandNum(0,100,node_num) % 2) == 0)
-                                    fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,port_handle),"SA0",GetRandNum(0,100,node_num));
+                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,port_handle),"SA0",GetRandNum(0,100,node_num), "UU");
                                 else
-                                    fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,port_handle),"SA1",GetRandNum(0,100,node_num));
+                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,port_handle),"SA1",GetRandNum(0,100,node_num), "UU");
                                 node_num = node_num + 1;
                             }
                         }
@@ -236,17 +236,17 @@ int find_net_or_logic_signal(vpiHandle module_h, FILE *fp,int node_num,int is_lo
                             while((signalBit_handle = vpi_scan(signalBit_iterator)) != NULL)
                             {
                                 if((GetRandNum(0,100,node_num) % 2) == 0)
-                                    fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,signalBit_handle),"SA0",GetRandNum(0,100,node_num));
+                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA0",GetRandNum(0,100,node_num), "UU");
                                 else
-                                    fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,signalBit_handle),"SA1",GetRandNum(0,100,node_num));
+                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA1",GetRandNum(0,100,node_num), "UU");
                                 node_num = node_num + 1;
                             }
                         else
                         {
                             if((GetRandNum(0,100,node_num) % 2) == 0)
-                                    fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,signal_handle),"SA0",GetRandNum(0,100,node_num));
+                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signal_handle),"SA0",GetRandNum(0,100,node_num), "UU");
                                 else
-                                    fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,signal_handle),"SA1",GetRandNum(0,100,node_num));
+                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signal_handle),"SA1",GetRandNum(0,100,node_num), "UU");
                             node_num = node_num + 1;
                         }
                     }
@@ -282,18 +282,18 @@ int find_reg_signal(vpiHandle module_h,FILE *fp,int node_num)
                     while((signalBit_handle = vpi_scan(signalBit_iterator)) != NULL)
                     {
                         if((GetRandNum(0,100,node_num) % 2) == 0)
-                            fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,signalBit_handle),"SA0",GetRandNum(0,100,node_num));
+                            fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA0",GetRandNum(0,100,node_num), "UU");
                         else
-                            fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,signalBit_handle),"SA1",GetRandNum(0,100,node_num));
+                            fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA1",GetRandNum(0,100,node_num), "UU");
                         node_num = node_num + 1;
                     }
                 else
                 {
                     if((GetRandNum(0,100,node_num) % 2) == 0)
-                        fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,signal_handle),"SA0",GetRandNum(0,100,node_num));
+                        fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signal_handle),"SA0",GetRandNum(0,100,node_num), "UU");
                     else
-                        fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,signal_handle),"SA1",GetRandNum(0,100,node_num));
-                    fprintf(fp,"%d %dns {\"%s\" }\n",node_num,GetRandNum(0,100,node_num),vpi_get_str(vpiFullName,signal_handle));
+                        fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signal_handle),"SA1",GetRandNum(0,100,node_num), "UU");
+                    //fprintf(fp,"%d %dns {\"%s\" }\n",node_num,GetRandNum(0,100,node_num),vpi_get_str(vpiFullName,signal_handle));
                     node_num = node_num + 1;
                 }
             }
@@ -327,17 +327,17 @@ int find_reg_array(vpiHandle module_h,FILE *fp,int node_num)
                                 while((signalBit_handle = vpi_scan(signalBit_iterator)) != NULL)
                                     {
                                         if((GetRandNum(0,100,node_num) % 2) == 0)
-                                            fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,signalBit_handle),"SA0",GetRandNum(0,100,node_num));
+                                            fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA0",GetRandNum(0,100,node_num),"UU");
                                         else
-                                            fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,signalBit_handle),"SA1",GetRandNum(0,100,node_num));
+                                            fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA1",GetRandNum(0,100,node_num),"UU");
                                         node_num = node_num + 1;
                                     }
                             else
                             {
                                 if((GetRandNum(0,100,node_num) % 2) == 0)
-                                    fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,signal_handle),"SA0",GetRandNum(0,100,node_num));
+                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signal_handle),"SA0",GetRandNum(0,100,node_num),"UU");
                                 else
-                                    fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,signal_handle),"SA1",GetRandNum(0,100,node_num));
+                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signal_handle),"SA1",GetRandNum(0,100,node_num),"UU");
                                 node_num = node_num + 1;
                             }
                         }
@@ -373,17 +373,17 @@ int find_wire_array(vpiHandle module_h,FILE *fp,int node_num)
                             while((signalBit_handle = vpi_scan(signalBit_iterator)) != NULL)
                             {
                                 if((GetRandNum(0,100,node_num) % 2) == 0)
-                                    fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,signalBit_handle),"SA0",GetRandNum(0,100,node_num));
+                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA0",GetRandNum(0,100,node_num),"UU");
                                 else
-                                    fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,signalBit_handle),"SA1",GetRandNum(0,100,node_num));
+                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA1",GetRandNum(0,100,node_num),"UU");
                                 node_num = node_num + 1;
                             }
                         else
                         {
                             if((GetRandNum(0,100,node_num) % 2) == 0)
-                                fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,signal_handle),"SA0",GetRandNum(0,100,node_num));
+                                fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signal_handle),"SA0",GetRandNum(0,100,node_num),"UU");
                             else
-                                fprintf(fp,"%s  %s  %d\n",vpi_get_str(vpiFullName,signal_handle),"SA1",GetRandNum(0,100,node_num));
+                                fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signal_handle),"SA1",GetRandNum(0,100,node_num),"UU");
                             node_num = node_num + 1;
                         }
                     }
