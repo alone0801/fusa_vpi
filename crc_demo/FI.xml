@@ -5,6 +5,12 @@
     <FAULT_EXCLUDE></FAULT_EXCLUDE>
     <TESTBENCH_NAME>test</TESTBENCH_NAME>
     <DUT_NAME>test.dut_inst</DUT_NAME>
+    <!--FAULT_TYPE has 7 option: 1(SA0), 2(SA1), 3(SA), 4(SEU), 5(SET), 6(SE), 7(ALL)
+    SA refers to all types of stuck-at fault
+    SE refers to all types of soft error
+    ALL refers to all types of fault
+    Please specify the FAULT_TYPE option with number-->
+    <FAULT_TYPE>3</FAULT_TYPE>
     <FAULT_TW_START>100</FAULT_TW_START>
     <FAULT_TW_END>200</FAULT_TW_END>
     <OBSERVATION_POINTS>

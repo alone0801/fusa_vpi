@@ -621,12 +621,12 @@ void vcdCompareCheck( )
     initializeStringList(&functional_list);
     initializeStringList(&nostop_list);
     //FaultData *faults = random_process(FS_PATH);
-//    parseXML(FI_PATH);
-//    fault_type = atoi(fault_type_str); ////ADDED
-//    fault_tw[0] = atoi(fault_tw_str.strings[0]);
-//    fault_tw[1] = atoi(fault_tw_str.strings[1]);
-//    if (strcmp(value_s.value.str, "good_sim") == 0) 
-//        fault_modeling_check(&fault_target,&fault_exclude,&fault_tw,fault_type);  /////ADDED
+    parseXML(FI_PATH);
+    fault_type = atoi(fault_type_str); ////ADDED
+    fault_tw[0] = atoi(fault_tw_str.strings[0]);
+    fault_tw[1] = atoi(fault_tw_str.strings[1]);
+    if (strcmp(value_s.value.str, "good_sim") == 0) 
+        fault_modeling_check(&fault_target,&fault_exclude,&fault_tw,fault_type);  /////ADDED
 //    if ( tf_nump( ) == 1 )
 //    {
 //        if ( tf_typep( 1 ) == tf_string ) return;

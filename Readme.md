@@ -42,11 +42,12 @@ Currently, the platform is optimized for **VCS**, and future updates will enhanc
 ### 4. Fault Space Generation and Optimization
 Fusa_vpi offers full-process fault injection capabilities, allowing you to:
 
-- Generate a **fault list** for your circuit to identify all faultable nodes.
+- Generate a **fault.set** for your circuit to identify all faultable nodes, this function can only run with VCS.
 - Optimize the fault space to accelerate the fault injection campaign.
 
 ### 5. Fault Isolation
 Fusa_vpi uses the **Verilog Procedural Interface (VPI)** to perform **non-intrusive fault injection**, minimizing backward-propagation of faults. It also includes an automatic method to isolate fault propagation.
+Fault Isolation can only run when CON = 0.
 
 ---
 
@@ -63,8 +64,8 @@ cd vpi_lib
 make all
 cd ..
 cd crc_demo  
-make good_sim 
-make fault_sim
+make good_sim_vcs/irun 
+make fault_sim_vcs/irun
 sh fault.csh <CON>
 make merge
 ```
@@ -80,6 +81,12 @@ the result and summary are showed in result.xml and summary.xml
     <FAULT_EXCLUDE></FAULT_EXCLUDE>
     <TESTBENCH_NAME>test</TESTBENCH_NAME>
     <DUT_NAME>test.dut_inst</DUT_NAME>
+    <!--FAULT_TYPE has 7 option: 1(SA0), 2(SA1), 3(SA), 4(SEU), 5(SET), 6(SE), 7(ALL)
+    SA refers to all types of stuck-at fault
+    SE refers to all types of soft error
+    ALL refers to all types of fault
+    Please specify the FAULT_TYPE option with number-->
+    <FAULT_TYPE>3</FAULT_TYPE>
     <FAULT_TW_START>100</FAULT_TW_START>
     <FAULT_TW_END>200</FAULT_TW_END>
     <OBSERVATION_POINTS>
@@ -97,8 +104,8 @@ the result and summary are showed in result.xml and summary.xml
 2.choose your fault inject node and fault type in fault.set:
 2.1 you can choose by yourself in fault.set
 ```fault.set
-<LOCATION> <TYPE> <TIME> <RESULT>
-test.dut_inst.mem1_i.mem_data_tmp[0]  SA0  0  UU
+LOCATION> <TYPE> <VALUE> <TIME> <SET_RETURN_TIME> <RESULT>
+test.dut_inst.mem1_i.mem_with_crc_i.clk  SA0  0  132  0  UU
 .......
 ```
 2.2 you also can generate fault.set by fault pruning
