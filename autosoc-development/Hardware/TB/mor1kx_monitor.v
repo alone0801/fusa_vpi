@@ -123,7 +123,7 @@ module mor1kx_monitor #(parameter LOG_DIR= "../out") ();
 	       $fdisplay(fgeneral,"%0t:exit(0x%08h);",$time,`GPR_GET(3));
 	       $fdisplay(ftrace,"exit(0x%08h);",`GPR_GET(3));
 	       $display("exit(0x%08h);",`GPR_GET(3));
-	       $finish;
+	       //$finish;
 	    end
 	  if (execute_insn == 32'h15_00_00_02)
 	    begin
@@ -151,8 +151,9 @@ module mor1kx_monitor #(parameter LOG_DIR= "../out") ();
 	  if (execute_insn == 32'h15_00_00_0c)
 	    begin
 	       // Silent exit
-	       $finish;
-	       
+           `ifdef good_sim
+                $finish;
+           `endif
 	    end
 	  
        end // if (`EXECUTE_STAGE_ADV)

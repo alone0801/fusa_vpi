@@ -5,7 +5,7 @@
 #include "vpi_user.h"
 #include <stdio.h>
 #include <stdlib.h>    /* ANSI C standard library */
-#include <strings.h>
+#include <string.h>
 #include <malloc.h>
 #include <stdio.h> 
 #include "StringList.h"
@@ -28,4 +28,5 @@ void port_tranverse(vpiHandle mod_h, int top,PortInfoNode** head);
 void printList(PortInfoNode **head);
 void appendNode(PortInfoNode** head, const char* internalName, const char* externalName);
 void process_prime(PortInfoNode** head);
+PortInfoNode* readList(char *file_name);
 #endif

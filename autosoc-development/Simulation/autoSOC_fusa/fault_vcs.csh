@@ -22,7 +22,7 @@ echo "Step value: $step"
 start_time=$(date +%s)
 
 # 循环创建目录并运行仿真
-for ((i = 0; i < num_faults; i=i+step)); do
+for ((i = 28; i < num_faults; i=i+step)); do
     dir_name="fault_sim_$((i+1))"
     mkdir "$dir_name"
     cd "$dir_name" || exit
@@ -34,7 +34,7 @@ for ((i = 0; i < num_faults; i=i+step)); do
     echo '</INJECT>' >> fault.xml
 
     # 运行仿真
-    $EXE_PATH/simv -l fault_sim.log -ucli -i $fusa_lib/ucli.tcl +define+LOCKSTEP +elf_load=$SW_dir/Baremetal/sample_apps/$MACRO +clear_ram lxm2 -lelf -full64
+    $EXE_PATH/simv -l fault_sim.log -ucli -i $fusa_lib/ucli.tcl +define+LOCKSTEP +elf_load=$SW_dir/Baremetal/sample_apps/$MACRO +clear_ram -lca
 
     # 返回上一级目录
     cd .. || exit

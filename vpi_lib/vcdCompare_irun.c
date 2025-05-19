@@ -14,11 +14,13 @@ static StringList checker_list,functional_list,nostop_list,fault_target,fault_ex
 static PortInfoNode* port_list = NULL;
 static Module* iso_inst_list = NULL;
 static int fault_tw[2];
+static int fault_type; /////////////ADDED
 static int flag_continue=0;
 static int flag_checker=0;
 static int flag_functional=0;
 static int last_time = 0;
 //static char fault_target[100];
+static char* fault_type_str; //////////ADDED
 static char iso_mode[20];
 char DUT_NAME[100];
 static int  CON_NUM = 1;  // default==1 
@@ -34,7 +36,9 @@ static char strobe_mode[10] = "Dual";
 static char FAULT_ID[100];
 static char FAULT_LOCATION[200];
 static char FAULT_TYPE[10];
+static char FAULT_VALUE[10]; ////////ADDED
 static char FAULT_TIME[100];
+static char SET_RETURN_TIME[100];   ///////ADDED
 static char CHECKER_TIME[100]="NULL";
 static char FUNCTIONAL_TIME[100]="NULL";
 static int tolerant_time = 10;
@@ -44,6 +48,7 @@ void parse_injectXML(const char* filename);
 void SAInject(const char* fault_location, const char* fault_time, const char* fault_typeo);
 void generateXML(const char* idValue, const char* locationValue, const char** statusValue,const char* typeValue, int vact_num);
 void fault_injector_check(struct Fault *fault_p,int vact_num);
+void fault_modeling_check(StringList* fault_target,StringList* fault_exclude, int fault_tw[],int fault_type_local);             ///////////////////////////////////ADDED
 void _check(StringList* fault_target,StringList* fault_exclude, int fault_tw[]);
 void value_get(const char* fault_location);
 static int timeoutHandler( p_cb_data cb_data_p );
@@ -547,7 +552,7 @@ static void processVcd( void* ptr )
             {
                 str = str + 1;
                 //vpi_printf("%d - %d \n",atoi(str),last_time);
-                setTimeCallback(atoi(str)-last_time, ptr );
+                setTimeCallback(atoi(str) - last_time, ptr );
                 last_time = atoi(str);
                 //vpi_printf("2:%d\n",last_time);
                 return; 
@@ -616,11 +621,12 @@ void vcdCompareCheck( )
     initializeStringList(&functional_list);
     initializeStringList(&nostop_list);
     //FaultData *faults = random_process(FS_PATH);
-    //parseXML(FI_PATH);
-    fault_tw[0] = atoi(fault_tw_str.strings[0]);
-    fault_tw[1] = atoi(fault_tw_str.strings[1]);
+//    parseXML(FI_PATH);
+//    fault_type = atoi(fault_type_str); ////ADDED
+//    fault_tw[0] = atoi(fault_tw_str.strings[0]);
+//    fault_tw[1] = atoi(fault_tw_str.strings[1]);
 //    if (strcmp(value_s.value.str, "good_sim") == 0) 
-//        fault_modeling_check(&fault_target,&fault_exclude,&fault_tw);
+//        fault_modeling_check(&fault_target,&fault_exclude,&fault_tw,fault_type);  /////ADDED
 //    if ( tf_nump( ) == 1 )
 //    {
 //        if ( tf_typep( 1 ) == tf_string ) return;
@@ -648,6 +654,8 @@ void vcdCompareCall( )
     char FI_PATH[100];
     char FS_PATH[100];
     char TIME_PATH[100];
+    char PORT_PATH[100];
+
     systf_h = vpi_handle(vpiSysTfCall, NULL);
     arg_itr = vpi_iterate(vpiArgument, systf_h);
     arg_h = vpi_scan(arg_itr);
@@ -666,43 +674,30 @@ void vcdCompareCall( )
     if (strcmp(str_sec, "good_sim") == 0) {
         random_process(FS_PATH);
         parseXML(FI_PATH);
+        if(strcmp(iso_mode, "ENA") == 0){
+            port_alias(&fault_target,&port_list);
+            printList(&port_list);
+        }
         addEosCallback( timeRecordEosHandler );
         //timeCheck("/home/ICer/fusa_vpi/autosoc-development/Simulation/fault.time");
     }
     else {
-        //////
-        //PLI_INT32 flag = vpiForceFlag; 
-        //vpiHandle signal_handle;
-        //s_vpi_value fault_value = { vpiIntVal, { 0 } };
-        //s_vpi_time  time_s = { vpiSimTime, 0, 0, 0.0 };
-        //signal_handle = vpi_handle_by_name("test.dut_inst.mem1_i.mem_with_crc_i_iso.flag",0);
-        //    if(signal_handle == 0)
-        //        {
-        //            vpi_printf((PLI_BYTE8*) "FUSA_ERROR: unable to locate hdl path (%s) for iso_flag\n",fault_p->fault_node_name);
-        //        }
-        //    else
-        //    {
-        //        fault_value.format = vpiIntVal;
-        //        fault_value.value.integer = 1;
-        //        vpi_put_value(signal_handle, &fault_value, &time_s, flag);
-        //    }
-        //////
         strcpy(filename, str_fir);
         strcat(filename,"/golden.vcd");
         strcpy(TIME_PATH, str_fir);
         strcat(TIME_PATH,"/golden.time");
         vpi_printf( "vcdCompare: reading <%s>\n", filename );
-        initializeStringList(&checker_list);
-        initializeStringList(&functional_list);
-        initializeStringList(&nostop_list);
-        initializeStringList(&fault_target);
         /////*parseXML("FI.xml", &checker_list);*/
         FaultData *faults = random_process(FS_PATH);
-        parse_injectXML("./fault.xml");
+        parse_injectXML("./fault.xml");//为了适配批量注入脚本
         parseXML(FI_PATH);
         printf("FAULT_ID:%s\n",FAULT_ID);
         int id = atoi(FAULT_ID)-1;
-        port_alias(&fault_target,&port_list);
+        if(strcmp(iso_mode, "ENA") == 0){
+            strcpy(PORT_PATH, str_fir);
+            strcat(PORT_PATH, "/port.log");
+            port_list = readList(PORT_PATH);
+        }
         printf("checker strobe list:\n");
         printStringList(&checker_list);
         printf("functional strobe list:\n");
@@ -711,74 +706,67 @@ void vcdCompareCall( )
         printStringList(&nostop_list);
         if(FAULT_LOCATION==NULL||strlen(FAULT_LOCATION) == 0 )
         {
-            strcpy(FAULT_LOCATION, faults[id].location);
-            fault.fault_node_name = FAULT_LOCATION;
-            fault.injection_time = atoi(faults[id].time);
-            strcpy(FAULT_TIME, faults[id].time);
-            strcpy(FAULT_TYPE, faults[id].type);
-            if(strcmp("SEU", FAULT_TYPE) == 0)
-                fault.fault_type = SEU_FAULT;
-            else if(strcmp("SA0", FAULT_TYPE) == 0)
-                {
-                    fault.fault_type = SA_FAULT;
-                    fault.fault_value = 0;
-                }
-            else if(strcmp("SA1", FAULT_TYPE) == 0)
-                {
-                    fault.fault_type = SA_FAULT;
-                    fault.fault_value = 1;
-                }
             //printf("**********DEBUG%s\n%d\n",faults[id].location,CON_NUM);
             int i;
             for(i=0;i<CON_NUM+1;i++){
                 fault_array[i].fault_node_name = strdup(faults[id + i].location);
                 strcpy(fault_array[i].fault_node_name, faults[id + i].location);
                 fault_array[i].injection_time = atoi(faults[id+i].time);
-                //int a = atoi(faults[id+i].time);
-                //printf("++++DEBUG::fault_array[i].name=%s++++\n",fault_array[i].fault_node_name);
-                //printf("++++DEBUG::fault_array[i].injection_time=%d++++\n",fault_array[i].injection_time);
-                //fault_array[i].injection_time = 5;
-                //printf("++++DEBUG::fault_array[i].injection_time=%d++++\n",fault_array[i].injection_time);
-                //printf("++++DEBUG::faults[id+i]=%d++++\n", a);
+                //vpi_printf("%s\n",faults[id+i].type);
                 if(strcmp("SEU", faults[id+i].type) == 0)
-                    fault_array[i].fault_type = SEU_FAULT;
+                    fault_array[i].fault_type = SEU;  /////ADDED
+                else if(strcmp("SET", faults[id+i].type) == 0)
+                    fault_array[i].fault_type = SET; /////ADDED
                 else if(strcmp("SA0", faults[id+i].type) == 0)
-                    {
-                        fault_array[i].fault_type = SA_FAULT;
-                        fault_array[i].fault_value = 0;
-                    }
+                    fault_array[i].fault_type = SA0;   ///////ADDED
                 else if(strcmp("SA1", faults[id+i].type) == 0)
-                    {
-                        fault_array[i].fault_type = SA_FAULT;
-                        fault_array[i].fault_value = 1;
-                    }
+                    fault_array[i].fault_type = SA1;   ///////ADDED
+
+                fault_array[i].fault_value = atoi(faults[id+i].value);/////ADDED
+                fault_array[i].SET_return_time = atoi(faults[id+i].SET_return_time);////ADDED
             }
         }
         else {
             CON_NUM=0;
+            if(strcmp("SEU", FAULT_TYPE) == 0)
+                fault_array[0].fault_type = SEU; ////ADDED
+            else if(strcmp("SET", FAULT_TYPE) == 0)
+                fault_array[0].fault_type = SET;   ///////ADDED
+            else if(strcmp("SA0", FAULT_TYPE) == 0)
+                fault_array[0].fault_type = SA0;   //////ADDED
+            else if(strcmp("SA1", FAULT_TYPE) == 0)
+                fault_array[0].fault_type = SA1;    /////ADDED
+            fault_array[0].fault_value = atoi(FAULT_VALUE); ////ADDED
             fault_array[0].fault_node_name =FAULT_LOCATION;
             fault_array[0].injection_time = atoi(FAULT_TIME);
+            fault_array[0].SET_return_time = atoi(SET_RETURN_TIME);
             //printf("++++DEBUG::fault_array[i].name=%s++++\n",fault_array[0].fault_node_name);
         }
     }
     if (strcmp(str_sec, "good_sim") == 0) {
         addEosCallback( timeRecordEosHandler );
         //iso_gen("test_new.test_ins.sub_inst.a",&iso_inst_list);
-        
-        //printList(&port_list);
-        iso_itr(&port_list,&iso_inst_list);
+        if(strcmp(iso_mode, "ENA") == 0){
+            iso_itr(&port_list,&iso_inst_list);
+            vpi_printf("\n****instrumenting the isolation in DUT****\n");
+        }
         //vpi_printf("CON_NUM in good_sim is %d\n", CON_NUM);
         concur_gen(CON_NUM,DUT_NAME);
         //vpi_printf("debug\n");
-        vpi_printf("\n****instrumenting the isolation in DUT****\n");
         //timeCheck("/home/ICer/fusa_vpi/autosoc-development/Simulation/fault.time");
         return;
     }
     else {
         if(strcmp(iso_mode, "ENA") == 0){
-            fault.fault_node_name = check_alias(fault.fault_node_name,&port_list);
-            vpi_printf("\nFault Isolation has been Enable\n");
-            vpi_printf("because of iso, inject node is %s\n",fault.fault_node_name);
+            if(CON_NUM != 0){
+                vpi_printf("\nFault Isolation only can be used when CON = 0\n");
+                vpi_printf("\nFault Isolation is closed automatically\n");
+            }
+            else{
+                fault_array[0].fault_node_name = check_alias(fault_array[0].fault_node_name,&port_list);
+                vpi_printf("\nFault Isolation has been Enable\n");
+                vpi_printf("because of iso, inject node is %s\n",fault_array[0].fault_node_name);
+            }
         }
     }
     hashInitialize( &vcdHash, 200 );
@@ -929,6 +917,12 @@ void parseXML(const char* filename) {
             printf("fault_exclude:%s\n",fault_exclude.strings[fault_exclude.count-1]);
             xmlFree(content);
         }
+        if (xmlStrcmp(node->name, (const xmlChar*)"FAULT_TYPE") == 0){          //////////////ADDED
+            xmlChar* content = xmlNodeGetContent(node);                                  ///////////////ADDED
+            fault_type_str = strdup((const char*)content);                                     //////////////////ADDED 
+            printf("fault_type:%s\n",fault_type_str);                                              ///////////////ADDED 
+            xmlFree(content);                                   /////////////ADDED
+        }
         if (xmlStrcmp(node->name, (const xmlChar*)"FAULT_TW_START") == 0){
             xmlChar* content = xmlNodeGetContent(node);
             fault_tw_str.strings[0] = strdup((const char*)content);
@@ -1042,29 +1036,14 @@ void parse_injectXML(const char* filename) {
                 strcpy(FAULT_ID, (char *)xmlNodeGetContent(node));
             } else if (xmlStrcmp(node->name, (const xmlChar *)"LOCATION") == 0) {
                 strcpy(FAULT_LOCATION, (char *)xmlNodeGetContent(node));
-                fault.fault_node_name = FAULT_LOCATION;
-                //printf("++++++++DEBUG:%s++++++++++",fault.fault_node_name);
             } else if (xmlStrcmp(node->name, (const xmlChar *)"TYPE") == 0) {
-                //printf("++++++++DEBUG:%s++++++++++",fault.fault_node_name);
                 strcpy(FAULT_TYPE, (char *)xmlNodeGetContent(node));
-                //printf("++++++++DEBUG:%s++++++++++",fault.fault_node_name);
-                if(strcmp("SEU", FAULT_TYPE) == 0)
-                    fault.fault_type = SEU_FAULT;
-                else if(strcmp("SA0", FAULT_TYPE) == 0)
-                {
-                    fault.fault_type = SA_FAULT;
-                    fault.fault_value = 0;
-                }
-                else if(strcmp("SA1", FAULT_TYPE) == 0)
-                {
-                    fault.fault_type = SA_FAULT;
-                    fault.fault_value = 1;
-                }
-                //printf("++++++++DEBUG:%s++++++++++",fault.fault_node_name);
             } else if (xmlStrcmp(node->name, (const xmlChar *)"TIME") == 0) {
                 strcpy(FAULT_TIME, (char *)xmlNodeGetContent(node));
-                fault.injection_time = atoi(FAULT_TIME);
-                //printf("______DEBUG:TIME::%d_______\n",fault_array[1].injection_time );
+            } else if (xmlStrcmp(node->name, (const xmlChar *)"VALUE") == 0) {          //////////////ADDED 
+                strcpy(FAULT_VALUE, (char *)xmlNodeGetContent(node));               ////////////ADDED
+            } else if (xmlStrcmp(node->name, (const xmlChar *)"SET_RETURN_TIME") == 0) {        /////////////ADDED
+                strcpy(SET_RETURN_TIME, (char *)xmlNodeGetContent(node));                       //////////ADDED
             }
         }
     xmlFreeDoc(doc);
@@ -1111,9 +1090,10 @@ void generateXML(const char* idValue, const char* locationValue, const char** st
     int i;
     char **type = (char **)malloc((CON_NUM + 1) * sizeof(char *));
     for(i=0;i<CON_NUM+1;i++){
-        if(fault_array[i].fault_type==SEU_FAULT) type[i]="SEU";
-        if(fault_array[i].fault_type==SA_FAULT&fault_array[i].fault_value==0) type[i]="SA0";
-        if(fault_array[i].fault_type==SA_FAULT&fault_array[i].fault_value==1) type[i]="SA1";    }
+        if(fault_array[i].fault_type==SEU) type[i]="SEU";
+        if(fault_array[i].fault_type==SET) type[i]="SET";
+        if(fault_array[i].fault_type==SA0&fault_array[i].fault_value==0) type[i]="SA0";
+        if(fault_array[i].fault_type==SA1&fault_array[i].fault_value==1) type[i]="SA1";    }
     fp = fopen("result.xml", "w");
     if (fp == NULL) {
         printf("Error opening file.\n");
@@ -1125,8 +1105,9 @@ void generateXML(const char* idValue, const char* locationValue, const char** st
     fprintf(fp, "    <ID>%d</ID>\n", atoi(idValue)+i);
     fprintf(fp, "    <LOCATION>%s</LOCATION>\n", fault_array[i].fault_node_name);
     fprintf(fp, "    <TYPE>%s</TYPE>\n", type[i]);
-    //fprintf(fp, "    <TYPE>%s</TYPE>\n", typeValue);
-    fprintf(fp, "    <INJECT_TIME>%d</INJECT_TIME>\n",fault_array[i].injection_time);
+    fprintf(fp, "    <VALUE>%d</VALUE>\n", fault_array[i].fault_value);
+    fprintf(fp, "    <TIME>%d</TIME>\n",fault_array[i].injection_time);
+    fprintf(fp, "    <SET_RETURN_TIME>%d</SET_RETURN_TIME>\n",fault_array[i].SET_return_time);
     //fprintf(fp, "    <CHECKER_TIME>%d</CHECKER_TIME>\n",atoi(CHECKER_TIME));
     //fprintf(fp, "    <FUNCTIONAL_TIME>%d</FUNCTIONAL_TIME>\n",atoi(FUNCTIONAL_TIME));
     fprintf(fp, "    <STATUS>%s</STATUS>\n", statusValue[i]);

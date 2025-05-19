@@ -5,7 +5,7 @@ PortInfoNode* createNode(const char* internalName, const char* externalName);
 void appendNode(PortInfoNode** head, const char* internalName, const char* externalName);
 void freeList(PortInfoNode* head);
 void printList(PortInfoNode **head);
-
+PortInfoNode* readList(char *file_name);
 
 // 创建一个新节点
 PortInfoNode* createNode(const char* internalName, const char* externalName) {
@@ -55,8 +55,9 @@ void printList(PortInfoNode **head) {
         vpi_printf("ERROR: Could not open port.log for writing\n");
         return 0;
     }
+    fprintf(logfile, "<PORT_NAME>    <PORT_DRIVER>    <ALIAS_TYPE>    <ROOT>\n");
     while (current_log != NULL) {
-    fprintf(logfile, "port_name: %s, port_driver: %s, alias_type: %d, root: %d\n", current_log->internalName, current_log->externalName,current_log->alias,current_log->root);
+    fprintf(logfile, "%s %s %d %d\n", current_log->internalName, current_log->externalName,current_log->alias,current_log->root);
     current_log = current_log->next;
     }
     fclose(logfile);
@@ -64,58 +65,127 @@ void printList(PortInfoNode **head) {
 }
 
 
+PortInfoNode* readList(char *file_name){
+    PortInfoNode *head = NULL;
+    FILE *fp = fopen(file_name, "r");
+    char *line = NULL;
+    size_t len = 0;
+    getline(&line, &len, fp);
+    char *internalName;
+    char *externalName;
+    char *alias;
+    char *root;
+    while((getline(&line, &len, fp)) != -1){
+        char *temp = strdup(line);
+        char *token = strtok(temp, " ");
+        int count = 0;
+        while (token != NULL) {
+            switch(count){
+                case 0:
+                    internalName = strdup(token);
+                    break;
+                case 1:
+                    externalName = strdup(token);
+                    break;
+                case 2:
+                    alias = strdup(token);
+                    break;
+                case 3:
+                    root = strdup(token);
+                    break;
+            }
+            token = strtok(NULL, " ");
+            count++;
+        }
+        PortInfoNode* newNode = createNode(internalName, externalName);
+        newNode->alias = atoi(alias);
+        newNode->root = atoi(root);
+        if (head == NULL) {
+            head = newNode;
+        } else {
+        // 找到链表末尾，并将新节点连接到末尾
+            PortInfoNode* current = head;
+            while (current->next != NULL) {
+                current = current->next;
+            }
+            current->next = newNode;
+        }
+        free(temp);
+        free(token);
+    }
+    free(internalName);
+    free(externalName);
+    free(alias);
+    free(root);
+    fclose(fp);
+    return head;
+}
+
 void port_tranverse(vpiHandle mod_h, int top,PortInfoNode** head)
 {
-    vpiHandle   port_itr, port_h, lowconn_h, highconn_h, portbit_handle, pbiter_handle,sub_iterater,sub_handle;
+    vpiHandle   port_itr, port_h, lowconn_h, highconn_h, portbit_handle, pbiter_handle;
     int is_vector;
     int direction;
     char* Highconn;
     // mod_h = vpi_handle_by_name("test.dut_inst.mem2_i", 0);
     // 获取端口迭代器
-    port_itr = vpi_iterate(vpiPort, mod_h);
-    if (!port_itr) {
-        return 0;
-    }
+    if(vpi_get(vpiType, mod_h) == vpiModule){
+        port_itr = vpi_iterate(vpiPort, mod_h);
+        if (!port_itr) {
+            return 0;
+        }
     // 遍历端口
-    while (port_h = vpi_scan(port_itr)) {
-        is_vector = vpi_get(vpiVector, port_h);
-        direction = vpi_get(vpiDirection, port_h);
-        if(direction!=vpiInput)continue;
-        if (is_vector) {
+        while (port_h = vpi_scan(port_itr)) {
+            is_vector = vpi_get(vpiVector, port_h);
+            direction = vpi_get(vpiDirection, port_h);
+            if(direction!=vpiInput)continue;
+            if (is_vector){ 
             // 处理矢量端口
-            pbiter_handle = vpi_iterate(vpiBit, port_h);
-            if (pbiter_handle) {
-                portbit_handle = vpi_scan(pbiter_handle);
-                while (portbit_handle) {
-                    lowconn_h = vpi_handle(vpiLowConn, portbit_handle);
-                    highconn_h = vpi_handle(vpiHighConn, portbit_handle);
+                pbiter_handle = vpi_iterate(vpiBit, port_h);
+                if (pbiter_handle) {
+                    portbit_handle = vpi_scan(pbiter_handle);
+                    while (portbit_handle) {
+                        lowconn_h = vpi_handle(vpiLowConn, portbit_handle);
+                        highconn_h = vpi_handle(vpiHighConn, portbit_handle);
                     // 将端口信息添加到链表
                     // printf(vpi_get_str(vpiFullName, lowconn_h));
                     // printf("\n");
-                    if (top) {
-                        appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
-                    }
-                    else {
+                        if (top) {
+                            appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
+                        }
+                        else {
                         //HighConn=vpi_get_str(vpiFullName, highconn_h);
-                        if(!vpi_get_str(vpiFullName, highconn_h)) appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
-                        else appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), strdup(vpi_get_str(vpiFullName, highconn_h)));
+                            if(!vpi_get_str(vpiFullName, highconn_h)) appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
+                            else appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), strdup(vpi_get_str(vpiFullName, highconn_h)));
+                        }
+                        portbit_handle = vpi_scan(pbiter_handle);
                     }
-                    portbit_handle = vpi_scan(pbiter_handle);
-                }
                 // vpi_free_object(pbiter_handle);
-            }
-        } else {
+                }
+            } else {
             // 处理标量端口
-            lowconn_h = vpi_handle(vpiLowConn, port_h);
-            highconn_h = vpi_handle(vpiHighConn, port_h);
-            if (top || !vpi_get_str(vpiFullName, highconn_h)) appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
-            else appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), strdup(vpi_get_str(vpiFullName, highconn_h)));
+                lowconn_h = vpi_handle(vpiLowConn, port_h);
+                highconn_h = vpi_handle(vpiHighConn, port_h);
+                if (top || !vpi_get_str(vpiFullName, highconn_h)) appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
+                else appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), strdup(vpi_get_str(vpiFullName, highconn_h)));
+            }
         }
     }
-    sub_iterater = vpi_iterate(vpiModule, mod_h);
-    if (sub_iterater != NULL)
-    while ( (sub_handle = vpi_scan(sub_iterater)) != NULL ){
-      port_tranverse(sub_handle , 0 , head);
+    vpiHandle subscope_itr, subscope_h;
+    int subscope_type;
+    subscope_itr = vpi_iterate(vpiInternalScope, mod_h);
+    if (subscope_itr != NULL){
+        while ( (subscope_h = vpi_scan(subscope_itr)) != NULL ){
+            subscope_type = vpi_get(vpiType, subscope_h);
+            switch(subscope_type){
+                case vpiModule:
+                    port_tranverse(subscope_h , 0 , head);
+                    break;
+                case vpiGenScope:
+                    port_tranverse(subscope_h , 0 , head);
+                    break;
+            }
+        }
     }
     // if (sub_iterater == NULL) printList(&portInfoList);
 }

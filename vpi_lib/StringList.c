@@ -48,7 +48,7 @@ void freeStringList(StringList* list) {
 
 int checkStringList(const struct StringList* list, const char* str) {
     for (i = 0; i < list->count; i++) {
-        if (strcmp(list->strings[i], str) == 0) {
+        if (strstr(str, list->strings[i]) != NULL) {
             return 1;
         }
     }

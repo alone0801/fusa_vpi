@@ -39,7 +39,7 @@ for ((i = 0; i < num_faults; i=i+step)); do
 
     # 运行仿真
     #$EXE_PATH/simv -l fault_sim.log -ucli -i $EXE_PATH/../vpi_lib/ucli.tcl
-    irun -R -64bit -access +rwc -messages -l fault_sim_irun.log -nclibdirname $EXE_PATH/INCA_libs -snapshot my_snapshot
+    irun -R -64bit -access +rwc -messages -l fault_sim_irun.log -input $fusa_lib/ucli.tcl -nclibdirname $EXE_PATH/INCA_libs -snapshot my_snapshot
     # 返回上一级目录
     cd .. || exit
 done

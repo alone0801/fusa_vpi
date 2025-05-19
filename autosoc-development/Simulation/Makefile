@@ -100,16 +100,14 @@ vcs_good:
 	cd ${fault_dir}/ && \
 	python $(fusa_lib)/wrapper_gen.py && \
 	rm -rf csrc simv  simv.daidir	&& \
-	vcs +vpi +define+BYTE_COUNT_MEM1 -P $(fusa_lib)/pli.tab \
+	vcs +vpi -P $(fusa_lib)/pli.tab \
 	-load  \
 	$(HW_dir)/TB/elf-loader_1.0.2/elf-loader.so \
 	-f rtl.f fi_wrapper.sv +define+good_sim   -lxml2 -lelf -sverilog \
 	+define+LOCKSTEP \
 	-l compile.log +lint=TFIPC-L -notice -debug_access+all  -full64  -kdb -lca &&\
-	./simv -l good_sim.log \
-	+elf_load=$(SW_dir)/Baremetal/sample_apps/$(MACRO) +clear_ram \
-#-kdb -lca 
-#	-ucli -i $(fusa_lib)/ucli.tcl
+	./simv -l good_sim.log +elf_load=$(SW_dir)/Baremetal/sample_apps/$(MACRO) +clear_ram \
+	-ucli -i $(fusa_lib)/ucli.tcl
 
 vcs_sim:
 	source tools/set_env_variables.sh && \
@@ -132,13 +130,14 @@ vcs_fault:
 	source tools/set_env_variables.sh && \
 	cd ${fault_dir}/ && \
 	rm -rf csrc simv  simv.daidir	&& \
-	vcs +vpi  -P $(fusa_lib)/pli.tab -L$(fusa_lib) -load  \
+	vcs +vpi  -P $(fusa_lib)/pli.tab -L$(fusa_lib) \
+	-load  \
 	$(HW_dir)/TB/elf-loader_1.0.2/elf-loader.so \
 	-f rtl.f fi_wrapper.sv +define+fault_sim   -lxml2 -lelf -sverilog \
 	+define+LOCKSTEP \
 	-l compile.log +lint=TFIPC-L -notice -debug_access+all  -full64  -kdb -lca &&\
-	./simv -l fault_sim.log +elf_load=$(SW_dir)/Baremetal/sample_apps/$(MACRO) +clear_ram \
-    -ldb -lca  -ucli -i $(fusa_lib)/ucli.tcl
+	./simv -l fault_sim.log +elf_load=$(SW_dir)/Baremetal/sample_apps/$(MACRO) +clear_ram -kdb -lca \
+	-ucli -i $(fusa_lib)/ucli.tcl
 
 list:
 	find $(HW_dir)  -name "*.sv" -or -name "*.v" >> $(fault_dir)/rtl.f	
@@ -156,12 +155,22 @@ good_sim_irun: restore
 	source tools/set_env_variables.sh && \
 	cd ${fault_dir}/ && \
 	python $(fusa_lib)/wrapper_gen.py && \
-	irun -clean -sv -f rtl.f fi_wrapper.sv +define+good_sim +define+LOCKSTEP +elf_load=$(SW_dir)/Baremetal/sample_apps/$(MACRO) +clear_ram -lxm2 -lelf -64bit -L$(fusa_lib) -afile $(SIM_dir)/autoSOC_fusa/autoSoC.tab  -loadvpi $(HW_dir)/TB/elf-loader_1.0.2/elf-loader_irun.so:setup_reset_callbacks,setup_endofcompile_callbacks,setup_finish_callbacks,register_check_for_command,register_send_result_to_server,vpit_RegisterTfs,setup_user_functions -access +rwc -messages -l good_sim_irun.log
+	irun -clean -sv -f rtl.f fi_wrapper.sv +define+good_sim +define+LOCKSTEP \
+	+elf_load=$(SW_dir)/Baremetal/sample_apps/hello.elf \
+	+clear_ram\
+	-lxm2 -lelf -64bit \
+	-L$(fusa_lib) -afile $(SIM_dir)/autoSOC_fusa/autoSoC.tab \
+	-loadvpi $(HW_dir)/TB/elf-loader_1.0.2/elf-loader_irun.so:setup_reset_callbacks,setup_endofcompile_callbacks,setup_finish_callbacks,register_check_for_command,register_send_result_to_server,vpit_RegisterTfs,setup_user_functions -access +rwc -messages -l good_sim_irun.log
 
 fault_sim_irun: restore replace
 	source tools/set_env_variables.sh && \
 	cd ${fault_dir}/ && \
-	irun -clean -sv -f rtl.f fi_wrapper.sv +define+LOCKSTEP +elf_load=$(SW_dir)/Baremetal/sample_apps/$(MACRO) +clear_ram -lxm2 -lelf -64bit -L$(fusa_lib) -afile $(SIM_dir)/autoSOC_fusa/autoSoC.tab -loadvpi $(HW_dir)/TB/elf-loader_1.0.2/elf-loader_irun.so:setup_reset_callbacks,setup_endofcompile_callbacks,setup_finish_callbacks,register_check_for_command,register_send_result_to_server,vpit_RegisterTfs,setup_user_functions -access +rwc -messages -l fault_sim_irun.log -input $(fusa_lib)/ucli.tcl -snapshot my_snapshot
+	irun -clean -sv -f rtl.f fi_wrapper.sv +define+LOCKSTEP \
+	+elf_load=$(SW_dir)/Baremetal/sample_apps/hello.elf \
+	+clear_ram\
+	-lxm2 -lelf -64bit \
+	-L$(fusa_lib) -afile $(SIM_dir)/autoSOC_fusa/autoSoC.tab \
+	-loadvpi $(HW_dir)/TB/elf-loader_1.0.2/elf-loader_irun.so:setup_reset_callbacks,setup_endofcompile_callbacks,setup_finish_callbacks,register_check_for_command,register_send_result_to_server,vpit_RegisterTfs,setup_user_functions -access +rwc -messages -l fault_sim_irun.log -input $(fusa_lib)/ucli.tcl -snapshot my_snapshot
 	make restore
 FILE_LIST = ${fault_dir}/rtl_t.f
 FILES = $(shell cat $(FILE_LIST))

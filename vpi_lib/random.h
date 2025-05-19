@@ -7,5 +7,7 @@ typedef struct {
     char location[200];
     char type[10];
     char result[10];
+    char value[10];
+    char SET_return_time[20];
 } FaultData;
 FaultData *random_process(const char* filename);

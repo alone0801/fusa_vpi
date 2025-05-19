@@ -13,7 +13,7 @@ $HW_DIR/SRC/jtag_tap_1.13/tap/rtl/verilog/*.v
 
 -incdir $HW_DIR/SRC/mor1kx_5.0-r1/rtl/verilog/
 $HW_DIR/SRC/mor1kx_5.0-r1/rtl/verilog/*.v
-
+$HW_DIR/SRC/mor1kx_5.0-r1/rtl/verilog/*.sv
 -incdir $HW_DIR/SRC/uart16550_1.5.4/rtl/verilog/
 $HW_DIR/SRC/uart16550_1.5.4/rtl/verilog/*.v
 
@@ -44,12 +44,6 @@ $HW_DIR/SRC/mor1kx_5.0-r1/rtl/verilog/lockstep_aux/*.v
 -incdir $HW_DIR/SRC/ecc_bch_dec/src/rtl/univ/
 $HW_DIR/SRC/ecc_bch_dec/src/rtl/univ/*.v
 
-###############################################################
-# VPI Files
-###############################################################
-$HW_DIR/TB/jtag_vpi_0-r2/jtag_vpi.c
-$HW_DIR/TB/elf-loader_1.0.2/elf-loader.c -lelf
-$HW_DIR/TB/elf-loader_1.0.2/vpi_user.c
 
 ###############################################################
 # Testbench Location
@@ -61,24 +55,10 @@ $HW_DIR/TB/jtag_vpi_0-r2/*.v
 $HW_DIR/TB/mor1kx_monitor.v
 $HW_DIR/TB/autosoc_tb.v
 
-###############################################################
-# Other Configurations
-###############################################################
+
 -allowredefinition
 -smartorder
 
 -access +rw
 -noassert
 -timescale 1ns/1ns
-
--nowarn DSEMEL
--nowarn NCEXDEP
-
-# Fault Parameters
--fault_file $FILES_DIR/faultTarget.spec
--fault_dbg 
--fault_iso_opts 
--fault_overwrite
--fault_top autosoc_tb
--c
-

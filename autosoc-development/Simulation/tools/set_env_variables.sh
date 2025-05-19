@@ -7,11 +7,9 @@
 # Name of the folder with the configurations of the desired Simulation
 # Default is RTL
 export SIM_FOLDER=basicSafeConfig
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/fusa_vpi/vpi_lib/
 # Name of the script to be executed for fault injection campaigns
 # The script should be located inside of folder SIM_FOLDER
 export FAULT_SCRIPT=fault_inj_control.csh
-
 ###########################################
 ## VARIABLES BELOW SHOULD NOT BE CHANGED ##
 ###########################################

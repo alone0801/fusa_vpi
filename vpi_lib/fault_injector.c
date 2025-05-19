@@ -3,15 +3,15 @@
 #include "fault_injector.h"
 #include <stdio.h>
 
-void fault_injector_callback(p_cb_data cb_data);
+void fault_SET_injector(p_cb_data cb_data);
 void fault_injector(p_cb_data cb_data);
 extern char DUT_NAME[100];
 ////////////////////////////////////////// Written by Wayne //////////////////////
 void fault_injector_check(struct Fault *fault_p ,int vact_num)
 {
-    s_cb_data cb_data_s;
-    s_vpi_time time_s;
-    vpiHandle cb_handle,module_handle;
+    s_cb_data cb_data_s,cb_data_s_SET;
+    s_vpi_time time_s,time_s_SET;
+    vpiHandle cb_handle,cb_handle_SET,module_handle;
     struct cb_Userdata *udata_p = (struct cb_Userdata *)malloc(sizeof(struct cb_Userdata));
     PLI_BYTE8 *TESTBENCH_NAME_p; //To be determined////////////////////////////
     //vpi_printf("vact_num = %d\n", vact_num);
@@ -42,7 +42,7 @@ void fault_injector_check(struct Fault *fault_p ,int vact_num)
     udata_p->module_handle = module_handle;
     udata_p->vact_num = vact_num;
     udata_p->fault_p = (struct Fault *)fault_p;
-    //vpi_printf("%s,%d,%s\n",vpi_get_str(vpiName,udata_p->module_handle),udata_p->vact_num,udata_p->fault_p->fault_node_name);
+    vpi_printf("%s,%d,%s,%d\n",vpi_get_str(vpiName,udata_p->module_handle),udata_p->vact_num,udata_p->fault_p->fault_node_name,udata_p->fault_p->fault_type);
     //Registration of fault_injector simulation callback routine
     //cb_data_s.reason = cbNBASynch;
     //cb_data_s.reason = cbReadWriteSynch;
@@ -59,43 +59,27 @@ void fault_injector_check(struct Fault *fault_p ,int vact_num)
     cb_handle = vpi_register_cb(&cb_data_s);
     //vpi_printf("cb_data_s.index = %d\n", cb_data_s.index);
     vpi_free_object(cb_handle);
+
+    if(fault_p->fault_type == SET)
+    {
+
+        // Specifying the pulse return time for SET fault
+        time_s_SET.type = vpiSimTime;
+        time_s_SET.low = fault_p->SET_return_time;
+        time_s_SET.high = 0;
+        // Registration of fault_injector simulation callback routine
+        cb_data_s_SET.reason =cbAtEndOfSimTime;
+        cb_data_s_SET.cb_rtn = fault_SET_injector;
+        cb_data_s_SET.obj = NULL;
+        cb_data_s_SET.time = &time_s_SET;
+        cb_data_s_SET.value = NULL;
+        cb_data_s_SET.index = 0;
+        cb_data_s_SET.user_data = (PLI_BYTE8 *)udata_p;  //Pass fault related infomation to fault_injector()
+        cb_handle_SET = vpi_register_cb(&cb_data_s_SET);
+        vpi_free_object(cb_handle_SET);
+    }
 }
 
-void fault_injector_callback(p_cb_data cb_data)
-{
-    s_cb_data cb_data_s;
-    s_vpi_time time_s;
-    vpiHandle cb_handle,module_handle;
-    PLI_BYTE8 *TESTBENCH_NAME_p;
-    struct Fault * fault_p = (struct Fault *) cb_data_s.user_data ;
-    //vpi_printf("\nThis is fault_injector_callback() running\n");
-    module_handle = vpi_handle_by_name(TESTBENCH_NAME,0);
-    //module_handle = (vpiHandle)cb_data->user_data;
-    if(module_handle == NULL)
-    {
-        vpi_printf((PLI_BYTE8*) "ERROR: set: unable to locate hdl path (%s)\n",TESTBENCH_NAME);
-        vpi_printf((PLI_BYTE8*) " Either the name is incorrect, or you may not have PLI/ACC visibility to that name\n");
-    }
-    else
-    {
-        TESTBENCH_NAME_p = vpi_get_str(vpiName,module_handle);
-        vpi_printf("\nThe module name is %s\n",TESTBENCH_NAME_p);
-    }
-
-    time_s.type = vpiScaledRealTime;
-    time_s.real = 0.0;
-
-    //Registration of fault_injector simulation callback routine
-    cb_data_s.reason = cbNBASynch;
-    cb_data_s.cb_rtn = fault_injector;
-    cb_data_s.obj = module_handle;
-    cb_data_s.time = &time_s;
-    cb_data_s.value = NULL;
-    cb_data_s.index = 0;
-    cb_data_s.user_data = NULL;
-    cb_handle = vpi_register_cb(&cb_data_s);
-    vpi_free_object(cb_handle);
-}
 vpiHandle cur_replace(vpiHandle obj, int vact_num)
 {
     int i;
@@ -195,6 +179,59 @@ void fault_injector(p_cb_data cb_data)
 
     //Used for obtaining a handle for an object using the name of the object. 
     //The first parameter specify name of object, the secend parameter specify the searching scope.
+    vpiHandle systf = vpi_handle(vpiSysTfCall, NULL);
+    static s_vpi_time time_sys = { vpiScaledRealTime,{0} };
+    vpi_get_time(systf, &time_sys );
+    if(signal_handle == 0)
+    {
+        vpi_printf((PLI_BYTE8*) "INJECT_ERROR: set: unable to locate hdl path (%s)\n",fault_p->fault_node_name);
+        vpi_printf((PLI_BYTE8*) " Either the name is incorrect, or you may not have PLI/ACC visibility to that name\n");
+    }
+    else
+    {
+        //Determination of fault type
+        if((fault_p->fault_type == SA0) || (fault_p->fault_type == SA1))///ADDED
+        {
+            flag = vpiForceFlag;
+            //vpi_printf("CON_%d inject at %lf,type is SA%d vpiForceFlag\n",udata_p->vact_num,time_sys.real,fault_p->fault_value);
+        }
+        else
+        {
+            //vpi_printf("CON_%d inject at %lf,type is SE%d vpiNodelay\n",udata_p->vact_num,time_sys.real,fault_p->fault_value);
+            flag = vpiNoDelay;
+        }
+        //vpi_printf("%s\n%d\n",vpi_get_str(vpiFullName,signal_handle),vpi_get(vpiType,signal_handle));
+
+        fault_value.format = vpiIntVal;
+        fault_value.value.integer = fault_p->fault_value;
+        vpi_put_value(signal_handle, &fault_value, &time_s, flag);
+    }
+}
+
+void fault_SET_injector(p_cb_data cb_data)
+{
+    vpiHandle signal_handle;
+    s_vpi_value fault_value = { vpiIntVal, { 0 } };
+    s_vpi_time  time_s = { vpiSimTime, 0, 0, 0.0 };
+    PLI_INT32 flag;
+    struct cb_Userdata *udata_p =(struct cb_Userdata *) cb_data->user_data;
+    vpiHandle module_handle = udata_p->module_handle;
+    struct Fault *fault_p = udata_p->fault_p;
+    //Get information from fault_injector_callback()
+    //vpi_printf("modeule name is %s\n", vpi_get_str(vpiName, module_handle));
+    signal_handle = cur_replace(vpi_handle_by_name(fault_p->fault_node_name,0),udata_p->vact_num); 
+    //vpi_printf("\nThis is fault_injector() running\n\n");
+    //vpi_printf("modeule name is %s\n", vpi_get_str(vpiName, module_handle));
+    //printf("debug\n");
+    //vpi_printf("signal_name is %s\n", vpi_get_str(vpiFullName, signal_handle));
+    //signal_handle = vpi_handle_by_name(fault_p->fault_node_name,0);
+
+    //Used for obtaining a handle for an object using the name of the object. 
+    //The first parameter specify name of object, the secend parameter specify the searching scope.
+
+    vpiHandle systf = vpi_handle(vpiSysTfCall, NULL);
+    static s_vpi_time time_sys = { vpiScaledRealTime,{0} };
+    vpi_get_time(systf, &time_sys );
 
     if(signal_handle == 0)
     {
@@ -204,14 +241,11 @@ void fault_injector(p_cb_data cb_data)
     else
     {
         //Determination of fault type
-        if(fault_p->fault_type == SA_FAULT)
-            flag = vpiForceFlag;
-        else
-            flag = vpiInertialDelay;
+        flag = vpiNoDelay;
         //vpi_printf("%s\n%d\n",vpi_get_str(vpiFullName,signal_handle),vpi_get(vpiType,signal_handle));
-
+        //vpi_printf("CON_%d return at %lf,type is SE%d vpiNoDelay\n",udata_p->vact_num,time_sys.real,!fault_p->fault_value);
         fault_value.format = vpiIntVal;
-        fault_value.value.integer = fault_p->fault_value;
+        fault_value.value.integer = !fault_p->fault_value;
         vpi_put_value(signal_handle, &fault_value, &time_s, flag);
     }
 }

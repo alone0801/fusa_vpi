@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <FI_CONFIG>
-    <FAULT_TARGET>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu</FAULT_TARGET>
+    <FAULT_TARGET>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl</FAULT_TARGET>
     <FAULT_EXCLUDE></FAULT_EXCLUDE>
     <TESTBENCH_NAME>autosoc_tb</TESTBENCH_NAME>
     <DUT_NAME>autosoc_tb.dut</DUT_NAME>
-    <FAULT_TW_START>30000</FAULT_TW_START>
-    <FAULT_TW_END>45000</FAULT_TW_END>
+    <!--FAULT_TYPE has 7 option: 1(SA0), 2(SA1), 3(SA), 4(SEU), 5(SET), 6(SE), 7(ALL)
+    SA refers to all types of stuck-at fault
+    SE refers to all types of soft error
+    ALL refers to all types of fault
+    Please specify the FAULT_TYPE option with number-->
+    <FAULT_TYPE>3</FAULT_TYPE>
+    <FAULT_TW_START>40000</FAULT_TW_START>
+    <FAULT_TW_END>364600000</FAULT_TW_END>
     <OBSERVATION_POINTS>
     <!--<CHECKER_STROBE>autosoc_tb.dut.cp_ctrl_error</CHECKER_STROBE>-->
     <!--<CHECKER_STROBE>autosoc_tb.dut.intgen0.irq_o</CHECKER_STROBE>-->
@@ -21,7 +27,7 @@
     <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.spr_bus_we_o</FUNCTIONAL_STROBE>
     <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.spr_bus_stb_o</FUNCTIONAL_STROBE>
     <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.spr_bus_dat_o</FUNCTIONAL_STROBE>
-    <!--<FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.spr_sr_o</FUNCTIONAL_STROBE>-->
+    <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.spr_sr_o</FUNCTIONAL_STROBE>
     <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.ibus_adr_o</FUNCTIONAL_STROBE>
     <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.ibus_burst_o</FUNCTIONAL_STROBE>
     <FUNCTIONAL_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.ibus_req_o</FUNCTIONAL_STROBE>
@@ -40,10 +46,8 @@
     <NOSTOP_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.ibus_adr_o</NOSTOP_STROBE>
     <NOSTOP_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.ibus_burst_o</NOSTOP_STROBE>
     <NOSTOP_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.ibus_req_o</NOSTOP_STROBE>
-    <!--<FUNCTIONAL_STROBE>test.dut_inst.mem2_i.crc_gen_wr_i.d</FUNCTIONAL_STROBE>-->
-    <!--<NOSTOP_STROBE>test.dut_inst.mem2_data_out</NOSTOP_STROBE>-->
     </OBSERVATION_POINTS>
-    <ISO_MODE>DISENA</ISO_MODE>
-    <CON>1</CON>
+    <ISO_MODE>ENA</ISO_MODE>
+    <CON>0</CON>
 </FI_CONFIG>
 

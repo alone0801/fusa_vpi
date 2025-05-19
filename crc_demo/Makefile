@@ -55,7 +55,7 @@ fault_sim_irun: restore replace
 	#ncelab test fi_wrapper -afile $(fusa_lib)/vcdCompare.tab -loadvpi $(fusa_lib)/libvpiDebug.so:vpit_RegisterTfs -64bit -access +rwc -messages
 	#ncsim -update test -64bit
 	#ncsim -update test -64bit -l
-	irun -clean -sv -f rtl.f fi_wrapper.sv +define+COUNT_MEM1 -64bit -afile $(fusa_lib)/vcdCompare.tab -loadvpi $(fusa_lib)/libvpiDebug_irun.so:vpit_RegisterTfs -access +rwc -messages -l fault_sim_irun.log -snapshot my_snapshot
+	irun -clean -sv -f rtl.f fi_wrapper.sv +define+COUNT_MEM1 -64bit -afile $(fusa_lib)/vcdCompare.tab -loadvpi $(fusa_lib)/libvpiDebug_irun.so:vpit_RegisterTfs -access +rwc -messages -l fault_sim_irun.log -input $(fusa_lib)/ucli.tcl -snapshot my_snapshot
 	make restore
 FILE_LIST = rtl.f
 FILES = $(shell cat $(FILE_LIST))

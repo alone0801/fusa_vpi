@@ -1,5 +1,5 @@
-#include "veriuser.h"
 #include "vpi_user.h"
+#include "veriuser.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -7,22 +7,29 @@
 #include <strings.h>
 #include "StringList.h"
 
-#define SA_FAULT 0
-#define SEU_FAULT 1
+#define SA0 1
+#define SA1 2
+#define SA 3
+#define SEU 4
+#define SET 5
+#define SE 6
+#define ALL 7
 
 static StringList *fault_target,*fault_exclude;
 static int fault_tw[2];
+static int fault_type;
 
 void fault_modeling(p_cb_data cb_data);
-int find_submodule(vpiHandle this_mod_h,int type,FILE *fp,int node_num);
-int find_local_signals(vpiHandle module_h,int type,FILE *fp,int node_num);
+int find_submodule(vpiHandle this_mod_h,FILE *fp,int node_num);
+int find_local_signals(vpiHandle module_h,FILE *fp,int node_num);
 int find_net_or_logic_signal(vpiHandle module_h, FILE *fp,int node_num,int is_logic);
 int find_reg_signal(vpiHandle module_h,FILE *fp,int node_num);
 int find_reg_array(vpiHandle module_h,FILE *fp,int node_num);
 int find_wire_array(vpiHandle module_h,FILE *fp,int node_num);
+int OutputFaultList(FILE *fp,vpiHandle signal_handle,int node_num);
 int GetRandNum(int min,int max,int seed);
 
-void fault_modeling_check(StringList* fault_target_p,StringList* fault_exclude_p,int fault_tw_[])
+void fault_modeling_check(StringList* fault_target_p,StringList* fault_exclude_p,int fault_tw_[],int fault_type_local)
 {
     s_cb_data cb_data_s;
     vpiHandle cb_handle,module_handle;
@@ -30,6 +37,7 @@ void fault_modeling_check(StringList* fault_target_p,StringList* fault_exclude_p
     //vpi_printf("\nThis is fault_modeling_check() running\n");
     fault_target = fault_target_p;
     fault_exclude = fault_exclude_p;
+    fault_type = fault_type_local;
     fault_tw[0] = fault_tw_[0];
     fault_tw[1] = fault_tw_[1];
 
@@ -51,40 +59,30 @@ void fault_modeling(p_cb_data cb_data)
     vpiHandle   systf_handle,module_h;
     PLI_INT32   format;
     FILE *fp;
-    int node_num = 0,type,i;
+    int node_num = 0,i;
 
-    type = SA_FAULT;                          // to be determined////////////
-    //vpi_printf("This is fault_modeling() running\n");
-    fp = fopen("fault.set","w");           // to be determined/////////////
+    fp = fopen("fault.set","w");           // The  output fault list file
     if(fp == NULL)
         printf("Error opening file!\n");
     else
     {
-        /*
-        if(type == SA_FAULT)
-            fprintf(fp,"Fault Type : SA0/1\n");
-        else if(type == SEU_FAULT)
-            fprintf(fp,"Fault Type : SEU\n");
-            */
-        fprintf(fp,"<LOCATION> <TYPE> <TIME> <RESULT>\n");
+        fprintf(fp,"<LOCATION> <TYPE> <VALUE> <TIME> <SET_RETURN_TIME> <RESULT>\n");
     }
 
     for ( i = 0; i < fault_target->count; i++) {
         module_h = vpi_handle_by_name(fault_target->strings[i], 0);
-        //vpi_printf("\nIn scope of %s\n",vpi_get_str(vpiFullName,module_h));
-        find_submodule(module_h,type,fp,node_num);
+        find_submodule(module_h,fp,node_num);
     }
     fclose(fp);
 }
 
-int find_submodule(vpiHandle this_mod_h,int type,FILE *fp,int node_num)
+int find_submodule(vpiHandle this_mod_h,FILE *fp,int node_num)
 {
     vpiHandle submodule_itr, submodule_h;
     int i,is_exclude;
 
     // Find local signals in this module
-    //vpi_printf("\nmodule = %s\n",vpi_get_str(vpiFullName,this_mod_h));
-    node_num = find_local_signals(this_mod_h,type,fp,node_num);
+    node_num = find_local_signals(this_mod_h,fp,node_num);
 
     // Find all submodule in this module,and recursively find all signals in submodules
     submodule_itr = vpi_iterate(vpiModule, this_mod_h);
@@ -94,22 +92,20 @@ int find_submodule(vpiHandle this_mod_h,int type,FILE *fp,int node_num)
             is_exclude = 0;
             for ( i = 0; i < fault_target->count; i++)
             {
-                //vpi_printf("Exclude = %s\n",fault_exclude->strings[i]);
                 if(strcmp(vpi_get_str(vpiFullName,submodule_h),fault_exclude->strings[i]) == 0)
                     is_exclude = 1;
             }
             if(is_exclude == 0)
-                node_num = find_submodule(submodule_h,type,fp,node_num);
+                node_num = find_submodule(submodule_h,fp,node_num);
         }
     
     return node_num;
 }
 
-int find_local_signals(vpiHandle module_h,int type,FILE *fp,int node_num)
+int find_local_signals(vpiHandle module_h,FILE *fp,int node_num)
 {
     int is_logic = 0;       // 0 refer to net signal, and 1 refer to logic variable
-    //vpi_printf("This is find_local_signals() running\n");
-    if(type == SA_FAULT)
+    if((fault_type >= 1) && (fault_type <= 7) && (fault_type != SEU))
     {
         // Find all net signal
         node_num = find_net_or_logic_signal(module_h,fp,node_num,is_logic);
@@ -138,8 +134,6 @@ int find_net_or_logic_signal(vpiHandle module_h, FILE *fp,int node_num,int is_lo
     vpiHandle port_iterator,port_handle,lowconn_h,use_iterator,use_handle;
     int is_port,is_not_port,have_been_used,variable_type;
 
-    //vpi_printf("module_h = %s\n",vpi_get_str(vpiFullName,module_h));
-
     if(!is_logic)
         signal_iterator = vpi_iterate(vpiNet,module_h);
     else
@@ -167,7 +161,6 @@ int find_net_or_logic_signal(vpiHandle module_h, FILE *fp,int node_num,int is_lo
                             // Find all place where this signal is used
                             while((use_handle = vpi_scan(use_iterator)) != NULL)
                             {
-                                //fprintf(fp,"use_handle = %s,Type = %s\n",vpi_get_str(vpiFullName,use_handle),vpi_get_str(vpiType,use_handle));
                                 if(vpi_get(vpiType,use_handle) == vpiPort)
                                     is_port = 1;                   // There is a port user
                                 else if(vpi_get(vpiType,use_handle) != vpiSysTaskCall)
@@ -188,24 +181,14 @@ int find_net_or_logic_signal(vpiHandle module_h, FILE *fp,int node_num,int is_lo
                                 while((signalBit_handle = vpi_scan(signalBit_iterator)) != NULL)
                                 {
                                     // It's a vector signal, get all of its bits
-                                    if((GetRandNum(0,100,node_num) % 2) == 0)
-                                        fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA0",GetRandNum(0,100,node_num), "UU");
-                                    else
-                                        fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA1",GetRandNum(0,100,node_num), "UU");
-                                    node_num = node_num + 1;
+                                    node_num = OutputFaultList(fp,signalBit_handle,node_num);
                                 }
                             else
                             {
                                 // It's a scalar signal
-                                if((GetRandNum(0,100,node_num) % 2) == 0)
-                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,port_handle),"SA0",GetRandNum(0,100,node_num), "UU");
-                                else
-                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,port_handle),"SA1",GetRandNum(0,100,node_num), "UU");
-                                node_num = node_num + 1;
+                                node_num = OutputFaultList(fp,lowconn_h,node_num);
                             }
                         }
-                        //else
-                            //fprintf(fp,"%s is delete\n",vpi_get_str(vpiFullName,lowconn_h));
                     }
                 else
                 {
@@ -219,7 +202,6 @@ int find_net_or_logic_signal(vpiHandle module_h, FILE *fp,int node_num,int is_lo
                         is_not_port = 0;
                         while((use_handle = vpi_scan(use_iterator)) != NULL)
                         {
-                            //fprintf(fp,"use_handle = %s,Type = %s\n",vpi_get_str(vpiFullName,use_handle),vpi_get_str(vpiType,use_handle));
                             if(vpi_get(vpiType,use_handle) == vpiPort)
                                 is_port = 1;
                             else
@@ -228,30 +210,19 @@ int find_net_or_logic_signal(vpiHandle module_h, FILE *fp,int node_num,int is_lo
                     }
 
                     // Signals that don't need to be optimized
-                    //fprintf(fp,"%s Type = %s\nis_port = %d,is_not_port = %d,have_been_used = %d\n",vpi_get_str(vpiFullName,signal_handle),vpi_get_str(vpiType,signal_handle),is_port,is_not_port,have_been_used);
                     if(!(is_port && (!is_not_port)) && have_been_used)
                     {
                         signalBit_iterator = vpi_iterate(vpiBit,signal_handle);
                         if(signalBit_iterator != NULL)
                             while((signalBit_handle = vpi_scan(signalBit_iterator)) != NULL)
                             {
-                                if((GetRandNum(0,100,node_num) % 2) == 0)
-                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA0",GetRandNum(0,100,node_num), "UU");
-                                else
-                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA1",GetRandNum(0,100,node_num), "UU");
-                                node_num = node_num + 1;
+                                node_num = OutputFaultList(fp,signalBit_handle,node_num);
                             }
                         else
                         {
-                            if((GetRandNum(0,100,node_num) % 2) == 0)
-                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signal_handle),"SA0",GetRandNum(0,100,node_num), "UU");
-                                else
-                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signal_handle),"SA1",GetRandNum(0,100,node_num), "UU");
-                            node_num = node_num + 1;
+                            node_num = OutputFaultList(fp,signal_handle,node_num);
                         }
                     }
-                    //else
-                        //fprintf(fp,"%s is delete\n",vpi_get_str(vpiFullName,signal_handle));
                 }
             
             }
@@ -262,50 +233,26 @@ int find_net_or_logic_signal(vpiHandle module_h, FILE *fp,int node_num,int is_lo
 
 int find_reg_signal(vpiHandle module_h,FILE *fp,int node_num)
 {
-    //vpi_printf("This is find_reg_signal() running\n");
     vpiHandle signal_iterator,signal_handle,signalBit_iterator,signalBit_handle,use_iterator;
 
     // Find all reg signal
-    //vpi_printf("module_h = %s\n",vpi_get_str(vpiFullName,module_h));
     signal_iterator = vpi_iterate(vpiReg,module_h);
     if (signal_iterator != NULL)
         while((signal_handle = vpi_scan(signal_iterator)) != NULL)
         {
-            use_iterator = vpi_iterate(vpiUse,signal_handle);
-            //fprintf(fp,"reg_signal_handle:use_iterator = %d\n",use_iterator);
-            if(use_iterator != NULL)
-            {
-                // If it's been used, then it won't be optimized
-                signalBit_iterator = vpi_iterate(vpiBit,signal_handle);
-                if(signalBit_iterator != NULL)
-                    // Processing vector signal
-                    while((signalBit_handle = vpi_scan(signalBit_iterator)) != NULL)
-                    {
-                        if((GetRandNum(0,100,node_num) % 2) == 0)
-                            fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA0",GetRandNum(0,100,node_num), "UU");
-                        else
-                            fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA1",GetRandNum(0,100,node_num), "UU");
-                        node_num = node_num + 1;
-                    }
-                else
-                {
-                    if((GetRandNum(0,100,node_num) % 2) == 0)
-                        fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signal_handle),"SA0",GetRandNum(0,100,node_num), "UU");
-                    else
-                        fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signal_handle),"SA1",GetRandNum(0,100,node_num), "UU");
-                    //fprintf(fp,"%d %dns {\"%s\" }\n",node_num,GetRandNum(0,100,node_num),vpi_get_str(vpiFullName,signal_handle));
-                    node_num = node_num + 1;
-                }
-            }
-            //else
-                //fprintf(fp,"%s is delete\n",vpi_get_str(vpiFullName,signal_handle));
+            signalBit_iterator = vpi_iterate(vpiBit,signal_handle);
+            if(signalBit_iterator != NULL)
+                // Processing vector signal
+                while((signalBit_handle = vpi_scan(signalBit_iterator)) != NULL)
+                    node_num = OutputFaultList(fp,signalBit_handle,node_num);
+            else
+                node_num = OutputFaultList(fp,signal_handle,node_num);
         }
     return node_num;
 }
 
 int find_reg_array(vpiHandle module_h,FILE *fp,int node_num)
 {
-    //vpi_printf("This is find_reg_array() running\n");
     vpiHandle reg_array_iterator,reg_array_handle,signal_iterator,use_iterator;
     vpiHandle signal_handle,signalBit_iterator,signalBit_handle;
 
@@ -314,7 +261,6 @@ int find_reg_array(vpiHandle module_h,FILE *fp,int node_num)
         while((reg_array_handle = vpi_scan(reg_array_iterator)) != NULL)
         {
             use_iterator = vpi_iterate(vpiUse,reg_array_handle);
-            //fprintf(fp,"reg_array_handle:use_iterator = %d\n",use_iterator);
             if(use_iterator != NULL)
             {
                 // If it's been used, then it won't be optimized
@@ -326,24 +272,14 @@ int find_reg_array(vpiHandle module_h,FILE *fp,int node_num)
                             if(signalBit_iterator != NULL)
                                 while((signalBit_handle = vpi_scan(signalBit_iterator)) != NULL)
                                     {
-                                        if((GetRandNum(0,100,node_num) % 2) == 0)
-                                            fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA0",GetRandNum(0,100,node_num),"UU");
-                                        else
-                                            fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA1",GetRandNum(0,100,node_num),"UU");
-                                        node_num = node_num + 1;
+                                        node_num = OutputFaultList(fp,signalBit_handle,node_num);
                                     }
                             else
                             {
-                                if((GetRandNum(0,100,node_num) % 2) == 0)
-                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signal_handle),"SA0",GetRandNum(0,100,node_num),"UU");
-                                else
-                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signal_handle),"SA1",GetRandNum(0,100,node_num),"UU");
-                                node_num = node_num + 1;
+                                node_num = OutputFaultList(fp,signal_handle,node_num);
                             }
                         }
             }
-            //else
-                //fprintf(fp,"%s is delete\n",vpi_get_str(vpiFullName,reg_array_handle));
         }
     
     return node_num;
@@ -351,11 +287,9 @@ int find_reg_array(vpiHandle module_h,FILE *fp,int node_num)
 
 int find_wire_array(vpiHandle module_h,FILE *fp,int node_num)
 {
-    //vpi_printf("This is find_wire_array() running\n");
     vpiHandle wire_array_iterator,wire_array_handle,signal_iterator,signal_handle,use_iterator;
     vpiHandle signalBit_iterator,signalBit_handle;
 
-    //fprintf(fp,"Wire array\n");
     wire_array_iterator = vpi_iterate(vpiNetArray,module_h);
     if(wire_array_iterator != NULL)
         while((wire_array_handle = vpi_scan(wire_array_iterator)) != NULL)
@@ -372,31 +306,74 @@ int find_wire_array(vpiHandle module_h,FILE *fp,int node_num)
                         if(signalBit_iterator != NULL)
                             while((signalBit_handle = vpi_scan(signalBit_iterator)) != NULL)
                             {
-                                if((GetRandNum(0,100,node_num) % 2) == 0)
-                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA0",GetRandNum(0,100,node_num),"UU");
-                                else
-                                    fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signalBit_handle),"SA1",GetRandNum(0,100,node_num),"UU");
-                                node_num = node_num + 1;
+                                node_num = OutputFaultList(fp,signalBit_handle,node_num);
                             }
                         else
                         {
-                            if((GetRandNum(0,100,node_num) % 2) == 0)
-                                fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signal_handle),"SA0",GetRandNum(0,100,node_num),"UU");
-                            else
-                                fprintf(fp,"%s  %s  %d  %s\n",vpi_get_str(vpiFullName,signal_handle),"SA1",GetRandNum(0,100,node_num),"UU");
-                            node_num = node_num + 1;
+                            node_num = OutputFaultList(fp,signal_handle,node_num);
                         }
                     }
             }
-            //else
-                //fprintf(fp,"%s is delete\n",vpi_get_str(vpiFullName,wire_array_handle));
         }
     
     return node_num;
 }
 
+int OutputFaultList(FILE *fp,vpiHandle signal_handle,int node_num)
+{
+    int random_num;
+
+    random_num = GetRandNum(fault_tw[0],fault_tw[1],node_num);      // To be refined. It is supposed to be a floating number.!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    switch (fault_type)
+    {
+    case SA0:
+        fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA0",0,random_num,0);
+        break;
+    case SA1:
+        fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA1",1,random_num,0);
+        break;
+    case SA:
+        if((random_num % 2) == 0)
+            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA0",0,random_num,0);
+        else
+            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA1",1,random_num,0);
+        break;
+    case SEU:
+         if((random_num % 2) == 0)
+            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SEU",0,random_num,0);
+        else
+            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SEU",1,random_num,0);
+        break;
+    case SET:
+        if((random_num % 2) == 0)
+            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SET",0,random_num,random_num+100);
+        else
+            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SET",1,random_num,random_num+100);
+        break;
+    default:
+        switch (random_num % 4)
+        {
+        case 0:
+            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA0",0,random_num,0);
+            break;
+        case 1:
+            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA1",1,random_num,0);
+            break;
+        case 2:
+            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SET",0,random_num,random_num+100);
+            break;
+        default:
+            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SET",1,random_num,random_num+100);
+            break;
+        }
+        break;
+    }
+    node_num = node_num + 1;
+    return node_num;
+}
 int GetRandNum(int min,int max,int seed)
 {
     srand(seed);
     return min + rand() % (max - min + 1);
 }
+

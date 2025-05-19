@@ -1,8 +1,8 @@
 
-CFLAGS = -g  -I /home/synopsys/vcs/O-2018.09-SP2/include  -lxml2  -lelf -I /home/ICer/fusa_vpi/vpi_lib
+CFLAGS = -g  -I /home/synopsys/vcs/O-2018.09-SP2/include  -lxml2  -lelf -I$(fusa_lib)
 #-m32
-LDFLAGS = -shared  -fPIC -L/home/ICer/fusa_vpi/vpi_lib   -lsharefusa -m64
-LDFLAGS_IRUN = -shared  -fPIC -L/home/ICer/fusa_vpi/vpi_lib   -lsharefusa_irun -m64
+LDFLAGS = -shared  -fPIC -L$(fusa_lib)  -lsharefusa -m64
+LDFLAGS_IRUN = -shared  -fPIC -L$(fusa_lib)   -lsharefusa_irun -m64
 
 CC = gcc
 OBJS   = vpiDebug.o dumpHier.o dumpUpstream.o causalTree.o vcdCompare.o extractMod.o \

@@ -3,8 +3,8 @@ int num_lines = 0;
 FaultData *random_process(const char* filename) {
     FILE *fp;
     char line[256];
+    num_lines = 0;
     
-
     fp = fopen(filename, "r");
     if (fp == NULL) {
         perror("Error opening file");
@@ -46,19 +46,22 @@ FaultData *random_process(const char* filename) {
     //printf("++++++DEBUG:HERE IS RANDOM++++++++++++=");
     int index = 0;
     while (fgets(line, sizeof(line), fp)) {
-        if (sscanf(line, "%255s %15s %15s %15s",
+        if (sscanf(line, "%255s %15s %15s %25s %25s %15s",
                    faults[index].location,
                    faults[index].type,
+                   faults[index].value,
                    faults[index].time,
-                   faults[index].result) == 4) {
+                   faults[index].SET_return_time,
+                   faults[index].result) == 6) {
             //printf("++++++DEBUG:HEREINBRANCH++++");
             //printf("++++++DEBUG%s++++++++++++=",faults[index].location);
             //printf("+++RANDOM::TIME:%s++++\n",faults[index].time);
+            //vpi_printf("%s %s %s %s %s %s\n", faults[index].location,faults[index].type,faults[index].value,faults[index].time,faults[index].SET_return_time,faults[index].result);
             index++;
         }
         else {
-           // printf("Failed to parse line: %s", line);
-           // return 0 ;
+            printf("Failed to parse line: %s", line);
+            return 0 ;
         }
     }
 

@@ -1,14 +1,17 @@
 #include "veriuser.h"
 #include "vpi_user.h"
-
-#define SA_FAULT 0
-#define SEU_FAULT 1
-
+//
+#define SA0 0
+#define SA1 1
+#define SEU 2
+#define SET 3
+// ADDED
 struct Fault{
     PLI_INT32 *fault_node_name;
     PLI_INT32 fault_type;
     PLI_INT32 fault_value;
     int injection_time;
+    int SET_return_time; //////ADDED
 }fault,*fault_p;
 
 struct cb_Userdata{
