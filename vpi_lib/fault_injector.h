@@ -12,11 +12,11 @@ struct Fault{
     PLI_INT32 fault_value;
     int injection_time;
     int SET_return_time; //////ADDED
-}fault,*fault_p;
-
+};
 struct cb_Userdata{
     vpiHandle module_handle;
     PLI_INT32 vact_num;
     struct Fault *fault_p;
-}cb_userdata,*cb_userdata_p;
+};
 char TESTBENCH_NAME[100];
+int fault_SEU[1000000];

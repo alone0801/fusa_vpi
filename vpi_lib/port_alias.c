@@ -364,7 +364,7 @@ char* check_alias(const char* node_name, PortInfoNode**  head) {
         }
         current = current->next;
     }
-    printf("DEBUG_ISO:NOT_MATRCH\n");
+    vpi_printf("DEBUG_ISO:NOT_MATRCH\n");
     // If node_name does not exist in the list, return the node_name itself
     return node_name;
 }

@@ -27,7 +27,6 @@ void fault_injector_check(struct Fault *fault_p ,int vact_num)
         //vpi_printf("\nThe module name is %s\n",TESTBENCH_NAME_p);
     }
 
-    //fault_p = &fault;
 
     vpi_printf("Fault node name is %s\n",fault_p->fault_node_name);
     vpi_printf("Injection time is %d\n",fault_p->injection_time);
@@ -62,7 +61,7 @@ void fault_injector_check(struct Fault *fault_p ,int vact_num)
 
     if(fault_p->fault_type == SET)
     {
-
+        fault_SEU[vact_num] = !fault_p->fault_value;
         // Specifying the pulse return time for SET fault
         time_s_SET.type = vpiSimTime;
         time_s_SET.low = fault_p->SET_return_time;
@@ -98,9 +97,7 @@ vpiHandle cur_replace(vpiHandle obj, int vact_num)
         }
         dut_h = vpi_handle_by_name(DUT_NAME,0);
         tb_h = vpi_handle(vpiScope,dut_h);
-        //printf("=====origin_name==%s=======\n",origin_name);
         tb_name = strdup(vpi_get_str(vpiFullName,tb_h));
-        //printf("=====tb_name==%s=======\n",tb_name);
         char *con_name = malloc(strlen(tb_name)+30* sizeof(char));
         sprintf(con_name,"%s.concur_%d",tb_name,vact_num);
         size_t lenA = strlen(con_name);
@@ -163,20 +160,15 @@ void fault_injector(p_cb_data cb_data)
 {
     vpiHandle signal_handle;
     s_vpi_value fault_value = { vpiIntVal, { 0 } };
+    s_vpi_value signal_value = { vpiIntVal, { 0 } };
     s_vpi_time  time_s = { vpiSimTime, 0, 0, 0.0 };
     PLI_INT32 flag;
     struct cb_Userdata *udata_p =(struct cb_Userdata *) cb_data->user_data;
     vpiHandle module_handle = udata_p->module_handle;
     struct Fault *fault_p = udata_p->fault_p;
     //Get information from fault_injector_callback()
-    //vpi_printf("modeule name is %s\n", vpi_get_str(vpiName, module_handle));
+    vpi_printf("%s\n", fault_p->fault_node_name);
     signal_handle = cur_replace(vpi_handle_by_name(fault_p->fault_node_name,0),udata_p->vact_num); 
-    //vpi_printf("\nThis is fault_injector() running\n\n");
-    //vpi_printf("modeule name is %s\n", vpi_get_str(vpiName, module_handle));
-    //printf("debug\n");
-    //vpi_printf("signal_name is %s\n", vpi_get_str(vpiFullName, signal_handle));
-    //signal_handle = vpi_handle_by_name(fault_p->fault_node_name,0);
-
     //Used for obtaining a handle for an object using the name of the object. 
     //The first parameter specify name of object, the secend parameter specify the searching scope.
     vpiHandle systf = vpi_handle(vpiSysTfCall, NULL);
@@ -189,6 +181,9 @@ void fault_injector(p_cb_data cb_data)
     }
     else
     {
+        vpi_get_value(signal_handle, &signal_value);
+        if(signal_value.value.integer == fault_p->fault_value)
+            fault_SEU[udata_p->vact_num] = fault_p->fault_value;
         //Determination of fault type
         if((fault_p->fault_type == SA0) || (fault_p->fault_type == SA1))///ADDED
         {
@@ -242,10 +237,8 @@ void fault_SET_injector(p_cb_data cb_data)
     {
         //Determination of fault type
         flag = vpiNoDelay;
-        //vpi_printf("%s\n%d\n",vpi_get_str(vpiFullName,signal_handle),vpi_get(vpiType,signal_handle));
-        //vpi_printf("CON_%d return at %lf,type is SE%d vpiNoDelay\n",udata_p->vact_num,time_sys.real,!fault_p->fault_value);
         fault_value.format = vpiIntVal;
-        fault_value.value.integer = !fault_p->fault_value;
+        fault_value.value.integer = fault_SEU[udata_p->vact_num];
         vpi_put_value(signal_handle, &fault_value, &time_s, flag);
     }
 }

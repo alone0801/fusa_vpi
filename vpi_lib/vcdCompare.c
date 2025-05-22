@@ -175,6 +175,22 @@ void BoolArray_free(s_BoolArray *arr) {
     arr->capacity = 0;
 }
 
+bool compare(const char *a, const char *b) {
+    int len_a = strlen(a);
+    int len_b = strlen(b);
+    int i;
+    // 只比较右边对齐的最小长度部分
+    int min_len = (len_a < len_b) ? len_a : len_b;
+
+    // 从两串的末尾向前比较
+    for (i = 1; i <= min_len; ++i) {
+        if (a[len_a - i] != b[len_b - i])
+            return false;
+    }
+
+    return true;
+}
+
 static vpiHandle compareCallback = 0;
 static s_BoolArray con_stop = {NULL, 0};
 static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the end of time step */
@@ -197,10 +213,6 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
 */
     while ( ptr )
     {
-        DBG_VDIFF(( "=> mark=%s, exp=%s, act=%s\n", ptr->mark ? ptr->mark : "<null>",
-                                                    ptr->vexp ? ptr->vexp : "<null>",
-                                                    ptr->vact ? ptr->vact : "<null>" ));
-
         if ( ptr->vexp == 0 ) // no expected event at this time step , because or it won't be "0" for char*
         {
             for(i=0 ; i<CON_NUM+1 ; i++){
@@ -254,7 +266,7 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
 //            }
         }
         else {
-            //vpi_printf("compare%s, %s\n",ptr->vexp,ptr->vact[0]);
+            //vpi_printf("compare%d, %d\n",atoi(ptr->vexp),atoi(ptr->vact[0]));
             for(i=0;i<CON_NUM+1 ;i++){
                 if(con_stop.data[i]) continue;
                 if ( ptr->vact[i] == 0 ){
@@ -280,7 +292,7 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
                         strcpy(status_functional[i], "Detect");
                     }
                 }
-                else if(atoi(ptr->vexp) != atoi(ptr->vact[i])){
+                else if(!compare(ptr->vexp, ptr->vact[i])){
                     p_vdiff_node node = ( p_vdiff_node )lookup( ptr->mark, &vcdHash );
                     char* name = node ? FullName(node->refn->refn) : "<noname>";
                     if(i==0) vpi_printf( "*** DUT:: Mismatch on <%s(%s)>: exp=<%s>, act=<%s> at %lf\n",
@@ -505,7 +517,6 @@ static void processVcd( void* ptr )
     while ( ptr )
     {
         char* str = readVcdLine( ptr );
-        //vpi_printf("%s\n", str); 
         if ( str == 0 ) break; /* no more VCD file */
 
         if ( strcmp( str, "$dumpvars" ) == 0 )
@@ -620,7 +631,7 @@ void vcdCompareCheck( )
     initializeStringList(&checker_list);
     initializeStringList(&functional_list);
     initializeStringList(&nostop_list);
-    //FaultData *faults = random_process(FS_PATH);
+    //random_process(FS_PATH);
     parseXML(FI_PATH);
     fault_type = atoi(fault_type_str); ////ADDED
     fault_tw[0] = atoi(fault_tw_str.strings[0]);

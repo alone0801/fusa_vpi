@@ -156,7 +156,7 @@ void iso_gen(char* port_name, Module** head){
         vpiHandle lowConn = vpi_handle(vpiLowConn, port_h);
         //vpi_printf("lowConn name: %s, lowConn type: %d, lowConn size:%d\n",vpi_get_str(vpiName,lowConn), vpi_get(vpiType, lowConn), vpi_get(vpiSize,lowConn));
         //vpi_printf("highConn name: %s, highConn type: %d\n",vpi_get_str(vpiName,HighConn), vpi_get(vpiType, HighConn));
-        is_vector = vpi_get(vpiVector, port_h);
+        is_vector = vpi_get(vpiVector, lowConn);
         switch(vpi_get(vpiDirection,port_h)){
             case vpiInput: 
             {
@@ -453,7 +453,7 @@ char* iso_exchange(char* singal_name){
     mod_h   = vpi_handle(vpiModule, real_signal_h);
     scope_h = vpi_handle(vpiModule, mod_h);
     const char* scopeName = strdup(vpi_get_str(vpiFullName, scope_h));
-    const char* modName = strdup(vpi_get_str(vpiName, mod_h));
+    const char* modName = gen_scope_generate(vpi_get_str(vpiName, mod_h));
     const char* wrapperName = gen_scope_generate(vpi_get_str(vpiFullName, mod_h));
     const char* signalName = strdup(vpi_get_str(vpiName, signal_h));
     size_t total_length = strlen(wrapperName) + strlen(modName) + strlen("_iso.") + strlen(scopeName) + 2*strlen(".") + strlen(signalName) + 1;
@@ -468,15 +468,12 @@ char* iso_exchange(char* singal_name){
     strcat(iso_name, "_iso.");
     strcat(flag_name,iso_name);
     strcat(flag_name,"flag");
-    vpi_printf("iso_name:%s flag:%s\n", iso_name, flag_name);
     iso_flag_en(flag_name);
     strcat(iso_name, modName);
-    //vpi_printf("DEBUG::%s\n",modName);
     strcat(iso_name, ".");
     strcat(iso_name, signalName);
     free(scopeName);
     free(wrapperName);
-    free(modName);
     free(signalName);
     free(flag_name);
     //vpi_printf("DEBUG::%s\n",signalName);
