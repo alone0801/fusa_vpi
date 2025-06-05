@@ -10,6 +10,7 @@
 #include"meminit.h"
 extern int num_lines ;
 static hash_table vcdHash;
+static hash_table lexpHash;// store last exp for given mark
 static StringList checker_list,functional_list,nostop_list,fault_target,fault_exclude,fault_tw_str;
 static PortInfoNode* port_list = NULL;
 static Module* iso_inst_list = NULL;
@@ -98,7 +99,7 @@ static struct event* createNewEvent( char* mark, char* vexp, char* vact, int vac
     ptr->vexp = vexp;
     //ptr->vact = vact;
     ptr->vact = (char**)malloc((CON_NUM+1) * sizeof(char*));
-    ptr->next = top; 
+    ptr->next = top;
     for (i = 0; i < CON_NUM+1; i++) {
         ptr->vact[i] = (char*)0;
     }
@@ -115,8 +116,9 @@ static struct event* expectedEvent( char* mark, char* valu )
     {
         if ( strcmp( mark, ptr->mark ) == 0 )
         {
-            if ( ptr->vexp ) free( ptr->vexp );
-
+            if ( ptr->vexp ){
+                free( ptr->vexp );
+            }
             ptr->vexp = strdup( valu ); return( ptr );
         }
         ptr = ptr->next;
@@ -184,10 +186,21 @@ bool compare(const char *a, const char *b) {
 
     // 从两串的末尾向前比较
     for (i = 1; i <= min_len; ++i) {
-        if (a[len_a - i] != b[len_b - i])
+        if (a[len_a-i] != b[len_b-i])
             return false;
     }
-
+    if(min_len == len_a){
+        for (i = 0 ; i < len_b-len_a; ++i){
+            if(b[i] == '1')
+                return false;
+        }
+    }
+    else{
+        for (i = 0 ; i < len_a-len_b; ++i){
+            if(a[i] == '1')
+                return false;
+        }
+    }
     return true;
 }
 
@@ -213,12 +226,14 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
 */
     while ( ptr )
     {
-
         if ( ptr->vexp == 0 ) // no expected event at this time step , because or it won't be "0" for char*
         {
+            char* lexp;
+            lexp = (char*)lookup( ptr->mark, &lexpHash);
             for(i=0 ; i<CON_NUM+1 ; i++){
                 if(con_stop.data[i]) continue;
                 if(ptr->vact[i] != 0){
+                    if((lexp != NULL) && (compare(lexp, ptr->vact[i]))) continue;
                     p_vdiff_node node = ( p_vdiff_node )lookup( ptr->mark, &vcdHash );
                     char* name = node ? FullName( node->refn->refn ) : "<noname>";
                     if(i==0) vpi_printf( "*** DUT:: Unexpected <%s> event on <%s(%s)> at %lf\n",
@@ -267,6 +282,7 @@ static int compareHandler( p_cb_data cb_data_p )    /*compare the event at the e
 //            }
         }
         else {
+            hashInsert(ptr->mark, ptr->vexp, &lexpHash);
             //vpi_printf("compare%d, %d\n",atoi(ptr->vexp),atoi(ptr->vact[0]));
             for(i=0;i<CON_NUM+1 ;i++){
                 if(con_stop.data[i]) continue;
@@ -564,8 +580,8 @@ static void processVcd( void* ptr )
             {
                 str = str + 1;
                 //vpi_printf("%d - %d \n",atoi(str),last_time);
-                setTimeCallback(atoi(str) - last_time, ptr );
-                last_time = atoi(str);
+                setTimeCallback(atol(str) - last_time, ptr );
+                last_time = atol(str);
                 //vpi_printf("2:%d\n",last_time);
                 return; 
             }
@@ -683,12 +699,18 @@ void vcdCompareCall( )
     strcat(FS_PATH,"/fault.set");
     strcpy(FI_PATH, str_fir);
     strcat(FI_PATH,"/FI.xml");
+    initializeStringList(&fault_target);
+    initializeStringList(&fault_exclude);
+    initializeStringList(&fault_tw_str);
+    initializeStringList(&checker_list);
+    initializeStringList(&functional_list);
+    initializeStringList(&nostop_list);
     if (strcmp(str_sec, "good_sim") == 0) {
         random_process(FS_PATH);
         parseXML(FI_PATH);
         if(strcmp(iso_mode, "ENA") == 0){
             port_alias(&fault_target,&port_list);
-            printList(&port_list);
+            printList(&port_list, "port.log");
         }
         addEosCallback( timeRecordEosHandler );
         //timeCheck("/home/ICer/fusa_vpi/autosoc-development/Simulation/fault.time");
@@ -708,7 +730,7 @@ void vcdCompareCall( )
         if(strcmp(iso_mode, "ENA") == 0){
             strcpy(PORT_PATH, str_fir);
             strcat(PORT_PATH, "/port.log");
-            port_list = readList(PORT_PATH);
+            readList(&port_list, PORT_PATH);
         }
         printf("checker strobe list:\n");
         printStringList(&checker_list);
@@ -782,6 +804,7 @@ void vcdCompareCall( )
         }
     }
     hashInitialize( &vcdHash, 200 );
+    hashInitialize( &lexpHash, 100 );
     addEosCallback( FaultClassEosHandler );
     addEosCallback( vcdCompareEosHandler );
     //timeCheck("/home/ICer/fusa_vpi/autosoc-development/Simulation/fault.time");

@@ -23,10 +23,10 @@ void port_alias(StringList* mod_name , PortInfoNode** head);
 void process_aliases(PortInfoNode** head);
 void alias_opt(PortInfoNode** head);
 void port_isolate(vpiHandle mod_h,PortInfoNode** head);
-PortInfoNode* createNode(const char* internalName, const char* externalName);
+PortInfoNode* createNode(const char* internalName, const char* externalName, int alias, int root);
 void port_tranverse(vpiHandle mod_h, int top,PortInfoNode** head);
-void printList(PortInfoNode **head);
-void appendNode(PortInfoNode** head, const char* internalName, const char* externalName);
+void printList(PortInfoNode **head, char * file_name);
+void appendNode(PortInfoNode** head, const char* internalName, const char* externalName, int alias, int root);
 void process_prime(PortInfoNode** head);
-PortInfoNode* readList(char *file_name);
+void readList(PortInfoNode** head, char *file_name);
 #endif

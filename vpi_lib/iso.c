@@ -112,6 +112,7 @@ void iso_gen(char* port_name, Module** head){
     char* inst_name ;    //char buffer[256];
     signal_h = vpi_handle_by_name(port_name,0);
     FILE *fp=fopen("fi_wrapper.sv", "a");
+    //vpi_printf("%s\n", vpi_get_str(vpiFullName, signal_h));
     if (fp == NULL) {
         printf("Error opening file 'fi_wrapper' while generating iso_module,please run good_sim first .\n");
         return;
@@ -125,7 +126,10 @@ void iso_gen(char* port_name, Module** head){
     //vpi_printf("+++++++++++DEBUG_ISO:%s+++++++++++++\n",iso_name);
     int inst_num;
     //module_h = vpi_handle(vpiScope,scope_h);
-    if(check_name_in_list(head,vpi_get_str(vpiFullName,scope_h)))return;
+    if(check_name_in_list(head,vpi_get_str(vpiFullName,scope_h))){
+        fclose(fp);
+        return;
+    }
     else inst_num=add_module(head, vpi_get_str(vpiFullName,scope_h));
     port_itr = vpi_iterate(vpiPort,scope_h);
     //fprintf(fp,"module %s_iso(",gen_scope_generate(vpi_get_str(vpiName,scope_h)));

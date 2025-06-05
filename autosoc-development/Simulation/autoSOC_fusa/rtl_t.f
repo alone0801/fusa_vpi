@@ -1,4 +1,4 @@
-//$HW_dir/SRC/mor1kx_5.0-r1/bench/verilog/mor1kx_monitor.v
+$HW_dir/SRC/mor1kx_5.0-r1/bench/verilog/mor1kx_monitor.v
 $HW_dir/SRC/mor1kx_5.0-r1/rtl/verilog/lockstep_aux/delay_unit.v
 $HW_dir/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx-defines.v
 $HW_dir/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx-sprs.v
@@ -12,8 +12,8 @@ $HW_dir/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_cache_lru.v
 $HW_dir/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_cfgrs.v
 $HW_dir/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_cpu.v
 $HW_dir/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_cpu_cappuccino.v
-$HW_dir/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_cpu_espresso.v
-$HW_dir/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_cpu_prontoespresso.v
+//$HW_dir/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_cpu_espresso.v
+//$HW_dir/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_cpu_prontoespresso.v
 $HW_dir/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_ctrl_cappuccino.v
 $HW_dir/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_ctrl_espresso.v
 $HW_dir/SRC/mor1kx_5.0-r1/rtl/verilog/mor1kx_ctrl_prontoespresso.v

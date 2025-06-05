@@ -160,14 +160,15 @@ void fault_injector(p_cb_data cb_data)
 {
     vpiHandle signal_handle;
     s_vpi_value fault_value = { vpiIntVal, { 0 } };
-    s_vpi_value signal_value = { vpiIntVal, { 0 } };
+    s_vpi_value signal_value = { vpiScalarVal, { 0 } };
     s_vpi_time  time_s = { vpiSimTime, 0, 0, 0.0 };
     PLI_INT32 flag;
+    char c_signal_value;
     struct cb_Userdata *udata_p =(struct cb_Userdata *) cb_data->user_data;
     vpiHandle module_handle = udata_p->module_handle;
     struct Fault *fault_p = udata_p->fault_p;
     //Get information from fault_injector_callback()
-    vpi_printf("%s\n", fault_p->fault_node_name);
+    //vpi_printf("%s\n", fault_p->fault_node_name);
     signal_handle = cur_replace(vpi_handle_by_name(fault_p->fault_node_name,0),udata_p->vact_num); 
     //Used for obtaining a handle for an object using the name of the object. 
     //The first parameter specify name of object, the secend parameter specify the searching scope.
@@ -182,17 +183,37 @@ void fault_injector(p_cb_data cb_data)
     else
     {
         vpi_get_value(signal_handle, &signal_value);
-        if(signal_value.value.integer == fault_p->fault_value)
+        switch (signal_value.value.scalar) {
+            case vpi0: c_signal_value = '0'; break;
+            case vpi1: c_signal_value = '1'; break;
+            case vpiX: c_signal_value = 'x'; break;
+            case vpiZ: c_signal_value = 'z'; break;
+            default:  c_signal_value = '?'; break; // 异常处理
+        }
+
+        if(signal_value.value.scalar == fault_p->fault_value)
             fault_SEU[udata_p->vact_num] = fault_p->fault_value;
         //Determination of fault type
         if((fault_p->fault_type == SA0) || (fault_p->fault_type == SA1))///ADDED
         {
             flag = vpiForceFlag;
-            //vpi_printf("CON_%d inject at %lf,type is SA%d vpiForceFlag\n",udata_p->vact_num,time_sys.real,fault_p->fault_value);
+            if(udata_p->vact_num == 0)
+                vpi_printf("*** DUT::inject fault on %s at time %lf\ntype is SA%d\n",vpi_get_str(vpiFullName, signal_handle),time_sys.real,fault_p->fault_value);
+            else
+                vpi_printf("*** CON_%d::inject fault on %s at time %lf,type is SA%d\n",udata_p->vact_num,vpi_get_str(vpiFullName, signal_handle),time_sys.real,fault_p->fault_value);
         }
         else
         {
-            //vpi_printf("CON_%d inject at %lf,type is SE%d vpiNodelay\n",udata_p->vact_num,time_sys.real,fault_p->fault_value);
+            if(fault_p->fault_type == SEU)
+                if(udata_p->vact_num == 0)
+                    vpi_printf("*** DUT::inject fault on %s at time %lf\ntype is SEU,from %c to %d\n",vpi_get_str(vpiFullName, signal_handle),time_sys.real,c_signal_value,fault_p->fault_value);
+                else
+                    vpi_printf("*** CON_%d::inject fault on %s at time %lf\ntype is SEU,from %c to %d\n",udata_p->vact_num,vpi_get_str(vpiFullName, signal_handle),time_sys.real,c_signal_value,fault_p->fault_value);
+            else
+                if(udata_p->vact_num == 0)
+                    vpi_printf("*** DUT::inject fault on %s at time %lf\ntype is SET,from %c to %d\n",vpi_get_str(vpiFullName, signal_handle),time_sys.real,c_signal_value,fault_p->fault_value);
+                else
+                    vpi_printf("*** CON_%d::inject fault on %s at time %lf\ntype is SET,from %c to %d\n",udata_p->vact_num,vpi_get_str(vpiFullName, signal_handle),time_sys.real,c_signal_value,fault_p->fault_value);
             flag = vpiNoDelay;
         }
         //vpi_printf("%s\n%d\n",vpi_get_str(vpiFullName,signal_handle),vpi_get(vpiType,signal_handle));
@@ -235,6 +256,10 @@ void fault_SET_injector(p_cb_data cb_data)
     }
     else
     {
+        if(udata_p->vact_num == 0)
+            vpi_printf("*** DUT::release SET fault on %s at time %lf\n",vpi_get_str(vpiFullName, signal_handle),time_sys.real);
+        else
+            vpi_printf("*** CON_%d::release SET fault on %s at time %lf\n",udata_p->vact_num,vpi_get_str(vpiFullName, signal_handle),time_sys.real);
         //Determination of fault type
         flag = vpiNoDelay;
         fault_value.format = vpiIntVal;

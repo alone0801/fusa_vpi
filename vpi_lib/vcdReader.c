@@ -33,7 +33,7 @@ struct file
  *** Low-level file reading/parsing
  ***/
 
-static char* get_line( struct file* file )
+char* get_line( struct file* file )
 {
     char* retval = fgets( file->buff, ( MAX_BUFFER - 1 ), file->file );
 
@@ -46,15 +46,18 @@ static char* get_line( struct file* file )
     return( retval );
 }
 
-static char* gettoken( struct file* file )
+char* gettoken( struct file* file )
 {
     char* tok = ( char* )0; char* delim = " \t\n";
 
-    if ( ( tok = strtok( ( char* )0, delim ) ) != ( char* )0 ) return( tok );
-
+    if ( ( tok = strtok( ( char* )0, delim ) ) != ( char* )0 ){
+        return( tok );
+    }
     while ( get_line( file ) )
     {
-        if ( ( tok = strtok( file->buff, delim ) ) != ( char* )0 ) return( tok );
+        if ( ( tok = strtok( file->buff, delim ) ) != ( char* )0 ) {
+            return( tok );
+        }
     }
     return( ( char* )0 );
 }

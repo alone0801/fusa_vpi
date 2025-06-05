@@ -1,20 +1,22 @@
+#include <stdio.h>
+#include <malloc.h>
+#include <string.h>
 #include "port_alias.h"
-
 PortInfoNode* portInfoList = NULL;  // 全局变量用于存储端口信息链表
-PortInfoNode* createNode(const char* internalName, const char* externalName);
-void appendNode(PortInfoNode** head, const char* internalName, const char* externalName);
+PortInfoNode* createNode(const char* internalName, const char* externalName, int alias, int root);
+void appendNode(PortInfoNode** head, const char* internalName, const char* externalName, int alias, int root);
 void freeList(PortInfoNode* head);
-void printList(PortInfoNode **head);
-PortInfoNode* readList(char *file_name);
+void printList(PortInfoNode **head, char* file_name);
+void readList(PortInfoNode **head, char *file_name);
 
 // 创建一个新节点
-PortInfoNode* createNode(const char* internalName, const char* externalName) {
+PortInfoNode* createNode(const char* internalName, const char* externalName, int alias, int root) {
     PortInfoNode* newNode = (PortInfoNode*)malloc(sizeof(PortInfoNode));
     if (newNode != NULL) {
         strcpy(newNode->internalName, internalName);
         strcpy(newNode->externalName, externalName);
-        newNode->alias = 1;
-        newNode->root  = 0;
+        newNode->alias = alias;
+        newNode->root  = root;
         newNode->map_name = NULL;
         newNode->next = NULL;
     }
@@ -22,8 +24,8 @@ PortInfoNode* createNode(const char* internalName, const char* externalName) {
 }
 
 // 将节点追加到链表末尾
-void appendNode(PortInfoNode** head, const char* internalName, const char* externalName) {
-    PortInfoNode* newNode = createNode(internalName, externalName);
+void appendNode(PortInfoNode** head, const char* internalName, const char* externalName, int alias, int root) {
+    PortInfoNode* newNode = createNode(internalName, externalName, alias, root);
     if (newNode == NULL) {
         fprintf(stderr, "Memory allocation error.\n");
         exit(EXIT_FAILURE);
@@ -43,14 +45,14 @@ void appendNode(PortInfoNode** head, const char* internalName, const char* exter
     // printf("\n");
 }
 
-void printList(PortInfoNode **head) {
+void printList(PortInfoNode **head, char* file_name) {
     PortInfoNode *current = *head;
     PortInfoNode *current_log = *head;
     // while (current != NULL) {
     //     vpi_printf("Internal: %s, External: %s\n", current->internalName, current->externalName);
     //     current = current->next;
     // }
-    FILE *logfile = fopen("port.log", "w");
+    FILE *logfile = fopen(file_name, "w");
     if (logfile == NULL) {
         vpi_printf("ERROR: Could not open port.log for writing\n");
         return 0;
@@ -65,9 +67,10 @@ void printList(PortInfoNode **head) {
 }
 
 
-PortInfoNode* readList(char *file_name){
-    PortInfoNode *head = NULL;
+void readList(PortInfoNode **head, char *file_name){
+    PortInfoNode *current_log = *head;
     FILE *fp = fopen(file_name, "r");
+    char* saveptr;
     char *line = NULL;
     size_t len = 0;
     getline(&line, &len, fp);
@@ -77,7 +80,7 @@ PortInfoNode* readList(char *file_name){
     char *root;
     while((getline(&line, &len, fp)) != -1){
         char *temp = strdup(line);
-        char *token = strtok(temp, " ");
+        char *token = strtok_r(temp, " ", &saveptr);
         int count = 0;
         while (token != NULL) {
             switch(count){
@@ -94,22 +97,10 @@ PortInfoNode* readList(char *file_name){
                     root = strdup(token);
                     break;
             }
-            token = strtok(NULL, " ");
+            token = strtok_r(NULL, " ", &saveptr);
             count++;
         }
-        PortInfoNode* newNode = createNode(internalName, externalName);
-        newNode->alias = atoi(alias);
-        newNode->root = atoi(root);
-        if (head == NULL) {
-            head = newNode;
-        } else {
-        // 找到链表末尾，并将新节点连接到末尾
-            PortInfoNode* current = head;
-            while (current->next != NULL) {
-                current = current->next;
-            }
-            current->next = newNode;
-        }
+        appendNode(head, internalName, externalName, atoi(alias), atoi(root));
         free(temp);
         free(token);
     }
@@ -118,7 +109,6 @@ PortInfoNode* readList(char *file_name){
     free(alias);
     free(root);
     fclose(fp);
-    return head;
 }
 
 void port_tranverse(vpiHandle mod_h, int top,PortInfoNode** head)
@@ -151,12 +141,12 @@ void port_tranverse(vpiHandle mod_h, int top,PortInfoNode** head)
                     // printf(vpi_get_str(vpiFullName, lowconn_h));
                     // printf("\n");
                         if (top) {
-                            appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
+                            appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL", 1, 0);
                         }
                         else {
                         //HighConn=vpi_get_str(vpiFullName, highconn_h);
-                            if(!vpi_get_str(vpiFullName, highconn_h)) appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
-                            else appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), strdup(vpi_get_str(vpiFullName, highconn_h)));
+                            if((vpi_get(vpiType, highconn_h) == vpiConstant) || !vpi_get_str(vpiFullName, highconn_h)) appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL", 1, 0);
+                            else appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), strdup(vpi_get_str(vpiFullName, highconn_h)), 1, 0);
                         }
                         portbit_handle = vpi_scan(pbiter_handle);
                     }
@@ -166,8 +156,8 @@ void port_tranverse(vpiHandle mod_h, int top,PortInfoNode** head)
             // 处理标量端口
                 lowconn_h = vpi_handle(vpiLowConn, port_h);
                 highconn_h = vpi_handle(vpiHighConn, port_h);
-                if (top || !vpi_get_str(vpiFullName, highconn_h)) appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL");
-                else appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), strdup(vpi_get_str(vpiFullName, highconn_h)));
+                if (top || (vpi_get(vpiType, highconn_h) == vpiConstant) || !vpi_get_str(vpiFullName, highconn_h)) appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), "NULL", 1, 0);
+                else appendNode(head, strdup(vpi_get_str(vpiFullName, lowconn_h)), strdup(vpi_get_str(vpiFullName, highconn_h)), 1, 0);
             }
         }
     }
@@ -263,7 +253,7 @@ PLI_INT32 PLIbook_PortInfo_calltf(PLI_BYTE8 *user_data)
     mod_h = vpi_handle_by_name("test_new.test_ins", 0);
     port_isolate(mod_h,&portInfoList);
     process_aliases(&portInfoList);
-    printList(&portInfoList);
+    printList(&portInfoList, "test_port.log");
 
     test_h = vpi_handle_by_name("test_new.test_ins",0);
     printf(vpi_get_str(vpiType, test_h));
