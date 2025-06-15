@@ -12,22 +12,21 @@ list:
 #	simv -l good_sim.log
 fault_sim_vcs: restore
 	rm -rf csrc simv  simv.daidir
-	vcs -full64 +vpi +define+COUNT_MEM1 -P $(fusa_lib)/pli.tab   \
-	-load $(fusa_lib)/libvpiDebug.so  -f rtl.f fi_wrapper.sv -debug_all -sverilog \
-	-lxml2 \
+	vcs +vpi +define+COUNT_MEM1 -P $(fusa_lib)/pli.tab   \
+	-load $(fusa_lib)/libvpiDebug.so\
+	-f rtl.f fi_wrapper.sv +define+fault_sim -lxml2 -sverilog \
 	+lint=TFIPC-L -notice -debug_access+all  -full64  -kdb -lca
-	./simv -l fault_sim.log
-#-ucli -i ../vpi_lib/ucli.tcl
+	./simv -l fault_sim.log -kdb -lca\
+	-ucli -i ../vpi_lib/ucli.tcl
 good_sim_vcs: restore
 	python ../vpi_lib/wrapper_gen.py 
 	rm -rf csrc simv  simv.daidir
-	vcs +vpi +define+COUNT_MEM1 -P $(fusa_lib)/pli.tab -full64 \
-	-load $(fusa_lib)/libvpiDebug.so   -f rtl.f +define+good_sim -sverilog fi_wrapper.sv -lxml2 \
+	vcs +vpi +define+COUNT_MEM1 -P $(fusa_lib)/pli.tab \
+	-load $(fusa_lib)/libvpiDebug.so \
+	-f rtl.f fi_wrapper.sv +define+good_sim -lxml2 -sverilog \
 	+lint=TFIPC-L -notice -debug_access+all  -full64  -kdb -lca
-	./simv -l good_sim.log 
-merge:
-	rm -rf summary.xml
-	sh report.sh ./fault_dir
+	./simv -l good_sim.log \
+	-ucli -i $(fusa_lib)/ucli.tcl
 
 fault_pruning_vcs: restore
 	rm -rf csrc simv simv.daidair fault_pruning.log fault_pruning_dir
@@ -44,27 +43,31 @@ fault_gene:
 
 good_sim_irun: restore
 	python ../vpi_lib/wrapper_gen.py 
-	#rm -rf INCA_libs
-	#ncvlog -sv -f rtl.f fi_wrapper.sv +define+good_sim +define+COUNT_MEM1 -64bit -messages
-	#ncelab test fi_wrapper -afile $(fusa_lib)/vcdCompare.tab -loadvpi $(fusa_lib)/libvpiDebug.so:vpit_RegisterTfs -64bit -access +rwc -messages
-	#ncsim -update test -64bit -l good_sim_irun.log
-	irun -clean -sv -f rtl.f fi_wrapper.sv +define+good_sim +define+COUNT_MEM1 -64bit -afile $(fusa_lib)/vcdCompare.tab -loadvpi $(fusa_lib)/libvpiDebug_irun.so:vpit_RegisterTfs -access +rwc -messages -l good_sim_irun.log
+	irun -clean -sv -f rtl.f fi_wrapper.sv +define+good_sim +define+COUNT_MEM1 \
+	-lxml2 -64bit \
+	-afile $(fusa_lib)/vcdCompare.tab \
+	-loadvpi $(fusa_lib)/libvpiDebug_irun.so:vpit_RegisterTfs -access +rwc -messages -l good_sim_irun.log
+
 fault_sim_irun: restore replace
-	#rm -rf INCA_libs
-	#ncvlog -sv -f rtl.f fi_wrapper.sv +define+COUNT_MEM1 -64bit -messages
-	#ncelab test fi_wrapper -afile $(fusa_lib)/vcdCompare.tab -loadvpi $(fusa_lib)/libvpiDebug.so:vpit_RegisterTfs -64bit -access +rwc -messages
-	#ncsim -update test -64bit
-	#ncsim -update test -64bit -l
-	irun -clean -sv -f rtl.f fi_wrapper.sv +define+COUNT_MEM1 -64bit -afile $(fusa_lib)/vcdCompare.tab -loadvpi $(fusa_lib)/libvpiDebug_irun.so:vpit_RegisterTfs -access +rwc -messages -l fault_sim_irun.log -input $(fusa_lib)/ucli.tcl -snapshot my_snapshot
+	irun -clean -sv -f rtl.f fi_wrapper.sv +define+COUNT_MEM1 \
+	-lxml2 -64bit \
+	-afile $(fusa_lib)/vcdCompare.tab \
+	-loadvpi $(fusa_lib)/libvpiDebug_irun.so:vpit_RegisterTfs -access +rwc -messages -l fault_sim_irun.log -input $(fusa_lib)/ucli.tcl -snapshot my_snapshot
 	make restore
+
+fault_classification:
+	python $(fusa_lib)/fault_classification.py
+
 FILE_LIST = rtl.f
-FILES = $(shell cat $(FILE_LIST))
+FILES = $(shell grep -v '^[[:space:]]*//' $(FILE_LIST))
 replace: backup replace_wire
 
 replace_wire:
 	@for file in $(FILES); do \
 		echo "Replacing in $$file..."; \
 		sed -i '/wire[[:space:]]*\[[^]]\+\]/s/\<wire\>/wire scalared/g' $$file; \
+		sed -i '/output[[:space:]]*\[[^]]\+\]/s/\<output\>/output wire scalared/g' $$file;\
+		sed -i '/input[[:space:]]*\[[^]]\+\]/s/\<input\>/input wire scalared/g' $$file;\
 	done
 
 backup:
@@ -86,3 +89,6 @@ restore:
 		fi \
 	done
 
+merge:
+	rm -rf summary.xml
+	sh report.sh ./fault_dir

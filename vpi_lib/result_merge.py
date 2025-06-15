@@ -32,7 +32,7 @@ def aggregate_results(root_dir, output_file):
         f.write("<LOCATION> <TYPE> <VALUE> <TIME> <SET_RETURN_TIME> <RESULT>\n")
         for idx, result in enumerate(results, 1):
             if result['LOCATION'] is not None:
-                line = f"{result['LOCATION']}  {result['TYPE']}  {result['VALUE']}  {result['TIME']}  {result['SET_RETURN_TIME']}  {result['STATUS']}\n"
+                line = f"{result['LOCATION']}  {result['TYPE']}  {result['TIME']}  {result['SET_RETURN_TIME']}  {result['STATUS']}\n"
                 f.write(line)
 
 if __name__ == "__main__":

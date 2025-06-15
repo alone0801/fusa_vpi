@@ -41,7 +41,7 @@ void fault_injector_check(struct Fault *fault_p ,int vact_num)
     udata_p->module_handle = module_handle;
     udata_p->vact_num = vact_num;
     udata_p->fault_p = (struct Fault *)fault_p;
-    vpi_printf("%s,%d,%s,%d\n",vpi_get_str(vpiName,udata_p->module_handle),udata_p->vact_num,udata_p->fault_p->fault_node_name,udata_p->fault_p->fault_type);
+
     //Registration of fault_injector simulation callback routine
     //cb_data_s.reason = cbNBASynch;
     //cb_data_s.reason = cbReadWriteSynch;
@@ -61,7 +61,6 @@ void fault_injector_check(struct Fault *fault_p ,int vact_num)
 
     if(fault_p->fault_type == SET)
     {
-        fault_SEU[vact_num] = !fault_p->fault_value;
         // Specifying the pulse return time for SET fault
         time_s_SET.type = vpiSimTime;
         time_s_SET.low = fault_p->SET_return_time;
@@ -191,35 +190,44 @@ void fault_injector(p_cb_data cb_data)
             default:  c_signal_value = '?'; break; // 异常处理
         }
 
-        if(signal_value.value.scalar == fault_p->fault_value)
-            fault_SEU[udata_p->vact_num] = fault_p->fault_value;
         //Determination of fault type
+        fault_value.format = vpiIntVal;
         if((fault_p->fault_type == SA0) || (fault_p->fault_type == SA1))///ADDED
         {
             flag = vpiForceFlag;
+            fault_value.value.integer = fault_p->fault_type;
             if(udata_p->vact_num == 0)
-                vpi_printf("*** DUT::inject fault on %s at time %lf\ntype is SA%d\n",vpi_get_str(vpiFullName, signal_handle),time_sys.real,fault_p->fault_value);
+                vpi_printf("*** DUT::inject fault on %s at time %lf\ntype is SA%d\n",vpi_get_str(vpiFullName, signal_handle),time_sys.real,fault_value.value.integer);
             else
-                vpi_printf("*** CON_%d::inject fault on %s at time %lf,type is SA%d\n",udata_p->vact_num,vpi_get_str(vpiFullName, signal_handle),time_sys.real,fault_p->fault_value);
+                vpi_printf("*** CON_%d::inject fault on %s at time %lf,type is SA%d\n",udata_p->vact_num,vpi_get_str(vpiFullName, signal_handle),time_sys.real,fault_value.value.integer);
         }
         else
         {
-            if(fault_p->fault_type == SEU)
-                if(udata_p->vact_num == 0)
-                    vpi_printf("*** DUT::inject fault on %s at time %lf\ntype is SEU,from %c to %d\n",vpi_get_str(vpiFullName, signal_handle),time_sys.real,c_signal_value,fault_p->fault_value);
+            if((signal_value.value.scalar == vpi0) || (signal_value.value.scalar == vpi1)){
+                flag = vpiNoDelay;
+                fault_value.value.integer = !(c_signal_value-'0');
+                fault_SET[udata_p->vact_num] = !fault_value.value.integer;
+
+                if(fault_p->fault_type == SEU)
+                    if(udata_p->vact_num == 0)
+                        vpi_printf("*** DUT::inject fault on %s at time %lf\ntype is SEU,from %c to %d\n",vpi_get_str(vpiFullName, signal_handle),time_sys.real,c_signal_value,fault_value.value.integer);
+                    else
+                        vpi_printf("*** CON_%d::inject fault on %s at time %lf\ntype is SEU,from %c to %d\n",udata_p->vact_num,vpi_get_str(vpiFullName, signal_handle),time_sys.real,c_signal_value,fault_value.value.integer);
                 else
-                    vpi_printf("*** CON_%d::inject fault on %s at time %lf\ntype is SEU,from %c to %d\n",udata_p->vact_num,vpi_get_str(vpiFullName, signal_handle),time_sys.real,c_signal_value,fault_p->fault_value);
-            else
+                    if(udata_p->vact_num == 0)
+                        vpi_printf("*** DUT::inject fault on %s at time %lf\ntype is SET,from %c to %d\n",vpi_get_str(vpiFullName, signal_handle),time_sys.real,c_signal_value,fault_value.value.integer);
+                    else
+                        vpi_printf("*** CON_%d::inject fault on %s at time %lf\ntype is SET,from %c to %d\n",udata_p->vact_num,vpi_get_str(vpiFullName, signal_handle),time_sys.real,c_signal_value,fault_value.value.integer);
+            }
+            else{
                 if(udata_p->vact_num == 0)
-                    vpi_printf("*** DUT::inject fault on %s at time %lf\ntype is SET,from %c to %d\n",vpi_get_str(vpiFullName, signal_handle),time_sys.real,c_signal_value,fault_p->fault_value);
+                    vpi_printf("*** DUT::Bit-Flip value for value '%c' counld not be determined. Fault at %s at time %lf is not injected\n",c_signal_value,vpi_get_str(vpiFullName, signal_handle),time_sys.real);
                 else
-                    vpi_printf("*** CON_%d::inject fault on %s at time %lf\ntype is SET,from %c to %d\n",udata_p->vact_num,vpi_get_str(vpiFullName, signal_handle),time_sys.real,c_signal_value,fault_p->fault_value);
-            flag = vpiNoDelay;
+                    vpi_printf("*** CON_%d::Bit-Flip value for value '%c' counld not be determined. Fault at %s at time %lf is not injected\n",udata_p->vact_num,c_signal_value,vpi_get_str(vpiFullName, signal_handle),time_sys.real);
+                return;
+            }
         }
         //vpi_printf("%s\n%d\n",vpi_get_str(vpiFullName,signal_handle),vpi_get(vpiType,signal_handle));
-
-        fault_value.format = vpiIntVal;
-        fault_value.value.integer = fault_p->fault_value;
         vpi_put_value(signal_handle, &fault_value, &time_s, flag);
     }
 }
@@ -263,7 +271,7 @@ void fault_SET_injector(p_cb_data cb_data)
         //Determination of fault type
         flag = vpiNoDelay;
         fault_value.format = vpiIntVal;
-        fault_value.value.integer = fault_SEU[udata_p->vact_num];
+        fault_value.value.integer = fault_SET[udata_p->vact_num];
         vpi_put_value(signal_handle, &fault_value, &time_s, flag);
     }
 }

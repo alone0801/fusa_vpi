@@ -59,8 +59,12 @@ void printList(PortInfoNode **head, char* file_name) {
     }
     fprintf(logfile, "<PORT_NAME>    <PORT_DRIVER>    <ALIAS_TYPE>    <ROOT>\n");
     while (current_log != NULL) {
-    fprintf(logfile, "%s %s %d %d\n", current_log->internalName, current_log->externalName,current_log->alias,current_log->root);
-    current_log = current_log->next;
+        if(current_log->alias == 0){
+            current_log = current_log->next;
+            continue;
+        }
+        fprintf(logfile, "%s %s %d %d\n", current_log->internalName, current_log->externalName,current_log->alias,current_log->root);
+        current_log = current_log->next;
     }
     fclose(logfile);
 
@@ -305,7 +309,8 @@ void port_alias(StringList* mod_names, PortInfoNode** head){
     vpiHandle mod_h;
     int i ;
     for ( i = 0; i < mod_names->count; i++) {
-        mod_h = vpi_handle_by_name(mod_names->strings[i], 0);
+        mod_h = vpi_handle(vpiModule, vpi_handle_by_name(mod_names->strings[i], 0));
+        //vpi_printf("\nDebug::module_name %s\n", vpi_get_str(vpiFullName, mod_h));
         port_isolate(mod_h,head);
     }
     process_prime(head); 
