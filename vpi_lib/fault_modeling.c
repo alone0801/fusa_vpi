@@ -321,9 +321,10 @@ int find_wire_array(vpiHandle module_h,FILE *fp,int node_num)
 
 int OutputFaultList(FILE *fp,vpiHandle signal_handle,int node_num)
 {
-    int random_num;
+    int random_num, random_type;
 
     random_num = GetRandNum(fault_tw[0],fault_tw[1],node_num);      // To be refined. It is supposed to be a floating number.!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    random_type = GetRandNum(0,3,node_num);
     switch (fault_type)
     {
     case SA0:
@@ -333,25 +334,19 @@ int OutputFaultList(FILE *fp,vpiHandle signal_handle,int node_num)
         fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA1",1,random_num,0);
         break;
     case SA:
-        if((random_num % 2) == 0)
+        if((random_type % 2) == 0)
             fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA0",0,random_num,0);
         else
             fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA1",1,random_num,0);
         break;
     case SEU:
-         if((random_num % 2) == 0)
-            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SEU",0,random_num,0);
-        else
-            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SEU",1,random_num,0);
+        fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SEU",0,random_num,0);
         break;
     case SET:
-        if((random_num % 2) == 0)
-            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SET",0,random_num,random_num+100);
-        else
-            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SET",1,random_num,random_num+100);
+        fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SET",0,random_num,random_num+100);
         break;
     default:
-        switch (random_num % 4)
+        switch (random_type)
         {
         case 0:
             fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA0",0,random_num,0);
@@ -360,10 +355,10 @@ int OutputFaultList(FILE *fp,vpiHandle signal_handle,int node_num)
             fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA1",1,random_num,0);
             break;
         case 2:
-            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SET",0,random_num,random_num+100);
+            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SEU",0,random_num,0);
             break;
         default:
-            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SET",1,random_num,random_num+100);
+            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SET",0,random_num,random_num+100);
             break;
         }
         break;

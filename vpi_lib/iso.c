@@ -461,18 +461,26 @@ char* iso_exchange(char* singal_name){
     const char* wrapperName = gen_scope_generate(vpi_get_str(vpiFullName, mod_h));
     const char* signalName = strdup(vpi_get_str(vpiName, signal_h));
     size_t total_length = strlen(wrapperName) + strlen(modName) + strlen("_iso.") + strlen(scopeName) + 2*strlen(".") + strlen(signalName) + 1;
-    size_t flag_length = strlen(wrapperName) + strlen(modName) + strlen("_iso.") + strlen(scopeName) + 2*strlen(".") + 4 + 1;   
-
+    size_t flag_length = strlen(wrapperName) + strlen(modName) + strlen("_iso.") + strlen(scopeName) + strlen(".") + 4 + 1;   
+    //vpi_printf("scopeName:%s\nmodName:%s\nwrapperName:%s\nsignalName:%s\n",scopeName, modName, wrapperName, signalName);
     char* iso_name = (char*)malloc(total_length*sizeof(char));
     char* flag_name = (char*)malloc(flag_length*sizeof(char));
     iso_name[0] = '\0';
+    flag_name[0] = '\0';
+
     strcat(iso_name, scopeName);
     strcat(iso_name, ".");
     strcat(iso_name, wrapperName); 
     strcat(iso_name, "_iso.");
-    strcat(flag_name,iso_name);
+
+    strcat(flag_name, scopeName);
+    strcat(flag_name, ".");
+    strcat(flag_name, wrapperName); 
+    strcat(flag_name, "_iso.");
     strcat(flag_name,"flag");
+    vpi_printf("%s\n", flag_name);
     iso_flag_en(flag_name);
+
     strcat(iso_name, modName);
     strcat(iso_name, ".");
     strcat(iso_name, signalName);
