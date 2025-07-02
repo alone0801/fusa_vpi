@@ -478,7 +478,6 @@ char* iso_exchange(char* singal_name){
     strcat(flag_name, wrapperName); 
     strcat(flag_name, "_iso.");
     strcat(flag_name,"flag");
-    vpi_printf("%s\n", flag_name);
     iso_flag_en(flag_name);
 
     strcat(iso_name, modName);

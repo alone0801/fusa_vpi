@@ -6,14 +6,14 @@ rm -rf fault_dir
 EXE_PATH=$(pwd)
 # 替换wire为scalared wire
 cd ..
-make restore
-make replace
+#make restore
+#make replace
 cd $EXE_PATH
 # 计算 fault.set 文件的行数（减去标题行）
 num_faults=$(cat fault.set | wc -l)
 num_faults=$(($num_faults-1))
 echo "The number of lines in fault.set is: $num_faults"
-
+# rm -r fault_dir
 # 创建 fault_dir 目录
 mkdir fault_dir
 cd fault_dir || exit
@@ -39,7 +39,7 @@ for ((i = 0; i < num_faults; i=i+step)); do
 
     # 运行仿真
     #$EXE_PATH/simv -l fault_sim.log -ucli -i $EXE_PATH/../vpi_lib/ucli.tcl
-    irun -R -64bit -access +rwc -messages -l fault_sim_irun.log -nclibdirname $EXE_PATH/INCA_libs -snapshot my_snapshot -input $fusa_lib/ucli.tcl +define+LOCKSTEP +elf_load=$SW_dir/Baremetal/sample_apps/$MACRO +clear_ram -lxm2 -lelf -64bit
+    irun -R -sv -64bit -access +rwc -messages -l fault_sim_irun.log -nclibdirname $EXE_PATH/INCA_libs -snapshot my_snapshot -input $fusa_lib/ucli.tcl +define+LOCKSTEP +elf_load=$SW_dir/Baremetal/sample_apps/$MACRO +clear_ram -lxm2 -lelf 
     # 返回上一级目录
     cd .. || exit
 done
@@ -49,9 +49,9 @@ end_time=$(date +%s)
 
 # 计算并输出执行时间
 execution_time=$((end_time - start_time))
-logfile_name="$step.log"
- touch "$logfile_name"
-echo "Total execution time: $execution_time seconds" > $logfile_name
+logfile_name="./fault_dir/time.log"
+touch "$logfile_name"
+echo $execution_time > $logfile_name
 cd ..
-make restore
+#make restore
 cd $EXE_PATH

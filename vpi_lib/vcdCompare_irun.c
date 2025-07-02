@@ -1089,13 +1089,13 @@ static int fault_classification( p_cb_data cb_data_p )
         result[i][1] = status_checker[i][0];
         result[i][2] = '\0';
     }
-    printf("Strobe Mode is %s\n",strobe_mode);
+    vpi_printf("Strobe Mode is %s\n",strobe_mode);
     if (strcmp(strobe_mode, "Single") == 0){
-        printf("the classificaiton of the inject fault is :%s\n",status_checker[0]);
+        vpi_printf("the classificaiton of the inject fault is :%s\n",status_checker[0]);
         generateXML("NULL","NULL",status_checker,FAULT_TYPE,CON_NUM);
     }
     else { 
-        printf("the classificaiton of the inject fault is :\nFunctional:%s,\nChecker:%s\n",status_functional[0],status_checker[0]);
+        vpi_printf("the classificaiton of the inject fault is :\nFunctional:%s,\nChecker:%s\n",status_functional[0],status_checker[0]);
         generateXML(FAULT_ID,FAULT_LOCATION,result,FAULT_TYPE,CON_NUM); 
     }
     for (i = 0; i < CON_NUM + 1; i++) {

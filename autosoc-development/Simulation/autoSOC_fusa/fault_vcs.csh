@@ -22,7 +22,7 @@ echo "Step value: $step"
 start_time=$(date +%s)
 
 # 循环创建目录并运行仿真
-for ((i = 28; i < num_faults; i=i+step)); do
+for ((i = 0; i < num_faults; i=i+step)); do
     dir_name="fault_sim_$((i+1))"
     mkdir "$dir_name"
     cd "$dir_name" || exit
@@ -45,6 +45,6 @@ end_time=$(date +%s)
 
 # 计算并输出执行时间
 execution_time=$((end_time - start_time))
-logfile_name="vcs_$step.log"
+logfile_name="./fault_dir/time.log"
 touch "$logfile_name"
-echo "Total execution time: $execution_time seconds" > $logfile_name
+echo $execution_time > $logfile_name

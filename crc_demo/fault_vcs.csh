@@ -46,4 +46,6 @@ end_time=$(date +%s)
 
 # 计算并输出执行时间
 execution_time=$((end_time - start_time))
-echo "Total execution time: $execution_time seconds"
+logfile_name="./fault_dir/time.log"
+touch "$logfile_name"
+echo $execution_time > $logfile_name

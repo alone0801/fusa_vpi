@@ -7,8 +7,8 @@ rm -rf fault_dir
 EXE_PATH=$(pwd)
 
 # 替换wire为scalared wire
-make restore
-make replace
+#make restore
+#make replace
 # 计算 fault.set 文件的行数（减去标题行）
 num_faults=$(cat fault.set | wc -l)
 num_faults=$(($num_faults-1))
@@ -49,7 +49,8 @@ end_time=$(date +%s)
 
 # 计算并输出执行时间
 execution_time=$((end_time - start_time))
-logfile_name="$step.log"
-# touch "$logfile_name"
-make restore
-echo "Total execution time: $execution_time seconds"
+logfile_name="./fault_dir/time.log"
+touch "$logfile_name"
+
+#make restore
+echo $execution_time > $logfile_name

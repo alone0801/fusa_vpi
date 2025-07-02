@@ -50,10 +50,27 @@ Fusa_vpi uses the **Verilog Procedural Interface (VPI)** to perform **non-intrus
 Fault Isolation can only run when CON = 0.
 
 ---
-
 ## Quick Start: Fault Injection Campaign
 
 Follow these steps to quickly get started with fault injection using Fusa_vpi:
+
+### Step 0: Preparation
+You need to install libxml2 by running the following commands:
+Take CentOS for example
+
+```bash
+sudo yum install libxml2-devel
+sudo ln -s /usr/include/libxml2/libxml /usr/include/libxml
+sudo ln -s /usr/lib/libxml2.so.2 /usr/lib/libxml2.so
+sudo yum install libxml2
+```
+
+Then you need to replace the VPI library header file path in ./vpi_lib/Makefile with the corresponding path on your system, and run the following commands:
+
+```bash
+cd ./vpi_lib
+make
+```
 
 ### Step 1: Source the setup file
 Run the following commands to begin the simulation:
@@ -108,15 +125,20 @@ LOCATION> <TYPE> <VALUE> <TIME> <SET_RETURN_TIME> <RESULT>
 test.dut_inst.mem1_i.mem_with_crc_i.clk  SA0  0  132  0  UU
 .......
 ```
-2.2 you also can generate fault.set by fault pruning
-the fault pruning can reduce the fault space according to the FUNCTIONAL STROBE based on the signal dependencies
+2.2 you also can generate fault.set adutomatically according to FI.xml
+this function is only realized in VCS
 ```bash
 cd crc_men
-make good_sim
-make fault_pruning
-make fault_gene
+make good_sim_vcs
 ```
 
+If fault.set is too big, Fault pruning can reduce the fault space according to the FUNCTIONAL STROBE based on the signal dependencies, this will remove all faults which are independent of FUNCTIONAL STROBE
+
+```bash
+cd crc_mem
+make fault_prunning_vcs
+make fault_gene
+```
 3. run the fault inject simulation
 ```bash
 make fault_sim

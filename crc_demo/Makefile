@@ -46,13 +46,13 @@ good_sim_irun: restore
 	irun -clean -sv -f rtl.f fi_wrapper.sv +define+good_sim +define+COUNT_MEM1 \
 	-lxml2 -64bit \
 	-afile $(fusa_lib)/vcdCompare.tab \
-	-loadvpi $(fusa_lib)/libvpiDebug_irun.so:vpit_RegisterTfs -access +rwc -messages -l good_sim_irun.log
+	-loadvpi $(fusa_lib)/libvpiDebug_irun.so:vpit_RegisterTfs -access +rwc -messages -l good_sim.log
 
 fault_sim_irun: restore replace
 	irun -clean -sv -f rtl.f fi_wrapper.sv +define+COUNT_MEM1 \
 	-lxml2 -64bit \
 	-afile $(fusa_lib)/vcdCompare.tab \
-	-loadvpi $(fusa_lib)/libvpiDebug_irun.so:vpit_RegisterTfs -access +rwc -messages -l fault_sim_irun.log -input $(fusa_lib)/ucli.tcl -snapshot my_snapshot
+	-loadvpi $(fusa_lib)/libvpiDebug_irun.so:vpit_RegisterTfs -access +rwc -messages -l fault_sim.log -input $(fusa_lib)/ucli.tcl -snapshot my_snapshot
 	make restore
 
 fault_classification:
@@ -91,4 +91,4 @@ restore:
 
 merge:
 	rm -rf summary.xml
-	sh report.sh ./fault_dir
+	sh report.sh ./fault_dir ./good_sim.log ./FI.xml ./fault_dir/time.log

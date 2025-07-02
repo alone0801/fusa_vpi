@@ -95,7 +95,7 @@ clean:
 	rm -rf csrc simv ucli.key mor1kx-general.log mor1kx-trace.log compile.log  simv.daidir verdiLog *.vcd *.log
 
 #/home/ICer/fusa_vpi/autosoc-development/Hardware/TB/jtag_vpi_0-r2/jtag_vpi.so
-vcs_good: restore
+good_sim_vcs: restore
 	source tools/set_env_variables.sh && \
 	cd ${fault_dir}/ && \
 	python $(fusa_lib)/wrapper_gen.py && \
@@ -111,7 +111,7 @@ vcs_good: restore
 #+elf_load=$(SW_dir)/Baremetal/sample_apps/can_selftest.elf +clear_ram  
 #+define+CHECKPOINT +define+LOCKSTEP +define+PARITY +define+MEMECC \
 
-vcs_fault: restore
+fault_sim_vcs: restore
 	source tools/set_env_variables.sh && \
 	cd ${fault_dir}/ && \
 	rm -rf csrc simv  simv.daidir	&& \
@@ -123,7 +123,7 @@ vcs_fault: restore
 	./simv -l fault_sim.log +elf_load=$(SW_dir)/Baremetal/sample_apps/$(MACRO) -kdb -lca \
 	-ucli -i $(fusa_lib)/ucli.tcl
 
-good_sim_irun: restore
+good_sim_irun:
 	source tools/set_env_variables.sh && \
 	cd ${fault_dir}/ && \
 	python $(fusa_lib)/wrapper_gen.py && \
@@ -131,17 +131,16 @@ good_sim_irun: restore
 	+elf_load=$(SW_dir)/Baremetal/sample_apps/hello.elf \
 	-lxml2 -lelf -64bit \
 	-L$(fusa_lib) -afile $(SIM_dir)/autoSOC_fusa/autoSoC.tab \
-	-loadvpi $(HW_dir)/TB/elf-loader_1.0.2/elf-loader_irun.so:setup_reset_callbacks,setup_endofcompile_callbacks,setup_finish_callbacks,register_check_for_command,register_send_result_to_server,vpit_RegisterTfs,setup_user_functions -access +rwc -messages -l good_sim_irun.log
+	-loadvpi $(HW_dir)/TB/elf-loader_1.0.2/elf-loader_irun.so:setup_reset_callbacks,setup_endofcompile_callbacks,setup_finish_callbacks,register_check_for_command,register_send_result_to_server,vpit_RegisterTfs,setup_user_functions -access +rwc -messages -l good_sim.log
 
-fault_sim_irun: restore replace
+fault_sim_irun: 
 	source tools/set_env_variables.sh && \
 	cd ${fault_dir}/ && \
 	irun -clean -sv -f rtl.f fi_wrapper.sv +define+LOCKSTEP \
 	+elf_load=$(SW_dir)/Baremetal/sample_apps/hello.elf \
 	-lxml2 -lelf -64bit \
 	-L$(fusa_lib) -afile $(SIM_dir)/autoSOC_fusa/autoSoC.tab \
-	-loadvpi $(HW_dir)/TB/elf-loader_1.0.2/elf-loader_irun.so:setup_reset_callbacks,setup_endofcompile_callbacks,setup_finish_callbacks,register_check_for_command,register_send_result_to_server,vpit_RegisterTfs,setup_user_functions -access +rwc -messages -l fault_sim_irun.log -input $(fusa_lib)/ucli.tcl -snapshot my_snapshot
-	make restore
+	-loadvpi $(HW_dir)/TB/elf-loader_1.0.2/elf-loader_irun.so:setup_reset_callbacks,setup_endofcompile_callbacks,setup_finish_callbacks,register_check_for_command,register_send_result_to_server,vpit_RegisterTfs,setup_user_functions -access +rwc -messages -l fault_sim.log -input $(fusa_lib)/ucli.tcl -snapshot my_snapshot
 
 fault_classification:
 	source tools/set_env_variables.sh && \
@@ -181,5 +180,6 @@ restore:
 
 merge:
 	rm -rf summary.xml
-	sh ./autoSOC_fusa/report.sh ./autoSOC_fusa/fault_dir
+	sh ./autoSOC_fusa/report.sh ./autoSOC_fusa/fault_dir ./autoSOC_fusa/good_sim.log ./autoSOC_fusa/FI.xml \
+	./autoSOC_fusa/fault_dir/time.log
 
