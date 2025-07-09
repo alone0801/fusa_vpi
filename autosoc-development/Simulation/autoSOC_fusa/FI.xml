@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <FI_CONFIG>
-    <FAULT_TARGET>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl</FAULT_TARGET>
+    <FAULT_TARGET>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu</FAULT_TARGET>
     <FAULT_EXCLUDE></FAULT_EXCLUDE>
     <TESTBENCH_NAME>autosoc_tb</TESTBENCH_NAME>
     <DUT_NAME>autosoc_tb.dut</DUT_NAME>
@@ -9,9 +9,10 @@
     SE refers to all types of soft error
     ALL refers to all types of fault
     Please specify the FAULT_TYPE option with number-->
-    <FAULT_TYPE>3</FAULT_TYPE>
-    <FAULT_TW_START>40000</FAULT_TW_START>
-    <FAULT_TW_END>364600000</FAULT_TW_END>
+    <FAULT_TYPE>5</FAULT_TYPE>
+    <FAULT_TW_START>280000000</FAULT_TW_START>
+    <FAULT_TW_END>280000000</FAULT_TW_END>
+    <SET_HOLD_TIME>50</SET_HOLD_TIME>
     <OBSERVATION_POINTS>
     <!--<CHECKER_STROBE>autosoc_tb.dut.cp_ctrl_error</CHECKER_STROBE>-->
     <!--<CHECKER_STROBE>autosoc_tb.dut.intgen0.irq_o</CHECKER_STROBE>-->
@@ -47,7 +48,7 @@
     <NOSTOP_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.ibus_burst_o</NOSTOP_STROBE>
     <NOSTOP_STROBE>autosoc_tb.dut.mor1kx0.mor1kx_cpu.lockstep.mor1kx_lockstep_ctrl.mor1kx_cpu.ibus_req_o</NOSTOP_STROBE>
     </OBSERVATION_POINTS>
-    <ISO_MODE>ENA</ISO_MODE>
-    <CON>0</CON>
+    <ISO_MODE>DISENA</ISO_MODE>
+    <CON>15</CON>
 </FI_CONFIG>
 

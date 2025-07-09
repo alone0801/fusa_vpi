@@ -18,7 +18,7 @@
 static StringList *fault_target,*fault_exclude;
 static int fault_tw[2];
 static int fault_type;
-
+static int set_hold_time;
 void fault_modeling(p_cb_data cb_data);
 int find_submodule(vpiHandle this_mod_h,FILE *fp,int node_num);
 int find_local_signals(vpiHandle module_h,FILE *fp,int node_num);
@@ -29,7 +29,7 @@ int find_wire_array(vpiHandle module_h,FILE *fp,int node_num);
 int OutputFaultList(FILE *fp,vpiHandle signal_handle,int node_num);
 int GetRandNum(int min,int max,int seed);
 
-void fault_modeling_check(StringList* fault_target_p,StringList* fault_exclude_p,int fault_tw_[],int fault_type_local)
+void fault_modeling_check(StringList* fault_target_p,StringList* fault_exclude_p,int fault_tw_[],int fault_type_local,int set_hold_time_local)
 {
     s_cb_data cb_data_s;
     vpiHandle cb_handle,module_handle;
@@ -38,6 +38,7 @@ void fault_modeling_check(StringList* fault_target_p,StringList* fault_exclude_p
     fault_target = fault_target_p;
     fault_exclude = fault_exclude_p;
     fault_type = fault_type_local;
+    set_hold_time = set_hold_time_local;
     fault_tw[0] = fault_tw_[0];
     fault_tw[1] = fault_tw_[1];
 
@@ -66,7 +67,7 @@ void fault_modeling(p_cb_data cb_data)
         printf("Error opening file!\n");
     else
     {
-        fprintf(fp,"<LOCATION> <TYPE> <VALUE> <TIME> <SET_RETURN_TIME> <RESULT>\n");
+        fprintf(fp,"<LOCATION> <TYPE> <TIME> <SET_RETURN_TIME> <RESULT>\n");
     }
 
     for ( i = 0; i < fault_target->count; i++) {
@@ -328,37 +329,37 @@ int OutputFaultList(FILE *fp,vpiHandle signal_handle,int node_num)
     switch (fault_type)
     {
     case SA0:
-        fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA0",0,random_num,0);
+        fprintf(fp,"%s  %s  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA0",random_num,0);
         break;
     case SA1:
-        fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA1",1,random_num,0);
+        fprintf(fp,"%s  %s  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA1",random_num,0);
         break;
     case SA:
         if((random_type % 2) == 0)
-            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA0",0,random_num,0);
+            fprintf(fp,"%s  %s  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA0",random_num,0);
         else
-            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA1",1,random_num,0);
+            fprintf(fp,"%s  %s  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA1",random_num,0);
         break;
     case SEU:
-        fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SEU",0,random_num,0);
+        fprintf(fp,"%s  %s  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SEU",random_num,0);
         break;
     case SET:
-        fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SET",0,random_num,random_num+100);
+        fprintf(fp,"%s  %s  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SET",random_num,random_num+set_hold_time);
         break;
     default:
         switch (random_type)
         {
         case 0:
-            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA0",0,random_num,0);
+            fprintf(fp,"%s  %s  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA0",random_num,0);
             break;
         case 1:
-            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA1",1,random_num,0);
+            fprintf(fp,"%s  %s  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SA1",random_num,0);
             break;
         case 2:
-            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SEU",0,random_num,0);
+            fprintf(fp,"%s  %s  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SEU",random_num,0);
             break;
         default:
-            fprintf(fp,"%s  %s  %d  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SET",0,random_num,random_num+100);
+            fprintf(fp,"%s  %s  %d  %d  UU\n",vpi_get_str(vpiFullName,signal_handle),"SET",random_num,random_num+set_hold_time);
             break;
         }
         break;

@@ -22,6 +22,7 @@ static int flag_functional=0;
 static int last_time = 0;
 //static char fault_target[100];
 static char* fault_type_str; //////////ADDED
+static int set_hold_time;
 static char iso_mode[20];
 char DUT_NAME[100];
 static int  CON_NUM = 1;  // default==1 
@@ -48,7 +49,7 @@ void parse_injectXML(const char* filename);
 void SAInject(const char* fault_location, const char* fault_time, const char* fault_typeo);
 void generateXML(const char* idValue, const char* locationValue, const char** statusValue,const char* typeValue, int vact_num);
 void fault_injector_check(struct Fault *fault_p,int vact_num);
-void fault_modeling_check(StringList* fault_target,StringList* fault_exclude, int fault_tw[],int fault_type_local);             ///////////////////////////////////ADDED
+void fault_modeling_check(StringList* fault_target,StringList* fault_exclude, int fault_tw[],int fault_type_local,int set_hold_time_local);             ///////////////////////////////////ADDED
 void _check(StringList* fault_target,StringList* fault_exclude, int fault_tw[]);
 void value_get(const char* fault_location);
 static int timeoutHandler( p_cb_data cb_data_p );
@@ -647,23 +648,12 @@ void vcdCompareCheck( )
     initializeStringList(&checker_list);
     initializeStringList(&functional_list);
     initializeStringList(&nostop_list);
-    //FaultData *faults = random_process(FS_PATH);
 //    parseXML(FI_PATH);
 //    fault_type = atoi(fault_type_str); ////ADDED
 //    fault_tw[0] = atoi(fault_tw_str.strings[0]);
 //    fault_tw[1] = atoi(fault_tw_str.strings[1]);
 //    if (strcmp(value_s.value.str, "good_sim") == 0) 
 //        fault_modeling_check(&fault_target,&fault_exclude,&fault_tw,fault_type);  /////ADDED
-//    if ( tf_nump( ) == 1 )
-//    {
-//        if ( tf_typep( 1 ) == tf_string ) return;
-//
-//        tf_error( "Error: Non-string parameter\n" );
-//    }
-//    else
-//    {
-//        tf_error( "Error: Use only one parameter\n" );
-//    }
 }
 
 /*
@@ -743,7 +733,6 @@ void vcdCompareCall( )
             int i;
             for(i=0;i<CON_NUM+1;i++){
                 fault_array[i].fault_node_name = strdup(faults[id + i].location);
-                strcpy(fault_array[i].fault_node_name, faults[id + i].location);
                 fault_array[i].injection_time = atoi(faults[id+i].time);
                 //vpi_printf("%s\n",faults[id+i].type);
                 if(strcmp("SEU", faults[id+i].type) == 0)
@@ -939,37 +928,43 @@ void parseXML(const char* filename) {
             xmlChar* content = xmlNodeGetContent(node);
            // strcpy(fault_target,content);
             fault_target.strings[fault_target.count++] = strdup((const char*)content);
-            printf("fault_target:%s\n",fault_target.strings[fault_target.count-1]);
+            vpi_printf("fault_target:%s\n",fault_target.strings[fault_target.count-1]);
             xmlFree(content);
         }
         if (xmlStrcmp(node->name, (const xmlChar*)"FAULT_EXCLUDE") == 0){
             xmlChar* content = xmlNodeGetContent(node);
             fault_exclude.strings[fault_exclude.count++] = strdup((const char*)content);
-            printf("fault_exclude:%s\n",fault_exclude.strings[fault_exclude.count-1]);
+            vpi_printf("fault_exclude:%s\n",fault_exclude.strings[fault_exclude.count-1]);
             xmlFree(content);
         }
         if (xmlStrcmp(node->name, (const xmlChar*)"FAULT_TYPE") == 0){          //////////////ADDED
             xmlChar* content = xmlNodeGetContent(node);                                  ///////////////ADDED
             fault_type_str = strdup((const char*)content);                                     //////////////////ADDED 
-            printf("fault_type:%s\n",fault_type_str);                                              ///////////////ADDED 
+            vpi_printf("fault_type:%s\n",fault_type_str);                                              ///////////////ADDED 
             xmlFree(content);                                   /////////////ADDED
         }
         if (xmlStrcmp(node->name, (const xmlChar*)"FAULT_TW_START") == 0){
             xmlChar* content = xmlNodeGetContent(node);
             fault_tw_str.strings[0] = strdup((const char*)content);
-            printf("fault_tw_str[0]:%s\n",fault_tw_str.strings[0]);
+            vpi_printf("fault_tw_str[0]:%s\n",fault_tw_str.strings[0]);
             xmlFree(content);
         }
         if (xmlStrcmp(node->name, (const xmlChar*)"FAULT_TW_END") == 0){
             xmlChar* content = xmlNodeGetContent(node);
             fault_tw_str.strings[1] = strdup((const char*)content);
-            printf("fault_tw_str[1]:%s\n",fault_tw_str.strings[1]);
+            vpi_printf("fault_tw_str[1]:%s\n",fault_tw_str.strings[1]);
             xmlFree(content);
+        }
+        if (xmlStrcmp(node->name, (const xmlChar*)"SET_HOLD_TIME") == 0){          //////////////ADDED
+            xmlChar* content = xmlNodeGetContent(node);                                  ///////////////ADDED
+            set_hold_time = atoi((const char*)content);                                     //////////////////ADDED 
+            vpi_printf("set_hold_time:%d\n",set_hold_time);                                              ///////////////ADDED 
+            xmlFree(content);                                   /////////////ADDED
         }
         if (xmlStrcmp(node->name, (const xmlChar*)"ISO_MODE") == 0){
             xmlChar* content = xmlNodeGetContent(node);
             strcpy(iso_mode,content);
-            printf("isolation mode is :%s\n",iso_mode);
+            vpi_printf("isolation mode:%s\n",iso_mode);
             xmlFree(content);
         }
         if (xmlStrcmp(node->name, (const xmlChar*)"CON") == 0){
@@ -977,7 +972,7 @@ void parseXML(const char* filename) {
             CON_NUM = atoi(content);
             //printf("%d %d %d\n",CON_NUM,atoi(FAULT_ID),num_lines);
             if(CON_NUM+atoi(FAULT_ID)>num_lines) CON_NUM= num_lines-atoi(FAULT_ID);
-            printf("Concurrent num is :%d\n",CON_NUM);
+            vpi_printf("Concurrent num:%d\n",CON_NUM);
             //status_checker    = (char (*)[10])malloc((CON_NUM+1) * sizeof(char[10]));
             //status_functional = (char (*)[10])malloc((CON_NUM+1) * sizeof(char[10]));
             status_checker    = (char **)malloc((CON_NUM+1) * sizeof(char*));

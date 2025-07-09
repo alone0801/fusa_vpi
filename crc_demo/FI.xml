@@ -11,8 +11,9 @@
     ALL refers to all types of fault
     Please specify the FAULT_TYPE option with number-->
     <FAULT_TYPE>3</FAULT_TYPE>
-    <FAULT_TW_START>100</FAULT_TW_START>
-    <FAULT_TW_END>200</FAULT_TW_END>
+    <FAULT_TW_START>0</FAULT_TW_START>
+    <FAULT_TW_END>0</FAULT_TW_END>
+    <SET_HOLD_TIME>50</SET_HOLD_TIME>
     <OBSERVATION_POINTS>
     <CHECKER_STROBE>test.dut_inst.mem1_err_detected</CHECKER_STROBE>
     <CHECKER_STROBE>test.dut_inst.mem2_err_detected</CHECKER_STROBE>
@@ -25,6 +26,6 @@
     <!--<NOSTOP_STROBE>test.dut_inst.mem2_i.crc_gen_wr_i.d</NOSTOP_STROBE>-->
     <!--<NOSTOP_STROBE>test.dut_inst.mem2_data_out</NOSTOP_STROBE>-->
     </OBSERVATION_POINTS>
-    <ISO_MODE>NENA</ISO_MODE>
-    <CON>3</CON>
+    <ISO_MODE>DISENA</ISO_MODE>
+    <CON>15</CON>
 </FI_CONFIG>

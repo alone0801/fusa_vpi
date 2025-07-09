@@ -46,13 +46,12 @@ FaultData *random_process(const char* filename) {
     //printf("++++++DEBUG:HERE IS RANDOM++++++++++++=");
     int index = 0;
     while (fgets(line, sizeof(line), fp)) {
-        if (sscanf(line, "%255s %15s %15s %25s %25s %15s",
+        if (sscanf(line, "%255s %15s %25s %25s %15s",
                    faults[index].location,
                    faults[index].type,
-                   faults[index].value,
                    faults[index].time,
                    faults[index].SET_return_time,
-                   faults[index].result) == 6) {
+                   faults[index].result) == 5) {
             //printf("++++++DEBUG:HEREINBRANCH++++");
             //printf("++++++DEBUG%s++++++++++++=",faults[index].location);
             //printf("+++RANDOM::TIME:%s++++\n",faults[index].time);
